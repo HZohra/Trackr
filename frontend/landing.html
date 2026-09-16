@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trackr — Less Tracking, More Studying</title>
+  <meta name="description" content="Upload your syllabus and Trackr highlights what matters — every deadline, weight, and grade, organized into one calm semester view." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/pages/landing.css" />
+</head>
+
+<body class="lp">
+
+  <!-- ============ NAV ============ -->
+  <header class="lp-nav" role="banner">
+    <div class="lp-wrap lp-nav__inner">
+      <a href="index.html" class="lp-logo" aria-label="Trackr home">
+        <span class="lp-logo__mark" aria-hidden="true"><img src="assets/logo-white.png" alt="" /></span>
+        Trackr
+      </a>
+      <nav class="lp-nav__links" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#about">About</a>
+      </nav>
+      <div class="lp-nav__actions">
+        <button class="lp-theme" type="button" aria-label="Toggle dark mode">
+          <svg class="lp-theme__sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="lp-theme__moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+        <a href="pages/login.html" class="lp-nav__login">Login</a>
+        <a href="pages/signup.html" class="lp-btn lp-btn--primary lp-btn--sm">Get Started</a>
+        <button class="lp-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="lp-mobile">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="lp-wrap">
+      <nav class="lp-nav__mobile" id="lp-mobile" aria-label="Mobile">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#about">About</a>
+        <a href="pages/login.html">Login</a>
+        <a href="pages/signup.html" class="lp-btn lp-btn--primary" style="margin-top:.5rem;">Get Started</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="lp-hero" id="top">
+      <div class="lp-wrap lp-hero__grid">
+        <div class="lp-reveal">
+          <span class="lp-eyebrow"><span class="lp-eyebrow__dot"></span>Less tracking, more studying</span>
+          <h1>Your syllabus, with the <span class="lp-mark">important parts</span> already pulled out.</h1>
+          <p class="lp-hero__sub">Upload a PDF and Trackr highlights every deadline, weight, and grade — then lays your whole semester out in one calm view.</p>
+          <div class="lp-hero__cta">
+            <a href="pages/signup.html" class="lp-btn lp-btn--primary">Get Started</a>
+            <a href="landing.html" class="lp-btn lp-btn--ghost">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              View Demo
+            </a>
+          </div>
+          <p class="lp-hero__note">Free for students · No credit card · Set up in under a minute</p>
+        </div>
+
+        <!-- syllabus → structured semester -->
+        <div class="lp-reveal lp-visual" aria-hidden="true">
+          <div class="lp-syllabus">
+            <span class="lp-syllabus__tab">syllabus.pdf</span>
+            <div class="lp-syllabus__h"></div>
+            <div class="lp-syllabus__lines">
+              <span></span><span></span>
+              <span class="hl"></span>
+              <span></span>
+              <span class="hl"></span>
+              <span></span><span></span>
+              <span class="hl"></span>
+            </div>
+          </div>
+
+          <span class="lp-extract">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9l-4.5 3.3L16.7 18 12 14.7 7.3 18l1.7-5.7L4.5 9l5.6-1.4z"/></svg>
+            Extracted automatically
+          </span>
+
+          <div class="lp-panel">
+            <div class="lp-mc">
+              <div class="lp-mc__head">
+                <span class="lp-mc__ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+                <b>Semester Timeline</b>
+              </div>
+              <div class="lp-mc__tlrow"><span>Week 12 of 16</span><span class="lp-mono" data-countup="75" data-suffix="%">75%</span></div>
+              <div class="lp-bar"><i style="width:75%"></i></div>
+            </div>
+
+            <div class="lp-mock__tiles">
+              <div class="lp-mc lp-mc--tile">
+                <span class="lp-mc__ic lp-mc__ic--success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                <b>5</b><em>Completed</em>
+              </div>
+              <div class="lp-mc lp-mc--tile">
+                <span class="lp-mc__ic lp-mc__ic--progress"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+                <b>2</b><em>In Progress</em>
+              </div>
+            </div>
+
+            <div class="lp-mc lp-mc--row">
+              <span class="lp-mc__ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg></span>
+              <b class="lp-mc__label">GPA Analytics</b>
+              <span class="lp-mc__big" data-countup="3.72">3.72</span>
+            </div>
+
+            <div class="lp-mc lp-mc--row lp-mc--alert">
+              <span class="lp-mc__ic lp-mc__ic--danger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+              <b class="lp-mc__label">Computer Networks midterm</b>
+              <span class="lp-pill">Tomorrow</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROBLEM ============ -->
+    <section class="lp-section lp-section--tint lp-problem">
+      <div class="lp-wrap lp-problem__grid">
+        <div class="lp-reveal">
+          <p class="lp-kicker">The problem</p>
+          <h2>Five syllabi. A dozen deadlines. <span class="lp-mark">One overwhelmed brain.</span></h2>
+          <p class="lp-problem__lead">Every detail you need to pass is already written down — buried across five PDFs you read once in week one. Keeping track of it by hand is the part nobody has time for, so things slip.</p>
+        </div>
+        <div class="lp-reveal lp-pains">
+          <div class="lp-pain">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+            <div><b>Deadlines slip through the cracks</b><span>An assignment buried on page 6 you forgot existed.</span></div>
+          </div>
+          <div class="lp-pain">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+            <div><b>No idea where you actually stand</b><span>Five gradebooks, zero sense of your real GPA.</span></div>
+          </div>
+          <div class="lp-pain">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+            <div><b>The spreadsheet you never finish</b><span>Good intentions in week one, abandoned by week three.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="lp-section" id="features">
+      <div class="lp-wrap">
+        <div class="lp-section__head lp-reveal">
+          <p class="lp-kicker">Everything you need</p>
+          <h2>Built for students who want to focus on learning, not logistics</h2>
+          <p>Every feature does one job well — so opening Trackr feels like relief, not another thing to manage.</p>
+        </div>
+
+        <div class="lp-bento">
+          <article class="lp-feat lp-feat--hero lp-reveal">
+            <div class="lp-feat__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg></div>
+            <h3>Smart Syllabus Upload</h3>
+            <p>Drop in a PDF and AI reads it for you — pulling out every assignment, due date, grade weight, the course schedule, and your professor's contact info. You just review and confirm.</p>
+            <div class="lp-extract-demo">
+              <div class="lp-xdemo">
+                <div class="lp-xdemo__doc"><span></span><span></span><span class="hl"></span><span></span><span class="hl"></span></div>
+                <div class="lp-xdemo__arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+                <div class="lp-xdemo__out">
+                  <div class="lp-xrow"><span class="lp-dot" style="background:var(--course-sky)"></span><b>Assignment 1</b><span class="lp-xw">15%</span></div>
+                  <div class="lp-xrow"><span class="lp-dot" style="background:var(--course-violet)"></span><b>Midterm</b><span class="lp-xw">25%</span></div>
+                  <div class="lp-xrow"><span class="lp-dot" style="background:var(--course-coral)"></span><b>Final exam</b><span class="lp-xw">30%</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="lp-feat lp-reveal">
+            <div class="lp-feat__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+            <h3>Semester Dashboard</h3>
+            <p>All your courses in one view, with a weekly "due soon" glance.</p>
+            <div class="lp-hint__dots"><span style="background:var(--course-teal)"></span><span style="background:var(--course-sky)"></span><span style="background:var(--course-violet)"></span><span style="background:var(--course-amber)"></span><span style="background:var(--course-coral)"></span></div>
+          </article>
+
+          <article class="lp-feat lp-reveal">
+            <div class="lp-feat__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg></div>
+            <h3>Progress &amp; Grades</h3>
+            <p>Track each task from Not Started to Graded and see where you stand.</p>
+            <div class="lp-feat__hint"><div class="lp-hint__bar"><i style="width:68%"></i></div><span class="lp-hint__chip" style="color:var(--success);background:var(--success-soft)">68%</span></div>
+          </article>
+
+          <article class="lp-feat lp-reveal">
+            <div class="lp-feat__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <h3>GPA Calculator</h3>
+            <p>4.0 and 12.0 scales, plus a "what do I need?" target calculator.</p>
+            <div class="lp-feat__hint"><span class="lp-mono" style="font-size:1.1rem;font-weight:600">3.72</span><span class="lp-hint__chip" style="color:var(--muted);background:var(--surface-2)">/ 4.0</span></div>
+          </article>
+
+          <article class="lp-feat lp-reveal">
+            <div class="lp-feat__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+            <h3>Calendar &amp; Reminders</h3>
+            <p>Every deadline on a colour-coded calendar, with a nudge by email or WhatsApp before anything's due.</p>
+            <div class="lp-feat__hint"><span class="lp-hint__chip" style="color:var(--progress);background:var(--progress-soft)">Due in 2 days</span><span class="lp-hint__chip" style="color:var(--muted);background:var(--surface-2)">Email</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="lp-section lp-section--tint" id="how-it-works">
+      <div class="lp-wrap">
+        <div class="lp-section__head is-center lp-reveal">
+          <p class="lp-kicker is-center">Intelligent workflow</p>
+          <h2>From chaos to clarity in four steps</h2>
+        </div>
+        <div class="lp-flow">
+          <div class="lp-step lp-reveal">
+            <div class="lp-step__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3"/></svg></div>
+            <span class="lp-step__n">01</span><h3>Upload</h3>
+            <p>Import your syllabus and course materials as PDFs — one per course.</p>
+          </div>
+          <div class="lp-arrow" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          <div class="lp-step lp-reveal">
+            <div class="lp-step__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+            <span class="lp-step__n">02</span><h3>Review</h3>
+            <p>Confirm the deadlines and weights the AI found. Flagged fields are easy to fix.</p>
+          </div>
+          <div class="lp-arrow" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          <div class="lp-step lp-reveal">
+            <div class="lp-step__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg></div>
+            <span class="lp-step__n">03</span><h3>Track</h3>
+            <p>Monitor progress, status, and GPA in real time as grades come in.</p>
+          </div>
+          <div class="lp-arrow" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          <div class="lp-step lp-reveal">
+            <div class="lp-step__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01"/></svg></div>
+            <span class="lp-step__n">04</span><h3>Plan</h3>
+            <p>See what's next weeks ahead and stay in front of every deadline.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="lp-section lp-about" id="about">
+      <div class="lp-wrap lp-about__grid">
+        <div class="lp-reveal">
+          <p class="lp-kicker">About us</p>
+          <h2>Built by students, for students.</h2>
+          <p>We're a team of computer science students at Wilfrid Laurier University. We built Trackr because we were living the problem ourselves — five syllabi, a dozen deadlines, and no calm place to see it all in one spot.</p>
+          <p>Our goal is simple: take the busywork of tracking off your plate, so the energy you'd spend staying organized goes back into actually learning.</p>
+        </div>
+        <div class="lp-reveal lp-about__panel">
+      
+          <ul class="lp-values">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Designed around the real student workflow</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Less time on admin, more time to learn</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Calm by default — it should reduce stress, not add to it</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CLOSING CTA (last) ============ -->
+    <section class="lp-section" style="padding-top:0;">
+      <div class="lp-wrap lp-reveal">
+        <div class="lp-cta">
+          <div class="lp-cta__inner">
+            <h2>Spend less time tracking. <span class="lp-mark">More time studying.</span></h2>
+            <p>Set up your semester once and let Trackr keep the whole term in view. Free for students, no setup headache.</p>
+            <a href="pages/signup.html" class="lp-btn lp-btn--marker">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              Get Started Today
+            </a>
+            <div class="lp-cta__checks">
+              <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Free to start</span>
+              <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No credit card required</span>
+              <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Set up in minutes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="lp-footer">
+    <div class="lp-wrap lp-footer__inner">
+      <div class="lp-footer__brand">
+        <a href="index.html" class="lp-logo"><span class="lp-logo__mark" aria-hidden="true"><img src="assets/logo-white.png" alt="" /></span>Trackr</a>
+        <p class="lp-footer__tag">Less tracking, more studying.</p>
+      </div>
+      <div class="lp-footer__meta">
+        <div class="lp-footer__links">
+          <a href="pages/login.html">Login</a>
+          <a href="pages/signup.html">Sign up</a>
+        </div>
+        <p class="lp-footer__copy">© 2026 Trackr · Built at Wilfrid Laurier University</p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/pages/landing.js"></script>
+</body>
+</html>

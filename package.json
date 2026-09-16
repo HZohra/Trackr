@@ -1,0 +1,16 @@
+{
+    "name": "cp476-project",
+    "version": "1.0.0",
+    "description": "AI-powered school management app for students and teachers.",
+    "main": "index.js",
+    "scripts": {
+        "start": "npx serve frontend",
+        "dev": "npx serve frontend"
+    },
+    "dependencies": {
+        "@anthropic-ai/sdk": "^0.112.3",
+        "google-auth-library": "^10.9.0",
+        "nodemailer": "^9.0.3",
+        "serve": "^14.2.4"
+    }
+}

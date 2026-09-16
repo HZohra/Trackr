@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin · Trackr</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      try {
+        var saved = localStorage.getItem("trackr-theme");
+        var prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        document.documentElement.setAttribute(
+          "data-theme",
+          saved || (prefersDark ? "dark" : "light"),
+        );
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../css/app-shell.css" />
+    <link rel="stylesheet" href="../css/app-pages.css" />
+    <!-- reuses .stat / .dash-card / .sk skeleton styles -->
+    <link rel="stylesheet" href="../css/pages/dashboard.css" />
+    <link rel="stylesheet" href="../css/pages/admin-dashboard.css" />
+  </head>
+
+  <body class="app" data-page="dashboard">
+    <div data-include="../partials/admin-sidebar.html"></div>
+
+    <div class="app-main">
+      <div data-include="../partials/topbar.html"></div>
+
+      <main class="app-content">
+        <header class="dash-head">
+          <p class="dash-eyebrow">Admin</p>
+          <h1 class="dash-title">Admin Dashboard</h1>
+          <p class="dash-status">Here's what's happening on Trackr right now.</p>
+        </header>
+
+        <!-- 4 metric cards (reuse statCard component) -->
+        <section
+          class="dash-stats"
+          id="adminMetrics"
+          aria-label="Platform metrics"
+        ></section>
+
+        <!-- recent activity + course management -->
+        <div class="admin-grid">
+          <section class="dash-card" id="adminActivity" aria-label="Recent activity"></section>
+
+          <section class="dash-card admin-courses" aria-label="Course management">
+            <div class="dash-card__head">
+              <h2>Courses</h2>
+            </div>
+            <div class="admin-toolbar">
+              <label class="admin-field admin-field--search">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="search" id="courseSearch" placeholder="Search courses…" aria-label="Search courses" />
+              </label>
+              <select id="semesterFilter" aria-label="Filter by semester">
+                <option value="all">All semesters</option>
+              </select>
+            </div>
+            <div class="admin-courselist" id="adminCourseList"></div>
+          </section>
+        </div>
+
+        <!-- student management -->
+        <section class="dash-card admin-students" aria-label="Student management">
+          <div class="dash-card__head">
+            <h2>Students</h2>
+            <span class="dash-card__meta" id="studentCount"></span>
+          </div>
+          <div class="admin-toolbar">
+            <label class="admin-field admin-field--search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="search" id="studentSearch" placeholder="Search by name or email…" aria-label="Search students" />
+            </label>
+          </div>
+          <div class="admin-tablewrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th scope="col">Student</th>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Courses</th>
+                  <th scope="col">Assignments</th>
+                  <th scope="col">Joined</th>
+                </tr>
+              </thead>
+              <tbody id="adminStudents"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="../js/include.js"></script>
+    <script type="module" src="../js/pages/admin-dashboard.js"></script>
+  </body>
+</html>

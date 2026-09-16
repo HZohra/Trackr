@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enrollment</title>
+    <link rel="stylesheet" href="../css/pages/app-pages.css">
+    <link rel="stylesheet" href="../css/pages/enrollment.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-circle">T</div>
+            <h2>Trackr</h2>
+            <span class="collapse">&lt;&lt;</span>
+        </div>
+
+        <div class="semester-card">
+            <small>SEMESTER</small>
+            <p>Spring 2026 - Week 11</p>
+        </div>
+
+        <a href="dashboard.html">Dashboard</a>
+        <a href="courses.html">Courses</a>
+        <a href="assignments-view.html">Assignment</a>
+        <a href="calendar.html">Calendar</a>
+        <a href="gpa-tracker.html">GPA Tracker</a>
+        <a href="upload-syllabus.html">Upload Syllabus</a>
+        <a href="reminders.html">Reminders</a>
+        <a href="settings.html">Settings</a>
+
+        <div class="user-box">
+            <div class="user-circle">A</div>
+            <div>
+                <p>Alex Chen</p>
+                <small>Year 3</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <span>Enrollment</span>
+            <input type="text" placeholder="Search courses, assignments...">
+            <span>⌕</span>
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+
+        <div class="page">
+
+            <div class="enroll-grid">
+
+                <div class="enroll-left">
+
+                    <div class="card">
+                        <small class="section-label">COURSE JOIN CODE</small>
+                        <input type="text" id="join-code" placeholder="E.G. CS402">
+                        <button onclick="joinCourse()">Join Course</button>
+                        <div id="join-msg" class="join-msg hide"></div>
+                    </div>
+
+                    <div class="card">
+                        <small class="section-label">HOW TO GET A JOIN CODE</small>
+                        <ol class="how-to">
+                            <li>Your professor will provide the join code at the start of term.</li>
+                            <li>Join codes can also be found on the university course portal.</li>
+                            <li>Contact your registrar if you have not received your code.</li>
+                        </ol>
+                    </div>
+
+                    <div class="card">
+                        <small class="section-label">SEMESTER CREDIT LOAD</small>
+                        <div class="credit-row">
+                            <span>Total Credits</span>
+                            <strong><span id="total-credits">15</span> / 18 max</strong>
+                        </div>
+                        <div class="credit-bar-bg">
+                            <div id="credit-bar" class="credit-bar-fill"></div>
+                        </div>
+                        <p id="credit-note" class="credit-note">3 more credits available this semester</p>
+                    </div>
+
+                </div>
+
+                <div class="enroll-right">
+                    <div class="card">
+                        <small class="section-label">CURRENTLY ENROLLED (<span id="enrolled-count">5</span>)</small>
+                        <div id="enrolled-list"></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script src="../js/enrollment.js"></script>
+</body>
+</html>

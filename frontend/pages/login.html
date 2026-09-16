@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Sign in · Trackr</title>
+
+        <script type="module" src="../js/pages/login.js"></script>
+        <script
+            src="https://accounts.google.com/gsi/client"
+            async
+            defer
+        ></script>
+        <script>
+            try {
+                document.documentElement.dataset.theme =
+                    localStorage.getItem("trackr-theme") || "light";
+            } catch (e) {
+                document.documentElement.dataset.theme = "light";
+            }
+        </script>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="../css/tokens.css" />
+        <link rel="stylesheet" href="../css/base.css" />
+        <link rel="stylesheet" href="../css/components.css" />
+        <link rel="stylesheet" href="../css/pages/auth.css" />
+        <link rel="env" href="../.env" />
+    </head>
+
+    <body>
+        <main class="auth">
+            <a class="auth-brand" href="../index.html" aria-label="Trackr home">
+                <img src="../assets/logo.png" alt="Trackr logo" />
+                <span class="brand-name">Trackr</span>
+            </a>
+
+            <section class="auth-card" aria-labelledby="auth-title">
+                <h1 class="auth-title" id="auth-title">Sign in to Trackr</h1>
+
+                <div
+                    id="google-config"
+                    data-client-id="996024430540-k55vtp94um72er2mff7lorr50dd5kikg.apps.googleusercontent.com"
+                ></div>
+
+                <button
+                    type="button"
+                    class="btn btn-google"
+                    data-action="google-login"
+                >
+                    <svg
+                        class="google-icon"
+                        viewBox="0 0 18 18"
+                        width="18"
+                        height="18"
+                        aria-hidden="true"
+                    >
+                        <path
+                            fill="#4285F4"
+                            d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"
+                        />
+                        <path
+                            fill="#34A853"
+                            d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"
+                        />
+                        <path
+                            fill="#FBBC05"
+                            d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"
+                        />
+                        <path
+                            fill="#EA4335"
+                            d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"
+                        />
+                    </svg>
+                    Continue with Google
+                </button>
+
+                <div class="divider"><span>or</span></div>
+
+                <form class="auth-form" novalidate>
+                    <div class="field">
+                        <label class="field-label" for="email">Email</label>
+                        <input
+                            class="input"
+                            type="email"
+                            id="email"
+                            name="email"
+                            autocomplete="email"
+                            placeholder="user@university.ca"
+                            required
+                        />
+                        <p
+                            class="field-error"
+                            data-error-for="email"
+                            role="alert"
+                        ></p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="password"
+                            >Password</label
+                        >
+                        <input
+                            class="input"
+                            type="password"
+                            id="password"
+                            name="password"
+                            autocomplete="current-password"
+                            placeholder="••••••••"
+                            required
+                        />
+                        <a
+                            class="link link-small forgot-link"
+                            href="forgot-password.html"
+                            >Forgot password?</a
+                        >
+                        <p
+                            class="field-error"
+                            data-error-for="password"
+                            role="alert"
+                        ></p>
+                    </div>
+
+                    <p
+                        class="field-error field-error-oauth"
+                        role="alert"
+                        data-error-for="oauth"
+                    ></p>
+
+                    <div class="show-password">
+                        <label for="showPassword">
+                            <input type="checkbox" id="showPassword" />
+                            Show Password
+                        </label>
+                    </div>
+
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember" name="remember" />
+                        <label for="remember">Remember me</label>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-block"
+                        data-action="login"
+                    >
+                        Log in
+                    </button>
+                </form>
+
+                <p class="auth-footer">
+                    Don't have an account?
+                    <a class="link" href="signup.html">Create one</a>
+                </p>
+            </section>
+        </main>
+    </body>
+</html>

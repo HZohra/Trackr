@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review Extraction · Trackr</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      try {
+        var saved = localStorage.getItem("trackr-theme");
+        var prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        document.documentElement.setAttribute(
+          "data-theme",
+          saved || (prefersDark ? "dark" : "light"),
+        );
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../css/app-shell.css" />
+    <link rel="stylesheet" href="../css/app-pages.css" />
+    <style>
+      .review-field { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.75rem; }
+      .review-field > label { font-weight: 600; font-size: 0.8rem; }
+
+      /* Activity table: horizontally scrollable on small screens. */
+      .act-scroll { overflow-x: auto; }
+      .act-head, .act-row {
+        display: grid;
+        grid-template-columns:
+          minmax(160px, 1.6fr) minmax(110px, 1fr) minmax(140px, 1.1fr)
+          minmax(80px, 0.7fr) minmax(140px, 1.1fr) minmax(110px, 1fr)
+          minmax(110px, 1fr) 36px;
+        gap: 0.5rem;
+        align-items: center;
+        min-width: 900px;
+      }
+      .act-head {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        opacity: 0.7;
+        padding-bottom: 0.35rem;
+      }
+      .act-row { padding: 0.4rem 0; border-top: 1px solid var(--border, #e5e7eb); }
+      .act-row input,
+      .act-row select { width: 100%; }
+      .act-row .remove-btn {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 1.1rem;
+        color: #e1483b;
+        line-height: 1;
+      }
+      .act-row input.is-invalid { border-color: #e1483b; }
+      #formError {
+        color: #e1483b;
+        font-weight: 600;
+        font-size: 0.85rem;
+        min-height: 1em;
+      }
+      .add-activity-btn { margin-top: 0.75rem; }
+
+      /* Review & Confirm uses the full content width (overrides the app's
+         default 1100px .page cap) so the wide activities table is easy to scan. */
+      .app .page { max-width: none; width: 100%; }
+      /* Let the assignments card span the entire grid width. */
+      .review-grid .wide-card { grid-column: 1 / -1; }
+    </style>
+  </head>
+
+  <body class="app" data-page="upload">
+    <div data-include="../partials/student-sidebar.html"></div>
+
+    <div class="app-main">
+      <div data-include="../partials/topbar.html"></div>
+
+      <main class="app-content">
+        <div class="page">
+          <h1>Add a new course</h1>
+          <p class="subtext">Review all extracted fields before confirming.</p>
+
+          <div class="steps">
+            <span class="done-step">✓ Upload PDF</span>
+            <span class="done-step">✓ Course details</span>
+            <span class="done-step">✓ AI extraction</span>
+            <span class="active-step">4 Review &amp; confirm</span>
+          </div>
+
+          <div class="review-grid">
+            <div class="info-card">
+              <h3>COURSE INFO</h3>
+              <div class="review-field">
+                <label for="c-code">Course code</label>
+                <input id="c-code" type="text" maxlength="20" />
+              </div>
+              <div class="review-field">
+                <label for="c-name">Course name</label>
+                <input id="c-name" type="text" maxlength="150" />
+              </div>
+              <div class="review-field">
+                <label for="c-term">Term</label>
+                <input id="c-term" type="text" maxlength="30" readonly />
+              </div>
+              <div class="review-field">
+                <label for="c-prof">Professor</label>
+                <input id="c-prof" type="text" maxlength="100" />
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3>COURSE DETAILS</h3>
+              <div class="review-field">
+                <label for="c-meeting">Meeting times</label>
+                <input id="c-meeting" type="text" maxlength="255" />
+              </div>
+              <div class="review-field">
+                <label for="c-room">Room</label>
+                <input id="c-room" type="text" maxlength="80" />
+              </div>
+              <div class="review-field">
+                <label for="c-office">Office hours</label>
+                <textarea id="c-office" rows="2" maxlength="255"></textarea>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3>EXTRAS</h3>
+              <div class="review-field">
+                <label for="c-textbook">Textbook link</label>
+                <input id="c-textbook" type="text" maxlength="500" />
+              </div>
+              <div class="review-field">
+                <label for="c-gpa">GPA goal (optional)</label>
+                <input id="c-gpa" type="number" step="0.01" min="0" max="12" placeholder="e.g. 3.7" />
+              </div>
+            </div>
+
+            <div class="info-card wide-card">
+              <h3>ASSIGNMENTS &amp; DELIVERABLES</h3>
+              <p class="subtext" style="margin-top: 0">
+                Fill a due date for every row (required). Reminder and priority are optional.
+              </p>
+
+              <div class="act-scroll">
+                <div class="act-head">
+                  <span>Name</span>
+                  <span>Category</span>
+                  <span>Due date *</span>
+                  <span>Weight %</span>
+                  <span>Reminder date</span>
+                  <span>Method</span>
+                  <span>Priority</span>
+                  <span></span>
+                </div>
+                <div id="activitiesBody"></div>
+              </div>
+
+              <button id="addBtn" class="btn-ghost add-activity-btn" type="button">
+                + Add activity
+              </button>
+            </div>
+          </div>
+
+          <p id="formError" role="alert"></p>
+
+          <div class="bottom-buttons">
+            <a href="upload-syllabus.html" class="cancel-btn">Back</a>
+            <button id="saveBtn">Confirm &amp; add course</button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- One activity row; cloned per activity by extraction-review.js -->
+    <template id="rowTemplate">
+      <div class="act-row">
+        <input class="act-name" type="text" maxlength="150" placeholder="Activity name" />
+        <select class="act-category">
+          <option value="1">Assignment</option>
+          <option value="2">Quiz</option>
+          <option value="3">Exam</option>
+          <option value="4">Project</option>
+        </select>
+        <input class="act-due" type="date" />
+        <input class="act-weight" type="number" step="0.01" min="0" placeholder="0" />
+        <input class="act-reminder" type="date" />
+        <select class="act-method">
+          <option value="email">email</option>
+          <option value="whatsapp">whatsapp</option>
+        </select>
+        <select class="act-priority">
+          <option value="low">low</option>
+          <option value="medium" selected>medium</option>
+          <option value="high">high</option>
+        </select>
+        <button class="remove-btn" type="button" title="Remove" aria-label="Remove activity">✕</button>
+      </div>
+    </template>
+
+    <script type="module" src="../js/include.js"></script>
+    <script type="module" src="../js/extraction-review.js"></script>
+  </body>
+</html>

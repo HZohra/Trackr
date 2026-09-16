@@ -1,0 +1,166 @@
+# Trackr — API test requests (VS Code REST Client)
+# Matches docs/test-plan.md test IDs.
+# Setup: install the "REST Client" extension, start the backend (npm run dev),
+# then click "Send Request" above each block, top to bottom.
+# After AUTH-05 / AUTH-05b succeed, paste the tokens into the two variables below.
+
+@base = http://localhost:5000
+@studentToken = PASTE_STUDENT_JWT_HERE
+@adminToken = PASTE_ADMIN_JWT_HERE
+
+### AUTH-01 — Register student (expect 200/201)
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "first_name": "Student", "last_name": "Test", "email": "student.test@trackr.dev", "password": "Passw0rd!123", "role": "student" }
+
+### AUTH-01b — Register admin account (expect 200/201)
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "first_name": "Admin", "last_name": "Test", "email": "admin.test@trackr.dev", "password": "Passw0rd!123", "role": "admin" }
+
+### AUTH-02 — Duplicate email (expect 409 "Email already registered")
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "first_name": "Student", "last_name": "Test", "email": "student.test@trackr.dev", "password": "Passw0rd!123", "role": "student" }
+
+### AUTH-03 — Invalid email format (expect 400; if 200, log as validation gap)
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "first_name": "Bad", "last_name": "Email", "email": "not-an-email", "password": "Passw0rd!123", "role": "student" }
+
+### AUTH-04 — Missing fields (expect 400 "Missing required fields")
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "email": "only.email@trackr.dev" }
+
+### AUTH-05 — Login student (expect 200 + token; copy token to @studentToken)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "student.test@trackr.dev", "password": "Passw0rd!123" }
+
+### AUTH-05b — Login admin (expect 200 + token; copy token to @adminToken)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "admin.test@trackr.dev", "password": "Passw0rd!123" }
+
+### AUTH-06 — Wrong password (expect 401, generic message)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "student.test@trackr.dev", "password": "wrongpassword" }
+
+### AUTH-07 — Unknown email (expect 401, same generic message as AUTH-06)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "nobody@trackr.dev", "password": "Passw0rd!123" }
+
+### AUTH-08 — Forgot password (expect 200; try an unknown email too — should also be 200)
+POST {{base}}/auth/forgot-password
+Content-Type: application/json
+
+{ "email": "student.test@trackr.dev" }
+
+### AUTH-10 — Reset with garbage token (expect 400)
+POST {{base}}/auth/reset-password
+Content-Type: application/json
+
+{ "token": "garbage-token", "newPassword": "NewPassw0rd!123" }
+
+### USER-01 — My courses (expect 200, only this user's courses)
+GET {{base}}/user/courses
+Authorization: Bearer {{studentToken}}
+
+### USER-02 — My activities (expect 200)
+GET {{base}}/user/activities
+Authorization: Bearer {{studentToken}}
+
+### USER-03 — My statistics (expect 200; seed 1 upcoming + 1 overdue activity first)
+GET {{base}}/user/statistics
+Authorization: Bearer {{studentToken}}
+
+### USER-07 — Add course (expect 201; note nested "course" object + optional "activities")
+POST {{base}}/user/courses/
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{
+  "course": { "course_code": "CP476", "course_name": "Internet Computing", "term": "Spring 2026" },
+  "activities": []
+}
+
+### USER-08 — Add course missing fields (expect 400 "Missing required course fields")
+POST {{base}}/user/courses/
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{ "course": { "course_name": "No code or term" } }
+
+### USER-04 — Get course by id (expect 200; replace 1 with a real courseId from USER-01)
+GET {{base}}/user/courses/1
+Authorization: Bearer {{studentToken}}
+
+### USER-06 — Activities for a course (expect 200)
+GET {{base}}/user/courses/1/activities
+Authorization: Bearer {{studentToken}}
+
+### USER-11 — My profile (expect 200; replace 1 with your user_id)
+GET {{base}}/user/1/profile
+Authorization: Bearer {{studentToken}}
+
+### USER-12 — Update my profile (expect 200; note nested "profile" object)
+PUT {{base}}/user/1/profile
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{ "profile": { "first_name": "StudentUpdated" } }
+
+### USER-13 — Update someone ELSE's profile (expect 403 "Not authorized")
+PUT {{base}}/user/9999/profile
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{ "profile": { "first_name": "Hacked" } }
+
+### SEC-01 — No token (expect 401)
+GET {{base}}/user/courses
+
+### SEC-02 — Garbage token (expect 401)
+GET {{base}}/user/courses
+Authorization: Bearer abc123
+
+### SEC-04 — Student token on admin route (expect 403)
+GET {{base}}/admin/users/
+Authorization: Bearer {{studentToken}}
+
+### SEC-05 — SQL injection in login (expect 401, no bypass)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "' OR '1'='1", "password": "' OR '1'='1" }
+
+### SEC-05b — SQL injection in course name (expect 201, stored as plain text; verify tables intact)
+POST {{base}}/user/courses/
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{ "course": { "course_code": "EVIL", "course_name": "'; DROP TABLE users;--", "term": "Spring 2026" } }
+
+### ADM-01 — All users (expect 200; BLOCKED until admin controllers merge)
+GET {{base}}/admin/users/
+Authorization: Bearer {{adminToken}}
+
+### ADM-03 — All courses (expect 200; BLOCKED until admin controllers merge)
+GET {{base}}/admin/courses/
+Authorization: Bearer {{adminToken}}
+
+### ADM-05 — Statistics (expect 200; BLOCKED until admin controllers merge)
+GET {{base}}/admin/statistics/
+Authorization: Bearer {{adminToken}}

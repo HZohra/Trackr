@@ -1,0 +1,243 @@
+/* ============================================================
+   Calendar page — styles specific to this page.
+   Scoped under .app so it inherits the app tokens from
+   app-shell.css and themes correctly (light + dark).
+   Shared surfaces (.card, .warning, .subtext) come from
+   app-pages.css. JS hooks (ids + generated classes) come
+   from js/calendar.js — keep these class names in sync.
+   ============================================================ */
+
+/* ---- header + view toggle ---- */
+.app .cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: .5rem;
+}
+
+.app .view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 3px;
+}
+.app .toggle-btn {
+  padding: .45rem .95rem;
+  border-radius: calc(var(--radius-lg) - 3px);
+  font-size: .85rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s ease, color .15s ease;
+}
+.app .toggle-btn:hover { color: var(--text); }
+.app .toggle-btn.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+/* ---- calendar card ---- */
+.app .cal-card { margin-top: .75rem; }
+
+.app .cal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.app .cal-top h2 { margin: 0; font-size: 1.15rem; letter-spacing: -.01em; }
+.app .cal-top small { color: var(--muted); font-size: .82rem; }
+
+.app .cal-nav span {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: .4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.app .cal-nav span:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+
+/* ---- month grid ---- */
+.app .weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: .5rem;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.app .cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.app .cal-cell {
+  min-height: 84px;
+  padding: .4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color .15s ease, background .15s ease;
+}
+.app .cal-cell:hover {
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+.app .cal-cell.empty { background: transparent; border: none; }
+
+.app .cal-cell .day-num {
+  font-size: .78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* today */
+.app .cal-cell.today {
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+.app .cal-cell.today .day-num { color: var(--primary); font-weight: 700; }
+
+/* ---- event pills + type dots ---- */
+.app .event-pill {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .3rem;
+  font-size: .7rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.app .dot.assignment { background: var(--course-sky); }
+.app .dot.exam       { background: var(--danger); }
+.app .dot.lab        { background: var(--success); }
+.app .dot.reminder   { background: var(--neutral); }
+
+/* ---- legend ---- */
+.app .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  font-size: .75rem;
+  color: var(--muted);
+}
+.app .legend span { display: flex; align-items: center; gap: .4rem; }
+
+/* ---- week view ---- */
+.app .week-day-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: .85rem;
+  margin-bottom: .6rem;
+}
+.app .week-day-block strong { font-size: .9rem; }
+.app .week-day-block .event-pill { font-size: .82rem; margin-top: .4rem; }
+
+/* ---- bottom three panels ---- */
+.app .cal-bottom {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.app .cal-bottom .card h2 { margin-top: 0; font-size: 1.05rem; }
+
+.app .upcoming-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .88rem;
+}
+.app .upcoming-item:last-child { border-bottom: none; }
+.app .upcoming-item p { margin: 0; flex: 1; }
+.app .upcoming-item small { color: var(--muted); }
+
+/* filter rows — note: app-pages.css forces .app .page input { width:100% },
+   so checkboxes must be reset to auto width here. */
+.app .filter-row {
+  display: flex;
+  align-items: center;
+  margin-top: .75rem;
+  font-size: .88rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+.app .filter-row input[type="checkbox"] {
+  width: auto;
+  margin: 0 .6rem 0 0;
+}
+.app .filter-row span { display: flex; align-items: center; gap: .5rem; }
+
+.app .glance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .88rem;
+}
+.app .glance-row:last-child { border-bottom: none; }
+.app .glance-row strong { font-weight: 600; }
+.app .glance-row small { color: var(--muted); }
+
+/* ---- utility ---- */
+.app .hide { display: none; }
+
+/* ---- responsive ---- */
+.app .cal-card { overflow: hidden; }
+
+@media (max-width: 900px) {
+  .app .cal-bottom { grid-template-columns: 1fr; }
+  .app .cal-grid { gap: 4px; }
+  .app .cal-cell { min-height: 72px; padding: .35rem; }
+  .app .event-pill { font-size: .62rem; }
+}
+
+/* On phones the 7-column grid is too narrow for event text, so month
+   cells show only the colour dots; switch to Week view to read details. */
+@media (max-width: 640px) {
+  .app .weekday-row { font-size: .58rem; }
+  .app .cal-grid { gap: 3px; }
+  .app .cal-cell { min-height: 52px; padding: .25rem; }
+  .app .cal-cell .day-num { font-size: .68rem; }
+  .app .cal-cell .event-pill {
+    font-size: 0;
+    gap: 0;
+    margin-top: .25rem;
+  }
+  .app .cal-cell .event-pill .dot { width: 7px; height: 7px; }
+}

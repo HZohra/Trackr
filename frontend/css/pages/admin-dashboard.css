@@ -1,0 +1,86 @@
+/* ============================================================
+   Trackr — Admin dashboard page  ·  "Ink & Paper"
+   Lives inside body.app and reuses app tokens + dashboard.css
+   primitives (.stat, .dash-card, .sk). Only admin-specific
+   building blocks are defined here.
+   ============================================================ */
+
+/* admin badge in the sidebar (semester card slot, no progress bar) */
+.app-sem--admin > svg { color: var(--primary); }
+.app-sem--admin .app-sem__row span { color: var(--muted); }
+
+/* ---- layout: activity + courses ---- */
+.admin-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 1rem; margin-bottom: 1.25rem; align-items: start; }
+
+/* ---- shared toolbar (search + filter) ---- */
+.admin-toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.admin-field { display: flex; align-items: center; gap: .5rem; flex: 1; min-width: 180px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .45rem .7rem; color: var(--muted); }
+.admin-field:focus-within { border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); box-shadow: 0 0 0 3px var(--primary-soft); }
+.admin-field svg { flex: none; }
+.admin-field input { border: 0; background: none; outline: none; font: inherit; font-size: .88rem; color: var(--text); width: 100%; padding: 0; margin: 0; }
+.admin-field input::placeholder { color: var(--muted); }
+.app .admin-toolbar select {
+  flex: 0 0 auto; width: auto; min-width: 150px; margin-top: 0;
+  font: inherit; font-size: .88rem; color: var(--text); cursor: pointer;
+  background-color: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: .45rem 2.1rem .45rem .7rem;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236E6A5E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right .6rem center; background-size: .95rem;
+}
+.app .admin-toolbar select:hover { border-color: color-mix(in srgb, var(--primary) 35%, var(--border)); }
+.app .admin-toolbar select:focus { outline: none; border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); box-shadow: 0 0 0 3px var(--primary-soft); }
+
+/* ---- recent activity feed ---- */
+.afeed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.afeed__item { display: flex; gap: .7rem; padding: .7rem .1rem; border-top: 1px solid var(--border); }
+.afeed__item:first-child { border-top: 0; }
+.afeed__dot { width: 9px; height: 9px; border-radius: 50%; margin-top: .45rem; flex: none; background: var(--neutral); }
+.afeed__dot--register   { background: var(--success); }
+.afeed__dot--course     { background: var(--primary); }
+.afeed__dot--assignment { background: var(--progress); }
+.afeed__body { min-width: 0; }
+.afeed__text { font-size: .88rem; line-height: 1.45; margin: 0; }
+.afeed__text b { font-weight: 600; }
+.afeed__time { font-size: .74rem; color: var(--muted); font-family: var(--font-mono); }
+
+/* ---- course management cards ---- */
+.admin-courselist { display: grid; gap: .8rem; }
+.acard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1rem 1.1rem; }
+.acard__head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .55rem; }
+.acard__code { font-family: var(--font-mono); font-size: .72rem; font-weight: 600; color: #fff; background: var(--c, var(--primary)); padding: .2rem .5rem; border-radius: 6px; }
+.acard__name { font-size: .98rem; font-weight: 600; margin: 0 0 .15rem; letter-spacing: -.01em; }
+.acard__meta { font-size: .78rem; color: var(--muted); margin: 0 0 .8rem; }
+.acard__foot { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.acard__stats { font-size: .76rem; color: var(--muted); font-family: var(--font-mono); }
+.acard__stats b { color: var(--text); }
+
+/* ---- student table ---- */
+.admin-tablewrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.admin-table th, .admin-table td { padding: .7rem .6rem; text-align: left; border-bottom: 1px solid var(--border); font-size: .86rem; vertical-align: middle; }
+.admin-table th { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; font-family: var(--font-mono); }
+.admin-table tbody tr:last-child td { border-bottom: 0; }
+.admin-table tbody tr:hover { background: var(--surface-2); }
+
+.atd-student { display: flex; align-items: center; gap: .65rem; }
+.atd-student__avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: .7rem; font-weight: 600; font-family: var(--font-mono); color: #fff; flex: none; }
+.atd-student__name { font-weight: 600; font-size: .88rem; display: block; }
+.atd-student__email { font-size: .76rem; color: var(--muted); }
+.admin-table td[data-num] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* empty states */
+.admin-empty { padding: 1.75rem 1rem; text-align: center; color: var(--muted); font-size: .88rem; }
+.admin-empty b { color: var(--text); }
+
+/* ---- skeleton helpers reused via dashboard.css .sk ---- */
+.afeed .sk--line { height: 12px; }
+
+/* ---- responsive ---- */
+@media (max-width: 1040px) {
+  .admin-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .admin-toolbar { flex-direction: column; align-items: stretch; }
+  .app .admin-toolbar select { width: 100%; }
+}
