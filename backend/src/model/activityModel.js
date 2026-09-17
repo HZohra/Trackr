@@ -3,7 +3,7 @@ import pool from "../config/db.js";
 // All activities for a user, across all their courses. activities has no
 // user_id column — ownership only exists through activities -> courses ->
 // user_id, so this has to join through courses.
-function defaultReminder(dueDate, days = 3) {
+export function defaultReminder(dueDate, days = 3) {
   if (!dueDate) return null;
   const d = new Date(String(dueDate).replace(" ", "T") + "Z");
   d.setUTCDate(d.getUTCDate() - days);

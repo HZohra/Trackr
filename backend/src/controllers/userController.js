@@ -172,53 +172,19 @@ export const addCourse = (req, res) => {
     }
     const { course, activities } = normalized;
 
-    courseModel.createCourse(req.user.user_id, course, (err, newCourse) => {
-        if (err)
-            return res.status(500).json({ message: "Failed to create course" });
-
-        if (!activities || activities.length === 0) {
-            return res.status(201).json({ course: newCourse, activities: [] });
-        }
-
-        // Insert each activity sequentially under the new course.
-        // Note: this isn't wrapped in a DB transaction, so if one insert
-        // fails partway through, earlier ones already succeeded. Fine for
-        // now — worth revisiting with a transaction once this is tested
-        // against real data.
-        const createdActivities = [];
-        let remaining = activities.length;
-        let hadError = false;
-
-        activities.forEach((activity) => {
-            activityModel.createActivity(
-                newCourse.course_id,
-                activity,
-                (err, newActivity) => {
-                    remaining -= 1;
-                    if (err) {
-                        hadError = true;
-                    } else {
-                        createdActivities.push(newActivity);
-                    }
-
-                    if (remaining === 0) {
-                        if (hadError) {
-                            return res.status(207).json({
-                                message:
-                                    "Course created, some activities failed",
-                                course: newCourse,
-                                activities: createdActivities,
-                            });
-                        }
-                        res.status(201).json({
-                            course: newCourse,
-                            activities: createdActivities,
-                        });
-                    }
-                },
-            );
-        });
-    });
+    courseModel.createCourseWithActivities(
+        req.user.user_id,
+        course,
+        activities,
+        (err, result) => {
+            if (err) {
+                return res
+                    .status(500)
+                    .json({ message: "Failed to create course" });
+            }
+            res.status(201).json(result); // { course, activities }
+        },
+    );
 };
 
 // POST /user/activities
