@@ -8,7 +8,7 @@ Following the original course submission, I am continuing development independen
 
 ---
 
-## 📖 Overview
+## Overview
 
 Trackr is designed to reduce the amount of time students spend manually organizing course information.
 
@@ -18,11 +18,11 @@ The application combines academic tracking tools with a full-stack architecture 
 
 ---
 
-# ✅ Current Features
+# Current Features
 
 The following functionality is currently part of the application.
 
-### 🔐 User Authentication
+### User Authentication
 
 * User account authentication
 * JWT-based authentication
@@ -32,7 +32,7 @@ The following functionality is currently part of the application.
 
 ---
 
-### 📚 Course Management
+### Course Management
 
 * Create and manage courses
 * Store course information
@@ -41,7 +41,7 @@ The following functionality is currently part of the application.
 
 ---
 
-### 📄 Syllabus Processing
+### Syllabus Processing
 
 * Upload or provide syllabus information
 * Extract important course information from a syllabus
@@ -52,7 +52,7 @@ The following functionality is currently part of the application.
 
 ---
 
-### ✅ Assignment & Activity Tracking
+### Assignment & Activity Tracking
 
 Students can track academic activities including:
 
@@ -67,7 +67,7 @@ This allows students to keep course work and deadlines organized from one place.
 
 ---
 
-### 📊 Grade & GPA Tracking
+### Grade & GPA Tracking
 
 * Track grades across courses
 * View academic statistics
@@ -77,7 +77,7 @@ This allows students to keep course work and deadlines organized from one place.
 
 ---
 
-### 🏠 Student Dashboard
+### Student Dashboard
 
 The dashboard provides students with a centralized view of their academic information, including:
 
@@ -89,7 +89,7 @@ The dashboard provides students with a centralized view of their academic inform
 
 ---
 
-### 👤 Student Profile & Statistics
+### Student Profile & Statistics
 
 * Student profile information
 * Academic statistics
@@ -98,7 +98,7 @@ The dashboard provides students with a centralized view of their academic inform
 
 ---
 
-### 🛡️ Validation & Access Control
+### Validation & Access Control
 
 The backend includes:
 
@@ -110,19 +110,19 @@ The backend includes:
 
 ---
 
-### 📱 Responsive Interface
+### Responsive Interface
 
 Trackr includes a responsive web interface designed to work across different screen sizes.
 
 ---
 
-# 🚧 Current Development
+# Current Development
 
 After the original university project was submitted, I began continuing development independently.
 
 The current goal is to transform Trackr from a university project into a more complete, deployable academic productivity application.
 
-### 🤖 Trackr AI Chatbot
+### Trackr AI Chatbot
 
 I am currently working on adding an AI-powered chatbot that will allow students to interact with their academic information conversationally.
 
@@ -139,7 +139,7 @@ The goal is for the chatbot to eventually use information stored inside Trackr r
 
 ---
 
-### 🔔 Notification & Reminder System
+### Notification & Reminder System
 
 A notification system is also being developed to help students avoid missing important academic deadlines.
 
@@ -153,7 +153,7 @@ Planned functionality includes:
 
 ---
 
-### 🧠 Expanded AI Features
+### Expanded AI Features
 
 Future AI functionality is being explored to make Trackr more useful as an academic assistant.
 
@@ -169,7 +169,7 @@ These features are currently under development and are **not considered complete
 
 ---
 
-### 🚀 Deployment
+### Deployment
 
 Another major goal of the current development phase is deploying Trackr so that it can be accessed as a live web application rather than only through local development.
 
@@ -185,7 +185,7 @@ Deployment work includes:
 
 ---
 
-### 🎨 Continued UI/UX Improvements
+### Continued UI/UX Improvements
 
 The interface is also being improved to make the application:
 
@@ -197,7 +197,7 @@ The interface is also being improved to make the application:
 
 ---
 
-# 🛠️ Tech Stack
+# Tech Stack
 
 | Layer             | Technology             |
 | ----------------- | ---------------------- |
@@ -213,7 +213,7 @@ The interface is also being improved to make the application:
 
 ---
 
-# 🏗️ Architecture
+# Architecture
 
 ```text
 User
@@ -241,7 +241,7 @@ As development continues, additional services such as the chatbot and notificati
 
 ---
 
-# 🚀 Getting Started
+# Getting Started
 
 ## Prerequisites
 
@@ -255,7 +255,7 @@ You will need:
 
 ---
 
-# 💻 Running Trackr Locally
+# Running Trackr Locally
 
 Both the frontend and backend need to be running.
 
@@ -338,7 +338,7 @@ http://localhost:3000
 
 ---
 
-# 📂 Project Structure
+# Project Structure
 
 ```text
 Trackr/
@@ -365,7 +365,7 @@ Trackr/
 
 ---
 
-# 🗺️ Development Roadmap
+# Development Roadmap
 
 ### Completed / Existing
 
@@ -406,7 +406,7 @@ Trackr/
 
 ---
 
-# 👥 Original Team Project
+# Original Team Project
 
 Trackr was originally created collaboratively as part of **CP476 — Internet Computing** at Wilfrid Laurier University.
 
@@ -438,14 +438,14 @@ This repository now serves as both the original collaborative academic project a
 
 ---
 
-# 📚 Course
+# Course
 
 **CP476 — Internet Computing**
 Wilfrid Laurier University
 
 ---
 
-# 👩‍💻 Maintainer
+# Maintainer
 
 **Zohra Haidary**
 
@@ -457,7 +457,7 @@ LinkedIn: [linkedin.com/in/zohra-haidary-318575201](https://www.linkedin.com/in/
 
 ---
 
-## ⭐ Project Status
+## Project Status
 
 **Active Development**
 
