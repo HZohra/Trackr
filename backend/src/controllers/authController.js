@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
-import nodemailer from "nodemailer";
 import { createToken, getJWTSecret } from "../middleware/auth.js";
+import { sendMail } from "../services/mailer.js";
 import {
     createPasswordResetToken,
     createUser,
@@ -268,20 +268,14 @@ export const userForgotPassword = (req, res) => {
     });
 };
 
+
 export const sendResetPasswordMail = (token, email) => {
-    const transporter = nodemailer.createTransport({
-        service: "Gmail",
-        auth: {
-            user: process.env.APP_EMAIL,
-            pass: process.env.APP_EMAIL_PASSWORD,
-        },
-    });
-    transporter.sendMail({
-        from: process.env.APP_EMAIL,
-        to: email,
-        subject: "Password Reset Request",
-        text: `You requested a password reset. Use the following links to reset your password: ${process.env.FRONTEND_URL}/pages/reset-password?token=${token}. This token will expire in 30 minutes.`,
-    });
+    sendMail(
+        email,
+        "Password Reset Request",
+        `You requested a password reset. Use the following links to reset your password: ${process.env.FRONTEND_URL}/pages/reset-password?token=${token}. This token will expire in 30 minutes.`,
+    );
     console.log(`Password reset email sent to ${email} with token: ${token}`);
 };
+
 

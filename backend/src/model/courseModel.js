@@ -9,6 +9,7 @@ export const getCoursesByUserId = (userId, callback) => {
         }
         const query = "SELECT * FROM courses WHERE user_id = ?";
         db.query(query, [userId], (err, results) => {
+            db.release();
             if (err) {
                 console.error("Error fetching courses:", err);
                 return callback(err, null);
@@ -30,6 +31,7 @@ export const getCourseById = (courseId, userId, callback) => {
         const query =
             "SELECT * FROM courses WHERE course_id = ? AND user_id = ?";
         db.query(query, [courseId, userId], (err, results) => {
+            db.release();
             if (err) {
                 console.error("Error fetching course:", err);
                 return callback(err, null);
@@ -81,6 +83,7 @@ export const createCourse = (userId, courseData, callback) => {
                 gpa_goal || null,
             ],
             (err, results) => {
+                db.release();
                 if (err) {
                     console.error("Error creating course:", err);
                     return callback(err, null);

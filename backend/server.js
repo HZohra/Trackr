@@ -12,6 +12,8 @@ import {
 import adminRouter from "./src/routes/adminRoute.js";
 import authRouter from "./src/routes/authRoute.js";
 import userRouter from "./src/routes/userRoute.js";
+import cron from "node-cron";
+import { runReminders } from "./src/services/reminderService.js";
 // import activityRouter from "./src/routes/activityRoute.js";
 
 dotenv.config();
@@ -36,6 +38,8 @@ if (jwtSecret) {
     console.error("JWT secret is not set.");
     process.exit(1);
 }
+// Run the reminder sweep every 15 minutes.
+cron.schedule("*/15 * * * *", () => runReminders().catch(console.error));
 
 // Setting
 app.use(express.json());

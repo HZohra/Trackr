@@ -3,8 +3,15 @@ import pool from "../config/db.js";
 // All activities for a user, across all their courses. activities has no
 // user_id column — ownership only exists through activities -> courses ->
 // user_id, so this has to join through courses.
+function defaultReminder(dueDate, days = 3) {
+  if (!dueDate) return null;
+  const d = new Date(String(dueDate).replace(" ", "T") + "Z");
+  d.setUTCDate(d.getUTCDate() - days);
+  return d.toISOString().slice(0, 19).replace("T", " ");
+}
 export const getAllActivities = (userId, callback) => {
     pool.getConnection((err, db) => {
+        db.release();
         if (err) {
             console.error("Error getting database connection:", err);
             return callback(err, null);
@@ -30,6 +37,7 @@ export const getAllActivities = (userId, callback) => {
 // requesting user actually owns that course, not just any course_id.
 export const getActivitiesByCourseId = (courseId, userId, callback) => {
     pool.getConnection((err, db) => {
+        db.release();
         if (err) {
             console.error("Error getting database connection:", err);
             return callback(err, null);
@@ -84,7 +92,7 @@ export const createActivity = (courseId, activityData, callback) => {
                 activity_name,
                 due_date,
                 grading_weight || 0,
-                reminder_date || null,
+                reminder_date || defaultReminder(due_date),
                 reminder_method || "email",
                 priority_level || "medium",
             ],
@@ -206,6 +214,7 @@ export const deleteActivity = (activityId, userId, callback) => {
 // recorded), and how many are due soon.
 export const getStatisticsByUserId = (userId, callback) => {
     pool.getConnection((err, db) => {
+        db.release();
         if (err) {
             console.error("Error getting database connection:", err);
             return callback(err, null);
@@ -228,5 +237,64 @@ export const getStatisticsByUserId = (userId, callback) => {
             }
             callback(null, results[0]);
         });
+        
     });
+};
+
+
+// Finds activities whose reminder is due and hasn't been sent yet. Joins up to
+// courses and users so the sender has the recipient's email and name.
+export const getDueReminders = (callback) => {
+  pool.getConnection((err, db) => {
+    if (err) {
+      console.error("Error getting database connection:", err);
+      return callback(err, null);
+    }
+    const query = `
+      SELECT a.activity_id, a.activity_name, a.due_date, a.reminder_method,
+             c.course_code, c.course_name,
+             u.email, u.first_name
+      FROM activities a
+      JOIN courses c ON a.course_id = c.course_id
+      JOIN users   u ON c.user_id   = u.user_id
+      WHERE a.reminder_sent = 0
+        AND a.reminder_date IS NOT NULL
+        AND a.reminder_date <= NOW()
+        AND a.status IN ('not_started', 'in_progress')
+      ORDER BY a.due_date ASC
+      LIMIT 200
+    `;
+    db.query(query, (err, rows) => {
+      db.release();
+      if (err) {
+        console.error("Error fetching due reminders:", err);
+        return callback(err, null);
+      }
+      callback(null, rows);
+    });
+  });
+};
+
+// Flags reminders as sent so the scheduler doesn't email them again. ids is an
+// array of activity_id values; mysql2 expands the array into the IN (...) list.
+export const markReminderSent = (ids, callback) => {
+  if (!ids.length) return callback(null, 0);
+  pool.getConnection((err, db) => {
+    if (err) {
+      console.error("Error getting database connection:", err);
+      return callback(err, null);
+    }
+    db.query(
+      `UPDATE activities SET reminder_sent = 1 WHERE activity_id IN (?)`,
+      [ids],
+      (err, result) => {
+        db.release();
+        if (err) {
+          console.error("Error marking reminders sent:", err);
+          return callback(err, null);
+        }
+        callback(null, result.affectedRows);
+      },
+    );
+  });
 };
