@@ -68,6 +68,7 @@ CREATE TABLE activities (
     grading_weight DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     reminder_date DATETIME NULL,
     reminder_method ENUM('email', 'whatsapp') NOT NULL DEFAULT 'email',
+    reminder_sent TINYINT(1) NOT NULL DEFAULT 0,
     priority_level ENUM('low', 'medium', 'high') NOT NULL DEFAULT 'medium',
     grade DECIMAL(5,2) NULL,
     status ENUM('not_started', 'in_progress', 'submitted', 'graded')
@@ -108,6 +109,7 @@ CREATE INDEX idx_courses_user_id ON courses (user_id);
 CREATE INDEX idx_activities_course_id ON activities (course_id);
 CREATE INDEX idx_activities_category_id ON activities (activity_category_id);
 CREATE INDEX idx_activities_due_date ON activities (due_date);
+CREATE INDEX idx_activities_reminder_due ON activities (reminder_sent, reminder_date);
 
 INSERT INTO activity_categories (activity_category_name) VALUES
     ('Assignment'),
