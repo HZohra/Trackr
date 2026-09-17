@@ -1,4 +1,5 @@
 import * as adminModel from "../model/adminModel.js";
+import { runReminders } from "../services/reminderService.js";
 
 // Make admin page only for amins (no students)
 const ROLES = ["student", "admin"];
@@ -55,4 +56,15 @@ export const getAllUserActivities = (req, res) => {
         if (err) return res.status(500).json({ message: "Server error" });
         res.json(activities);
     });
+};
+
+
+export const triggerReminders = async (req, res) => {
+    try {
+        const result = await runReminders();
+        res.json(result); // { attempted, sent }
+    } catch (err) {
+        console.error("Manual reminder run failed:", err);
+        res.status(500).json({ message: "Server error" });
+    }
 };

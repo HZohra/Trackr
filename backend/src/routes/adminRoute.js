@@ -7,6 +7,7 @@ import {
     getRecentActivity,
     getStatistics,
     getUser,
+    triggerReminders,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -18,5 +19,6 @@ router.get("/courses/:id", getCourse);
 router.get("/statistics/", getStatistics);
 router.get("/recent-activity/", getRecentActivity);
 router.get("/user-activities/", getAllUserActivities);
+router.post("/run-reminders", triggerReminders);
 
 export default router;
