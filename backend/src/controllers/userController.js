@@ -12,9 +12,14 @@ import {
 // req.user comes from verifyToken middleware — this is the trustworthy
 // source of "who is asking", not req.body or req.params.
 export const getCoursesByUserId = (req, res) => {
-    courseModel.getCoursesByUserId(req.user.user_id, (err, courses) => {
-        if (err) return res.status(500).json({ message: "Server error" });
-        res.json(courses);
+    const userId = req.user.user_id;
+    // Archive any finished courses first, then return the (now-updated) list.
+    // A failed archive is logged in the model but must not block the read.
+    courseModel.autoArchivePastCourses(userId, () => {
+        courseModel.getCoursesByUserId(userId, (err, courses) => {
+            if (err) return res.status(500).json({ message: "Server error" });
+            res.json(courses);
+        });
     });
 };
 

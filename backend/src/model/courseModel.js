@@ -174,6 +174,35 @@ export const setCourseFinalGrade = (courseId, userId, finalGrade, callback) => {
     });
 };
 
+// Archives any of the user's courses whose term has already ended (term_end in
+// the past) and that aren't archived yet. Runs on the courses read path so
+// finished semesters clear out on their own. Courses with no term_end are left
+// alone — they rely on the manual Archive button.
+export const autoArchivePastCourses = (userId, callback) => {
+    pool.getConnection((err, db) => {
+        if (err) {
+            console.error("Error getting database connection:", err);
+            return callback(err);
+        }
+        const query = `
+            UPDATE courses
+            SET archived = 1
+            WHERE user_id = ?
+              AND archived = 0
+              AND term_end IS NOT NULL
+              AND term_end < CURDATE()
+        `;
+        db.query(query, [userId], (err, result) => {
+            db.release();
+            if (err) {
+                console.error("Error auto-archiving past courses:", err);
+                return callback(err);
+            }
+            callback(null, result.affectedRows);
+        });
+    });
+};
+
 // Creates a course and all of its activities in a single transaction. Either
 // everything commits, or nothing does — no orphaned course, no half-inserted
 // activity list. Replaces the old "create course, then loop inserts on
