@@ -72,7 +72,9 @@ function percentComplete(activities) {
  * @param {Array}  courseActivities
  */
 export function adaptCourse(row, index, courseActivities = []) {
-  const grade = weightedGrade(courseActivities);
+    const computed = weightedGrade(courseActivities);
+    const override = num(row.final_grade);      // manual override, null if unset
+    const grade = override != null ? override : computed;
   return {
     id: row.course_id,
     code: row.course_code,
@@ -80,7 +82,10 @@ export function adaptCourse(row, index, courseActivities = []) {
     professor: row.professor_name || "",
     color: colorForIndex(index),
     term: row.term || null,
+    termEnd: row.term_end || null,
+    archived: !!row.archived,
     currentGrade: grade == null ? null : Math.round(grade),
+    finalGrade: override,
     percentComplete: percentComplete(courseActivities),
   };
 }
@@ -94,6 +99,12 @@ export function adaptCourse(row, index, courseActivities = []) {
 // of truth and this can be swapped without touching the UI.
 const pctToPoints = (pct, scale) => (pct / 100) * scale;
 
+// A single course's GPA on the user's scale, from its average percentage.
+// Returns null when the course has no graded work yet.
+export function courseGpa(course, scale = 4.0) {
+  if (course.currentGrade == null) return null;
+  return Math.round(pctToPoints(course.currentGrade, scale) * 100) / 100;
+}
 /**
  * Compute term and cumulative GPA from adapted courses.
  * Each course with >=1 graded activity contributes its average (equal weight —
@@ -113,7 +124,9 @@ export function computeGpa(courses, { currentTerm, scale = 4.0 } = {}) {
     const avgPct = list.reduce((s, c) => s + c.currentGrade, 0) / list.length;
     return Math.round(pctToPoints(avgPct, scale) * 100) / 100;
   };
-  const termCourses = currentTerm ? graded.filter((c) => c.term === currentTerm) : graded;
+    const termCourses = graded.filter(
+    (c) => !c.archived && (!currentTerm || c.term === currentTerm),
+  );
   return {
     termGpa: mean(termCourses),
     cumulativeGpa: mean(graded),

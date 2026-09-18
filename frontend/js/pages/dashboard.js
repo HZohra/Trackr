@@ -1,5 +1,5 @@
 /* Trackr — Dashboard page. Renders skeletons, then fills from the api seam. */
-import { getCurrentUser, getSemester, getCourses, getActivities } from '../api.js';
+import { getCurrentUser, getSemester, getCourses, getActiveActivities } from '../api.js';
 import { statCard, statCardSkeleton } from '../components/statCard.js';
 import { assignmentRow, assignmentRowSkeleton } from '../components/assignmentRow.js';
 import { courseCard, courseCardSkeleton } from '../components/courseCard.js';
@@ -50,8 +50,8 @@ async function init() {
   let user, semester, courses, activities;
   try {
     [user, semester, courses, activities] = await Promise.all([
-      getCurrentUser(), getSemester(), getCourses(), getActivities(),
-    ]);
+      getCurrentUser(), getSemester(), getCourses(), getActiveActivities(),
+      ]);
   } catch (e) {
     $('#dashUpcoming').innerHTML = `<li class="dash-empty">Couldn't load your dashboard. Please refresh.</li>`;
     return;

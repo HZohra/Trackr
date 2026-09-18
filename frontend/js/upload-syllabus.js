@@ -25,6 +25,27 @@ if (requireAuth()) {
 
   const clearFormError = () => (formError.textContent = "");
 
+  
+  // Extraction can fail (unreadable scan, AI hiccup, server error). Rather than
+  // leaving the user at a dead end, reveal a one-click path to the manual
+  // add-course page — carrying over the term they already typed so it prefills.
+  function showManualFallback() {
+    if (document.getElementById("manualFallback")) return; // only add it once
+    try {
+      sessionStorage.setItem(
+        "trackr-manual-prefill",
+        JSON.stringify({ term: season.value + " " + startInput.value.slice(0, 4) }),
+      );
+    } catch (_) {}
+    const link = document.createElement("a");
+    link.id = "manualFallback";
+    link.href = "add-course.html";
+    link.className = "btn-ghost";
+    link.style.cssText = "display:inline-block;margin-top:0.75rem";
+    link.textContent = "Add this course manually instead →";
+    formError.insertAdjacentElement("afterend", link);
+  }
+
   // Enable "Extract" only when a file + all three term fields are present.
   function updateExtractEnabled() {
     const ready =
@@ -150,6 +171,7 @@ if (requireAuth()) {
         err.message === "Failed to fetch"
           ? "Could not reach the server. Is the backend running on port 5000?"
           : err.message;
+      showManualFallback();
     }
   });
 }

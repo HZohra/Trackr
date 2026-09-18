@@ -2,10 +2,11 @@
      courses.html        -> grid of every course (the sidebar link lands here)
      courses.html?id=N   -> detail view for that course */
 
-import { deleteCourse, getCourses, getCourse } from "./api.js";
+import { deleteCourse, getCourses, getCourse, setCourseArchived, getCurrentUser, setCourseFinalGrade } from "./api.js";
 import { requireAuth } from "./auth.js";
 import { courseCard, courseCardSkeleton } from "./components/courseCard.js";
 import { getParam, paramLink } from "./url.js";
+import { courseGpa } from "./adapters.js";
 
 const $ = (s) => document.querySelector(s);
 const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -76,20 +77,39 @@ async function renderGrid() {
   grid.hidden = false;
   $("#courseCards").innerHTML = Array.from({ length: 6 }, courseCardSkeleton).join("");
 
-  const courses = await getCourses();
+  const all = await getCourses();
 
-  if (!courses.length) {
+  if (!all.length) {
     $("#courseCards").innerHTML = "";
     $("#courseGridSub").textContent = "";
+    $("#archivedSection").hidden = true;
     message(
-      `<b>No courses yet.</b><span><a href="upload-syllabus.html">Upload a syllabus</a> to add your first one.</span>`,
+      `<b>No courses yet.</b><span><a href="upload-syllabus.html">Upload a syllabus</a> or <a href="add-course.html">add one manually</a> to get started.</span>`,
     );
     return;
   }
 
+  const active = all.filter((c) => !c.archived);
+  const archived = all.filter((c) => c.archived);
+
+  // Active courses
   $("#courseGridSub").textContent =
-    courses.length === 1 ? "1 course" : `${courses.length} courses`;
-  $("#courseCards").innerHTML = courses.map(courseCard).join("");
+    active.length === 1 ? "1 course" : `${active.length} courses`;
+  $("#courseCards").innerHTML = active.length
+    ? active.map(courseCard).join("")
+    : `<div class="dash-empty"><b>No active courses.</b><span>Everything is archived — see below.</span></div>`;
+
+  // Archived courses (section only appears when there are any)
+  const archSection = $("#archivedSection");
+  if (archived.length) {
+    archSection.hidden = false;
+    $("#archivedSub").textContent =
+      archived.length === 1 ? "1 archived course" : `${archived.length} archived courses`;
+    $("#archivedCards").innerHTML = archived.map(courseCard).join("");
+  } else {
+    archSection.hidden = true;
+  }
+
   animate();
 }
 
@@ -234,6 +254,53 @@ async function renderDetail(id) {
   $("#courseGrade").textContent =
     course.currentGrade == null ? "—" : course.currentGrade + "%";
   $("#courseBar").dataset.w = course.percentComplete;
+
+  // Per-class GPA, from the course's average % on the user's scale.
+  let gpaScale = 4.0;
+  try { ({ gpaScale } = await getCurrentUser()); } catch { /* default scale */ }
+  const gpa = courseGpa(course, gpaScale);
+  $("#courseGpa").textContent = gpa == null ? "" : `GPA ${gpa.toFixed(2)} / ${gpaScale}`;
+
+  // Archive / Restore — flips the flag, then returns to the course list.
+  const archiveBtn = $("#archiveCourseBtn");
+  archiveBtn.hidden = false;
+  archiveBtn.disabled = false;
+  archiveBtn.textContent = raw.archived ? "Restore" : "Archive";
+  archiveBtn.onclick = async () => {
+    archiveBtn.disabled = true;
+    archiveBtn.textContent = raw.archived ? "Restoring…" : "Archiving…";
+    try {
+      await setCourseArchived(course.id, !raw.archived);
+      window.location.replace("courses.html");
+    } catch (e) {
+      alert(e.message || "Could not update the course.");
+      archiveBtn.disabled = false;
+      archiveBtn.textContent = raw.archived ? "Restore" : "Archive";
+    }
+  };
+
+  // Final-grade override — set a class's grade directly, or clear to go back
+  // to the computed average. Blank = cleared.
+  const fgInput = $("#finalGradeInput");
+  const fgSave = $("#finalGradeSave");
+  fgInput.value = raw.final_grade != null ? raw.final_grade : "";
+  fgSave.onclick = async () => {
+    const v = fgInput.value.trim();
+    const finalGrade = v === "" ? null : Number(v);
+    if (finalGrade !== null && (!Number.isFinite(finalGrade) || finalGrade < 0 || finalGrade > 100)) {
+      alert("Enter a grade between 0 and 100, or leave it blank to clear.");
+      return;
+    }
+    fgSave.disabled = true;
+    try {
+      await setCourseFinalGrade(course.id, finalGrade);
+      await renderDetail(id); // re-render so the grade + GPA update
+    } catch (e) {
+      alert(e.message || "Could not save the grade.");
+    } finally {
+      fgSave.disabled = false;
+    }
+  };
 
   $("#courseBreakdown").innerHTML = breakdownHtml(activities);
   $("#courseAssignments").innerHTML = assignmentsHtml(activities, course.id);

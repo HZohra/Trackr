@@ -119,6 +119,7 @@ if (requireAuth()) {
           course_code,
           course_name,
           term: $("c-term").value.trim(),
+          term_end: payload.term_end || null,
           professor_name: $("c-prof").value.trim(),
           office_hours: $("c-office").value.trim(),
           meeting_times: $("c-meeting").value.trim(),

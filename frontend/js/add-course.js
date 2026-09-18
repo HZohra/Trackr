@@ -14,6 +14,15 @@ if (requireAuth()) {
   const formError = $("formError");
   const saveBtn = $("saveBtn");
 
+  
+  // If we arrived here because extraction failed, prefill what the user already
+  // typed on the upload screen.
+  try {
+    const pre = JSON.parse(sessionStorage.getItem("trackr-manual-prefill") || "null");
+    if (pre && pre.term) $("c-term").value = pre.term;
+    sessionStorage.removeItem("trackr-manual-prefill");
+  } catch (_) {}
+
   // Clone one blank activity row into the table.
   function addRow() {
     const frag = rowTemplate.content.cloneNode(true);
@@ -96,6 +105,7 @@ if (requireAuth()) {
         course_code,
         course_name,
         term,
+        term_end: $("c-term-end").value || null,
         professor_name: $("c-prof").value.trim(),
         office_hours: $("c-office").value.trim(),
         meeting_times: $("c-meeting").value.trim(),

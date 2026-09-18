@@ -1,4 +1,4 @@
-import { getActivities, getCourses } from "./api.js";
+import { getActiveActivities, getCourses } from "./api.js";
 import { requireAuth } from "./auth.js";
 
 let reminders = [];
@@ -91,7 +91,7 @@ function editReminder(id) {
 async function init() {
     if (!requireAuth()) return;
     try {
-        let [activities, courses] = await Promise.all([getActivities(), getCourses()]);
+        let [activities, courses] = await Promise.all([getActiveActivities(), getCourses()]);
         let codeById = {};
         for (let c of courses) codeById[c.id] = c.code;
 

@@ -63,6 +63,13 @@ export async function getActivities() {
   const { activities } = await loadData();
   return activities;
 }
+// Activities from non-archived courses only — for the overview screens
+// (dashboard, calendar, reminders). Course-scoped views keep getActivities().
+export async function getActiveActivities() {
+  const { courses, activities } = await loadData();
+  const archived = new Set(courses.filter((c) => c.archived).map((c) => c.id));
+  return activities.filter((a) => !archived.has(a.courseId));
+}
 
 // One course + its activities, for the course detail page. 
 export async function getCourse(id) {
@@ -145,12 +152,41 @@ export async function deleteCourse(id) {
     method: "DELETE",
     headers: authHeaders(),
   });
-
+  
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || `Delete failed (${res.status})`);
   }
 
+  invalidateData();
+}
+
+// PATCH /user/courses/:id/archive — archive (true) or restore (false).
+export async function setCourseArchived(id, archived) {
+  const res = await fetch(`${API_BASE}/user/courses/${id}/archive`, {
+    method: "PATCH",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ archived }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Update failed (${res.status})`);
+  }
+  invalidateData();
+}
+
+
+// PATCH /user/courses/:id/final-grade — set (0–100) or clear (null) the override.
+export async function setCourseFinalGrade(id, finalGrade) {
+  const res = await fetch(`${API_BASE}/user/courses/${id}/final-grade`, {
+    method: "PATCH",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ final_grade: finalGrade }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Update failed (${res.status})`);
+  }
   invalidateData();
 }
 

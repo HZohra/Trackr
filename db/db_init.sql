@@ -33,17 +33,23 @@ CREATE TABLE courses (
     course_name VARCHAR(150) NOT NULL,
     professor_name VARCHAR(100) NULL,
     term VARCHAR(30) NOT NULL,
+    term_end DATE NULL,
     office_hours VARCHAR(255) NULL,
     meeting_times VARCHAR(255) NULL,
     room VARCHAR(80) NULL,
     textbook_link VARCHAR(500) NULL,
     gpa_goal DECIMAL(4,2) NULL,
+    archived TINYINT(1) NOT NULL DEFAULT 0,
+    final_grade DECIMAL(5,2) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT uq_courses_user_code_term UNIQUE (user_id, course_code, term),
     CONSTRAINT chk_courses_gpa_goal CHECK (
         gpa_goal IS NULL OR (gpa_goal >= 0.00 AND gpa_goal <= 12.00)
+    ),
+        CONSTRAINT chk_courses_final_grade CHECK (
+        final_grade IS NULL OR (final_grade >= 0.00 AND final_grade <= 100.00)
     ),
     CONSTRAINT fk_courses_user FOREIGN KEY (user_id)
         REFERENCES users (user_id)

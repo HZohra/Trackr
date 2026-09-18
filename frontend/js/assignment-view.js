@@ -50,6 +50,9 @@ function filtered() {
   const q = filters.q.trim().toLowerCase();
   return activities.filter((a) => {
     if (filters.courseId && String(a.courseId) !== filters.courseId) return false;
+    // Hide archived courses from the unfiltered "all" view, but still show one
+    // when it's explicitly selected (e.g. opened from an archived course).
+    if (!filters.courseId && coursesById[a.courseId]?.archived) return false;
     if (filters.status && a.status !== filters.status) return false;
     if (q) {
       const code = coursesById[a.courseId]?.code ?? "";
