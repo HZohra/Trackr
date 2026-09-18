@@ -68,6 +68,12 @@ function toDateTime(value, defaultTime = "23:59:00") {
     return null;
 }
 
+// Accepts 'YYYY-MM-DD' (or a datetime) and returns just 'YYYY-MM-DD', or null.
+function toDateOnly(value) {
+    const dt = toDateTime(value);
+    return dt ? dt.slice(0, 10) : null;
+}
+
 // --------------------------------------------------------------------------- //
 // normalizeExtraction — for the review UI (category stays a NAME)             //
 // --------------------------------------------------------------------------- //
@@ -123,6 +129,7 @@ export function validateCoursePayload(payload) {
         room: clampStr(c.room, COURSE_LIMITS.room),
         textbook_link: clampStr(c.textbook_link, COURSE_LIMITS.textbook_link),
         gpa_goal: toNumberOrNull(c.gpa_goal),
+        term_end: toDateOnly(c.term_end),
     };
 
     const rawActivities = Array.isArray(payload?.activities) ? payload.activities : [];

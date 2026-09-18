@@ -125,6 +125,55 @@ export const deleteCourseById = (courseId, userId, callback) => {
 };
 
 
+// Flips a course's archived flag, scoped to the owner. Returns affectedRows so
+// the controller can 404 on a wrong or someone-else's course_id — same
+// ownership pattern as deleteCourseById.
+export const setCourseArchived = (courseId, userId, archived, callback) => {
+    pool.getConnection((err, db) => {
+        if (err) {
+            console.error("Error getting database connection:", err);
+            return callback(err, null);
+        }
+        const query = `
+            UPDATE courses
+            SET archived = ?
+            WHERE course_id = ? AND user_id = ?
+        `;
+        db.query(query, [archived ? 1 : 0, courseId, userId], (err, results) => {
+            db.release();
+            if (err) {
+                console.error("Error updating course archive state:", err);
+                return callback(err, null);
+            }
+            callback(null, { affectedRows: results.affectedRows });
+        });
+    });
+};
+
+// Sets or clears a course's manual final-grade override (a percentage, or null
+// to fall back to the computed weighted average). Scoped to the owner.
+export const setCourseFinalGrade = (courseId, userId, finalGrade, callback) => {
+    pool.getConnection((err, db) => {
+        if (err) {
+            console.error("Error getting database connection:", err);
+            return callback(err, null);
+        }
+        const query = `
+            UPDATE courses
+            SET final_grade = ?
+            WHERE course_id = ? AND user_id = ?
+        `;
+        db.query(query, [finalGrade, courseId, userId], (err, results) => {
+            db.release();
+            if (err) {
+                console.error("Error updating final grade:", err);
+                return callback(err, null);
+            }
+            callback(null, { affectedRows: results.affectedRows });
+        });
+    });
+};
+
 // Creates a course and all of its activities in a single transaction. Either
 // everything commits, or nothing does — no orphaned course, no half-inserted
 // activity list. Replaces the old "create course, then loop inserts on
@@ -152,6 +201,7 @@ export const createCourseWithActivities = (
                 course_name,
                 professor_name,
                 term,
+                term_end,
                 office_hours,
                 meeting_times,
                 room,
@@ -162,8 +212,8 @@ export const createCourseWithActivities = (
             const courseQuery = `
                 INSERT INTO courses
                     (user_id, course_code, course_name, professor_name, term,
-                    office_hours, meeting_times, room, textbook_link, gpa_goal)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    term_end, office_hours, meeting_times, room, textbook_link, gpa_goal)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
             db.query(
@@ -174,6 +224,7 @@ export const createCourseWithActivities = (
                     course_name,
                     professor_name || null,
                     term,
+                    term_end || null,
                     office_hours || null,
                     meeting_times || null,
                     room || null,

@@ -24,7 +24,8 @@ router.get(
 );
 
 router.delete("/courses/:courseId", userController.deleteCourseById);
-
+router.patch("/courses/:courseId/archive", userController.setCourseArchive);
+router.patch("/courses/:courseId/final-grade", userController.setCourseFinalGrade);
 // Adding an assignment / recording a grade / removing one, from the
 // assignments page.
 router.post("/activities", userController.addActivity);

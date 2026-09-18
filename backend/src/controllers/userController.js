@@ -345,3 +345,72 @@ export const deleteCourseById = (req, res) => {
         },
     );
 };
+
+
+// PATCH /user/courses/:courseId/archive   body: { archived: boolean }
+// Archives (true) or restores (false) a single course the user owns.
+export const setCourseArchive = (req, res) => {
+    const courseId = Number(req.params.courseId);
+    if (!Number.isInteger(courseId) || courseId <= 0) {
+        return res.status(400).json({ message: "Invalid course ID" });
+    }
+
+    const { archived } = req.body || {};
+    if (typeof archived !== "boolean") {
+        return res.status(400).json({ message: "archived (boolean) is required" });
+    }
+
+    courseModel.setCourseArchived(
+        courseId,
+        req.user.user_id,
+        archived,
+        (err, result) => {
+            if (err) {
+                return res
+                    .status(500)
+                    .json({ message: "Failed to update course" });
+            }
+            if (!result || result.affectedRows === 0) {
+                return res.status(404).json({ message: "Course not found" });
+            }
+            return res.status(200).json({ course_id: courseId, archived });
+        },
+    );
+};
+
+
+// PATCH /user/courses/:courseId/final-grade   body: { final_grade: number|null }
+// Sets (0–100) or clears (null) a course's manual grade override.
+export const setCourseFinalGrade = (req, res) => {
+    const courseId = Number(req.params.courseId);
+    if (!Number.isInteger(courseId) || courseId <= 0) {
+        return res.status(400).json({ message: "Invalid course ID" });
+    }
+
+    let { final_grade } = req.body || {};
+    if (final_grade === null || final_grade === undefined || final_grade === "") {
+        final_grade = null; // clearing the override
+    } else {
+        final_grade = Number(final_grade);
+        if (!Number.isFinite(final_grade) || final_grade < 0 || final_grade > 100) {
+            return res
+                .status(400)
+                .json({ message: "final_grade must be 0–100, or null" });
+        }
+    }
+
+    courseModel.setCourseFinalGrade(
+        courseId,
+        req.user.user_id,
+        final_grade,
+        (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: "Failed to update grade" });
+            }
+            if (!result || result.affectedRows === 0) {
+                return res.status(404).json({ message: "Course not found" });
+            }
+            return res.status(200).json({ course_id: courseId, final_grade });
+        },
+    );
+};
