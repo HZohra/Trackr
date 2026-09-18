@@ -1,0 +1,17 @@
+<div class="mx-auto max-w-6xl">
+  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Courses</p>
+  <h1 class="mt-1 text-3xl font-extrabold text-slate-900">Your Courses</h1>
+  <p class="mt-1 text-sm text-slate-500">{{ courses().length }} courses</p>
+
+  <button type="button"
+          class="mt-6 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Add course
+  </button>
+
+  <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    @for (course of courses(); track course.id) {
+      <app-course-card [course]="course" />
+    }
+  </div>
+</div>

@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+/* When collapsed, hide labels and center the sidebar icons. */
+aside.is-collapsed .collapsible {
+  display: none;
+}
+aside.is-collapsed nav a,
+aside.is-collapsed nav button {
+  justify-content: center;
+}
