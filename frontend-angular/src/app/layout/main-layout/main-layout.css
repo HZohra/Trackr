@@ -10,3 +10,5 @@ aside.is-collapsed nav a,
 aside.is-collapsed nav button {
   justify-content: center;
 }
+nav a.nav-active { background-color: #eef2ff; color: #4338ca; }
+nav a.nav-active:hover { background-color: #eef2ff; }
