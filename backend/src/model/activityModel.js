@@ -1,300 +1,190 @@
-import pool from "../config/db.js";
+import { query } from "../config/db.js";
 
-// All activities for a user, across all their courses. activities has no
-// user_id column — ownership only exists through activities -> courses ->
-// user_id, so this has to join through courses.
+// Pure helper (no database): given a due date, returns a reminder timestamp a
+// few days earlier. courseModel imports this too.
 export function defaultReminder(dueDate, days = 3) {
   if (!dueDate) return null;
   const d = new Date(String(dueDate).replace(" ", "T") + "Z");
   d.setUTCDate(d.getUTCDate() - days);
   return d.toISOString().slice(0, 19).replace("T", " ");
 }
-export const getAllActivities = (userId, callback) => {
-    pool.getConnection((err, db) => {
-        db.release();
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const query = `
-            SELECT a.*
-            FROM activities a
-            JOIN courses c ON a.course_id = c.course_id
-            WHERE c.user_id = ?
-            ORDER BY a.due_date ASC
-        `;
-        db.query(query, [userId], (err, results) => {
-            if (err) {
-                console.error("Error fetching activities:", err);
-                return callback(err, null);
-            }
-            callback(null, results);
-        });
-    });
-};
 
-// Activities for one course — still joins on courses to confirm the
-// requesting user actually owns that course, not just any course_id.
-export const getActivitiesByCourseId = (courseId, userId, callback) => {
-    pool.getConnection((err, db) => {
-        db.release();
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const query = `
-            SELECT a.*
-            FROM activities a
-            JOIN courses c ON a.course_id = c.course_id
-            WHERE a.course_id = ? AND c.user_id = ?
-            ORDER BY a.due_date ASC
-        `;
-        db.query(query, [courseId, userId], (err, results) => {
-            if (err) {
-                console.error("Error fetching activities for course:", err);
-                return callback(err, null);
-            }
-            callback(null, results);
-        });
-    });
-};
-
-// Creates one activity under a course (used when confirming syllabus
-// extraction, or adding an assignment manually)
-export const createActivity = (courseId, activityData, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const {
-            activity_category_id,
-            activity_name,
-            due_date,
-            grading_weight,
-            reminder_date,
-            reminder_method,
-            priority_level,
-        } = activityData;
-
-        const query = `
-            INSERT INTO activities
-                (course_id, activity_category_id, activity_name, due_date,
-                grading_weight, reminder_date, reminder_method, priority_level)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        db.query(
-            query,
-            [
-                courseId,
-                activity_category_id,
-                activity_name,
-                due_date,
-                grading_weight || 0,
-                reminder_date || defaultReminder(due_date),
-                reminder_method || "email",
-                priority_level || "medium",
-            ],
-            (err, results) => {
-                db.release();
-                if (err) {
-                    console.error("Error creating activity:", err);
-                    return callback(err, null);
-                }
-                callback(null, {
-                    activity_id: results.insertId,
-                    ...activityData,
-                });
-            },
-        );
-    });
-};
-
-// Records the grade / status on one activity. grade is a number 0-100, or
-// null to clear it.
-export const updateActivity = (activityId, userId, activityData, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const ownsQuery = `
-            SELECT a.activity_id
-            FROM activities a
-            JOIN courses c ON a.course_id = c.course_id
-            WHERE a.activity_id = ? AND c.user_id = ?
-        `;
-        db.query(ownsQuery, [activityId, userId], (err, rows) => {
-            if (err) {
-                db.release();
-                console.error("Error checking activity ownership:", err);
-                return callback(err, null);
-            }
-            if (rows.length === 0) {
-                db.release();
-                return callback(null, null); // missing, or not this user's
-            }
-
-            const { grade, status } = activityData;
-            const updateQuery = `UPDATE activities SET grade = ?, status = ? WHERE activity_id = ?`;
-            db.query(updateQuery, [grade, status, activityId], (err) => {
-                if (err) {
-                    db.release();
-                    console.error("Error updating activity:", err);
-                    return callback(err, null);
-                }
-
-                db.query(
-                    `SELECT * FROM activities WHERE activity_id = ?`,
-                    [activityId],
-                    (err, updated) => {
-                        db.release();
-                        if (err) {
-                            console.error("Error reloading activity:", err);
-                            return callback(err, null);
-                        }
-                        callback(null, updated[0]);
-                    },
-                );
-            });
-        });
-    });
-};
-
-// Removes one activity, from the delete button on an assignment card. Hard
-// delete — the schema has no soft-delete column, and nothing references
-// activities, so there's nothing to cascade. Calls back `true` when a row was
-// removed, `false` when there was nothing to remove.
-export const deleteActivity = (activityId, userId, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        // Same join as updateActivity — activities has no user_id, so this is
-        // the only way to prove the row is the caller's before touching it.
-        const ownsQuery = `
-            SELECT a.activity_id
-            FROM activities a
-            JOIN courses c ON a.course_id = c.course_id
-            WHERE a.activity_id = ? AND c.user_id = ?
-        `;
-        db.query(ownsQuery, [activityId, userId], (err, rows) => {
-            if (err) {
-                db.release();
-                console.error("Error checking activity ownership:", err);
-                return callback(err, null);
-            }
-            if (rows.length === 0) {
-                db.release();
-                return callback(null, false); // missing, or not this user's
-            }
-
-            db.query(
-                `DELETE FROM activities WHERE activity_id = ?`,
-                [activityId],
-                (err) => {
-                    db.release();
-                    if (err) {
-                        console.error("Error deleting activity:", err);
-                        return callback(err, null);
-                    }
-                    callback(null, true);
-                },
-            );
-        });
-    });
-};
-
-// Aggregate counts for the dashboard's stat tiles — total courses,
-// total activities, how many are done vs pending (based on grade being
-// recorded), and how many are due soon.
-export const getStatisticsByUserId = (userId, callback) => {
-    pool.getConnection((err, db) => {
-        db.release();
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const query = `
-            SELECT
-                (SELECT COUNT(*) FROM courses WHERE user_id = ?) AS total_courses,
-                COUNT(a.activity_id) AS total_activities,
-                SUM(CASE WHEN a.grade IS NOT NULL THEN 1 ELSE 0 END) AS completed,
-                SUM(CASE WHEN a.grade IS NULL AND a.due_date >= NOW() THEN 1 ELSE 0 END) AS upcoming,
-                SUM(CASE WHEN a.grade IS NULL AND a.due_date < NOW() THEN 1 ELSE 0 END) AS overdue
-            FROM activities a
-            JOIN courses c ON a.course_id = c.course_id
-            WHERE c.user_id = ?
-        `;
-        db.query(query, [userId, userId], (err, results) => {
-            if (err) {
-                console.error("Error fetching statistics:", err);
-                return callback(err, null);
-            }
-            callback(null, results[0]);
-        });
-        
-    });
-};
-
-
-// Finds activities whose reminder is due and hasn't been sent yet. Joins up to
-// courses and users so the sender has the recipient's email and name.
-export const getDueReminders = (callback) => {
-  pool.getConnection((err, db) => {
-    if (err) {
-      console.error("Error getting database connection:", err);
-      return callback(err, null);
-    }
-    const query = `
-      SELECT a.activity_id, a.activity_name, a.due_date, a.reminder_method,
-             c.course_code, c.course_name,
-             u.email, u.first_name
-      FROM activities a
-      JOIN courses c ON a.course_id = c.course_id
-      JOIN users   u ON c.user_id   = u.user_id
-      WHERE a.reminder_sent = 0
-        AND a.reminder_date IS NOT NULL
-        AND a.reminder_date <= NOW()
-        AND a.status IN ('not_started', 'in_progress')
-      ORDER BY a.due_date ASC
-      LIMIT 200
-    `;
-    db.query(query, (err, rows) => {
-      db.release();
-      if (err) {
-        console.error("Error fetching due reminders:", err);
-        return callback(err, null);
-      }
-      callback(null, rows);
-    });
-  });
-};
-
-// Flags reminders as sent so the scheduler doesn't email them again. ids is an
-// array of activity_id values; mysql2 expands the array into the IN (...) list.
-export const markReminderSent = (ids, callback) => {
-  if (!ids.length) return callback(null, 0);
-  pool.getConnection((err, db) => {
-    if (err) {
-      console.error("Error getting database connection:", err);
-      return callback(err, null);
-    }
-    db.query(
-      `UPDATE activities SET reminder_sent = 1 WHERE activity_id IN (?)`,
-      [ids],
-      (err, result) => {
-        db.release();
-        if (err) {
-          console.error("Error marking reminders sent:", err);
-          return callback(err, null);
-        }
-        callback(null, result.affectedRows);
-      },
+// All activities for a user, across all their courses. activities has no
+// user_id column — ownership only exists through activities -> courses ->
+// user_id, so we JOIN through courses.
+export const getAllActivities = async (userId, callback) => {
+  try {
+    const { rows } = await query(
+      `SELECT a.*
+         FROM activities a
+         JOIN courses c ON a.course_id = c.course_id
+        WHERE c.user_id = $1
+        ORDER BY a.due_date ASC`,
+      [userId]
     );
-  });
+    callback(null, rows);
+  } catch (err) {
+    console.error("Error fetching activities:", err);
+    callback(err, null);
+  }
+};
+
+export const getActivitiesByCourseId = async (courseId, userId, callback) => {
+  try {
+    const { rows } = await query(
+      `SELECT a.*
+         FROM activities a
+         JOIN courses c ON a.course_id = c.course_id
+        WHERE a.course_id = $1 AND c.user_id = $2
+        ORDER BY a.due_date ASC`,
+      [courseId, userId]
+    );
+    callback(null, rows);
+  } catch (err) {
+    console.error("Error fetching activities for course:", err);
+    callback(err, null);
+  }
+};
+
+// Creates one activity under a course (syllabus confirm, or manual add).
+export const createActivity = async (courseId, activityData, callback) => {
+  try {
+    const {
+      activity_category_id,
+      activity_name,
+      due_date,
+      grading_weight,
+      reminder_date,
+      reminder_method,
+      priority_level,
+    } = activityData;
+
+    const { rows } = await query(
+      `INSERT INTO activities
+         (course_id, activity_category_id, activity_name, due_date,
+          grading_weight, reminder_date, reminder_method, priority_level)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING activity_id`,
+      [
+        courseId,
+        activity_category_id,
+        activity_name,
+        due_date,
+        grading_weight || 0,
+        reminder_date || defaultReminder(due_date),
+        reminder_method || "email",
+        priority_level || "medium",
+      ]
+    );
+    callback(null, { activity_id: rows[0].activity_id, ...activityData });
+  } catch (err) {
+    console.error("Error creating activity:", err);
+    callback(err, null);
+  }
+};
+
+// Records grade/status on one activity — but ONLY if it belongs to the user.
+// The ownership check and the update run in ONE query (UPDATE ... FROM courses),
+// so there's no gap between "confirm they own it" and "change it". RETURNING
+// hands back the updated row, or nothing if it wasn't theirs.
+export const updateActivity = async (activityId, userId, activityData, callback) => {
+  try {
+    const { grade, status } = activityData;
+    const { rows } = await query(
+      `UPDATE activities a
+          SET grade = $1, status = $2
+         FROM courses c
+        WHERE a.course_id = c.course_id
+          AND a.activity_id = $3
+          AND c.user_id = $4
+      RETURNING a.*`,
+      [grade, status, activityId, userId]
+    );
+    callback(null, rows[0] ?? null); // null = missing, or not this user's
+  } catch (err) {
+    console.error("Error updating activity:", err);
+    callback(err, null);
+  }
+};
+
+// Removes one activity, scoped to the owner in a single DELETE ... USING query.
+// rowCount tells us whether a row was actually removed.
+export const deleteActivity = async (activityId, userId, callback) => {
+  try {
+    const result = await query(
+      `DELETE FROM activities a
+        USING courses c
+        WHERE a.course_id = c.course_id
+          AND a.activity_id = $1
+          AND c.user_id = $2`,
+      [activityId, userId]
+    );
+    callback(null, result.rowCount > 0);
+  } catch (err) {
+    console.error("Error deleting activity:", err);
+    callback(err, null);
+  }
+};
+
+// Aggregate counts for the dashboard tiles. ::int stops Postgres returning these
+// as strings; COALESCE turns an all-empty SUM into 0 instead of null.
+export const getStatisticsByUserId = async (userId, callback) => {
+  try {
+    const { rows } = await query(
+      `SELECT
+         (SELECT COUNT(*) FROM courses WHERE user_id = $1)::int AS total_courses,
+         COUNT(a.activity_id)::int AS total_activities,
+         COALESCE(SUM(CASE WHEN a.grade IS NOT NULL THEN 1 ELSE 0 END), 0)::int AS completed,
+         COALESCE(SUM(CASE WHEN a.grade IS NULL AND a.due_date >= LOCALTIMESTAMP THEN 1 ELSE 0 END), 0)::int AS upcoming,
+         COALESCE(SUM(CASE WHEN a.grade IS NULL AND a.due_date <  LOCALTIMESTAMP THEN 1 ELSE 0 END), 0)::int AS overdue
+       FROM activities a
+       JOIN courses c ON a.course_id = c.course_id
+      WHERE c.user_id = $2`,
+      [userId, userId]
+    );
+    callback(null, rows[0]);
+  } catch (err) {
+    console.error("Error fetching statistics:", err);
+    callback(err, null);
+  }
+};
+
+// Reminders that are due and not yet sent — joined up to users for email + name.
+export const getDueReminders = async (callback) => {
+  try {
+    const { rows } = await query(
+      `SELECT a.activity_id, a.activity_name, a.due_date, a.reminder_method,
+              c.course_code, c.course_name,
+              u.email, u.first_name
+         FROM activities a
+         JOIN courses c ON a.course_id = c.course_id
+         JOIN users   u ON c.user_id   = u.user_id
+        WHERE a.reminder_sent = FALSE
+          AND a.reminder_date IS NOT NULL
+          AND a.reminder_date <= LOCALTIMESTAMP
+          AND a.status IN ('not_started', 'in_progress')
+        ORDER BY a.due_date ASC
+        LIMIT 200`
+    );
+    callback(null, rows);
+  } catch (err) {
+    console.error("Error fetching due reminders:", err);
+    callback(err, null);
+  }
+};
+
+// Flags reminders as sent. In Postgres, "id is in this list" is `= ANY($1)`,
+// and pg passes the JS array straight through.
+export const markReminderSent = async (ids, callback) => {
+  if (!ids.length) return callback(null, 0);
+  try {
+    const result = await query(
+      `UPDATE activities SET reminder_sent = TRUE WHERE activity_id = ANY($1)`,
+      [ids]
+    );
+    callback(null, result.rowCount);
+  } catch (err) {
+    console.error("Error marking reminders sent:", err);
+    callback(err, null);
+  }
 };

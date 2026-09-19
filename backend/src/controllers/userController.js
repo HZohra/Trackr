@@ -227,7 +227,7 @@ export const addActivity = (req, res) => {
             if (err) {
                 // UNIQUE (course_id, activity_name, due_date) — adding the same
                 // assignment twice is a client mistake, not a server fault.
-                if (err.code === "ER_DUP_ENTRY") {
+                if (err.code === "ER_DUP_ENTRY" || err.code === "23505") {
                     return res.status(409).json({
                         message:
                             "That assignment already exists for this course on that due date.",
