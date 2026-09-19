@@ -1,15 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
-// A single control validator: 8+ chars, with upper, lower, and a digit.
 function strongPassword(control: AbstractControl): ValidationErrors | null {
   const value: string = control.value ?? '';
   const ok = value.length >= 8 && /[a-z]/.test(value) && /[A-Z]/.test(value) && /[0-9]/.test(value);
   return ok ? null : { weak: true };
 }
 
-// A group-level validator: confirmPassword must equal password.
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   return group.get('password')?.value === group.get('confirmPassword')?.value ? null : { mismatch: true };
 }
@@ -22,8 +21,12 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 })
 export class Register {
   private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
   protected readonly showPassword = signal(false);
-  protected readonly submitted = signal(false);
+  protected readonly loading = signal(false);
+  protected readonly error = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group(
     {
@@ -36,18 +39,27 @@ export class Register {
     { validators: passwordsMatch },
   );
 
-  protected togglePassword(): void {
-    this.showPassword.update((v) => !v);
-  }
+  protected togglePassword(): void { this.showPassword.update((v) => !v); }
 
   protected onSubmit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    this.error.set(null);
+    this.loading.set(true);
     const v = this.form.getRawValue();
-    // role is forced to 'student' — admins are never self-registered.
-    console.log('register payload', { firstName: v.firstName, lastName: v.lastName, email: v.email, password: v.password, role: 'student' });
-    this.submitted.set(true);
+    this.auth
+      .register({ first_name: v.firstName, last_name: v.lastName, email: v.email, password: v.password, role: 'student' })
+      .subscribe({
+        next: () => {
+          // Register returns no token, so log in immediately to enter the app.
+          this.auth.login(v.email, v.password).subscribe({
+            next: () => this.router.navigateByUrl('/dashboard'),
+            error: () => this.router.navigateByUrl('/login'),
+          });
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.error.set(err?.error?.message ?? 'Registration failed. Please try again.');
+        },
+      });
   }
 }

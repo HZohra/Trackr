@@ -7,6 +7,7 @@ import { Courses } from './features/courses/courses';
 import { Assignments } from './features/assignments/assignments';
 import { Calendar } from './features/calendar/calendar';
 import { Grades } from './features/grades/grades';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: 'login', component: Login },        // top-level: no shell
@@ -14,6 +15,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayout,
+    canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: Dashboard },
       { path: 'courses', component: Courses },

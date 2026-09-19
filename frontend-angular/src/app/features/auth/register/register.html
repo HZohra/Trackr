@@ -8,8 +8,8 @@
     <h1 class="text-2xl font-bold text-slate-900">Create your account</h1>
     <p class="mt-1 text-sm text-slate-500">Start tracking your courses and grades</p>
 
-    @if (submitted()) {
-      <div class="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">✓ Form looks good — this will call your API in the next step.</div>
+    @if (error()) {
+      <div class="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ error() }}</div>
     }
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4">
@@ -57,7 +57,7 @@
         @if (form.controls.confirmPassword.touched && form.errors?.['mismatch']) { <p class="mt-1 text-xs text-rose-600">Passwords don't match.</p> }
       </div>
 
-      <button type="submit" class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">Create account</button>
+        <button type="submit" [disabled]="loading()" class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">{{ loading() ? 'Creating account…' : 'Create account' }}</button>
     </form>
 
     <p class="mt-6 text-center text-sm text-slate-500">
