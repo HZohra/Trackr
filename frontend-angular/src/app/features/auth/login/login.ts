@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -10,10 +11,13 @@ import { RouterLink } from '@angular/router';
 })
 export class Login {
   private readonly fb = inject(FormBuilder);
-  protected readonly showPassword = signal(false);
-  protected readonly submitted = signal(false);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
-  // nonNullable.group => each control is a plain string (never null), fully typed.
+  protected readonly showPassword = signal(false);
+  protected readonly loading = signal(false);
+  protected readonly error = signal<string | null>(null);
+
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
@@ -26,11 +30,18 @@ export class Login {
 
   protected onSubmit(): void {
     if (this.form.invalid) {
-      this.form.markAllAsTouched(); // reveals all error messages at once
+      this.form.markAllAsTouched();
       return;
     }
-    // No backend yet — this is the exact payload we'll POST to /auth/login next.
-    console.log('login payload', this.form.getRawValue());
-    this.submitted.set(true);
+    this.error.set(null);
+    this.loading.set(true);
+    const { email, password } = this.form.getRawValue();
+    this.auth.login(email, password).subscribe({
+      next: () => this.router.navigateByUrl('/dashboard'),
+      error: (err) => {
+        this.loading.set(false);
+        this.error.set(err?.error?.message ?? 'Login failed. Please try again.');
+      },
+    });
   }
 }

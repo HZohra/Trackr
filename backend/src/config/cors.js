@@ -1,6 +1,9 @@
 import cors from "cors";
 
-const allowedOrigins = ["http://localhost:3000", "https://yourfrontend.com"];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:4200",
+];
 
 const corsOptions = {
     origin: function (origin, callback) {
