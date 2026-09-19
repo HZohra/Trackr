@@ -1,332 +1,190 @@
-import pool from "../config/db.js";
+import { query, withTransaction } from "../config/db.js";
 import { defaultReminder } from "./activityModel.js";
 
 // All courses belonging to one user (dashboard, courses page)
-export const getCoursesByUserId = (userId, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const query = "SELECT * FROM courses WHERE user_id = ?";
-        db.query(query, [userId], (err, results) => {
-            db.release();
-            if (err) {
-                console.error("Error fetching courses:", err);
-                return callback(err, null);
-            }
-            callback(null, results);
-        });
-    });
+export const getCoursesByUserId = async (userId, callback) => {
+  try {
+    const { rows } = await query("SELECT * FROM courses WHERE user_id = $1", [userId]);
+    callback(null, rows);
+  } catch (err) {
+    console.error("Error fetching courses:", err);
+    callback(err, null);
+  }
 };
 
-// One course, but scoped to the requesting user — this is the ownership
-// check. If someone else's course_id is passed in, this returns nothing
-// rather than leaking another student's course.
-export const getCourseById = (courseId, userId, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const query =
-            "SELECT * FROM courses WHERE course_id = ? AND user_id = ?";
-        db.query(query, [courseId, userId], (err, results) => {
-            db.release();
-            if (err) {
-                console.error("Error fetching course:", err);
-                return callback(err, null);
-            }
-            callback(null, results[0]);
-        });
-    });
+// One course, scoped to the requesting user — this is the ownership check.
+// A wrong/other-user course_id simply returns nothing rather than leaking it.
+export const getCourseById = async (courseId, userId, callback) => {
+  try {
+    const { rows } = await query(
+      "SELECT * FROM courses WHERE course_id = $1 AND user_id = $2",
+      [courseId, userId]
+    );
+    callback(null, rows[0]);
+  } catch (err) {
+    console.error("Error fetching course:", err);
+    callback(err, null);
+  }
 };
 
-// Creates a course for a given user (called after syllabus review/confirm,
-// or a manual "add course" action)
-export const createCourse = (userId, courseData, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const {
-            course_code,
-            course_name,
-            professor_name,
-            term,
-            office_hours,
-            meeting_times,
-            room,
-            textbook_link,
-            gpa_goal,
-        } = courseData;
+// Creates a course (manual "add course", or after syllabus confirm)
+export const createCourse = async (userId, courseData, callback) => {
+  try {
+    const {
+      course_code, course_name, professor_name, term,
+      office_hours, meeting_times, room, textbook_link, gpa_goal,
+    } = courseData;
 
-        const query = `
-            INSERT INTO courses
-                (user_id, course_code, course_name, professor_name, term,
-                office_hours, meeting_times, room, textbook_link, gpa_goal)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        db.query(
-            query,
-            [
-                userId,
-                course_code,
-                course_name,
-                professor_name || null,
-                term,
-                office_hours || null,
-                meeting_times || null,
-                room || null,
-                textbook_link || null,
-                gpa_goal || null,
-            ],
-            (err, results) => {
-                db.release();
-                if (err) {
-                    console.error("Error creating course:", err);
-                    return callback(err, null);
-                }
-                callback(null, { course_id: results.insertId, ...courseData });
-            },
-        );
-    });
+    const { rows } = await query(
+      `INSERT INTO courses
+         (user_id, course_code, course_name, professor_name, term,
+          office_hours, meeting_times, room, textbook_link, gpa_goal)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING course_id`,
+      [
+        userId, course_code, course_name, professor_name || null, term,
+        office_hours || null, meeting_times || null, room || null,
+        textbook_link || null, gpa_goal || null,
+      ]
+    );
+    callback(null, { course_id: rows[0].course_id, ...courseData });
+  } catch (err) {
+    console.error("Error creating course:", err);
+    callback(err, null);
+  }
 };
 
-// Deletes one course only when it belongs to the logged-in user.
-// Related activities are removed by the database through ON DELETE CASCADE.
-export const deleteCourseById = (courseId, userId, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const query = `
-            DELETE FROM courses
-            WHERE course_id = ? AND user_id = ?
-        `;
-
-        db.query(query, [courseId, userId], (err, results) => {
-            db.release();
-
-            if (err) {
-                console.error("Error deleting course:", err);
-                return callback(err, null);
-            }
-
-            callback(null, {
-                affectedRows: results.affectedRows,
-            });
-        });
-    });
+// Deletes one course only when it belongs to the user. Related activities are
+// removed by the database via ON DELETE CASCADE.
+export const deleteCourseById = async (courseId, userId, callback) => {
+  try {
+    const result = await query(
+      "DELETE FROM courses WHERE course_id = $1 AND user_id = $2",
+      [courseId, userId]
+    );
+    callback(null, { affectedRows: result.rowCount });
+  } catch (err) {
+    console.error("Error deleting course:", err);
+    callback(err, null);
+  }
 };
 
-
-// Flips a course's archived flag, scoped to the owner. Returns affectedRows so
-// the controller can 404 on a wrong or someone-else's course_id — same
-// ownership pattern as deleteCourseById.
-export const setCourseArchived = (courseId, userId, archived, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const query = `
-            UPDATE courses
-            SET archived = ?
-            WHERE course_id = ? AND user_id = ?
-        `;
-        db.query(query, [archived ? 1 : 0, courseId, userId], (err, results) => {
-            db.release();
-            if (err) {
-                console.error("Error updating course archive state:", err);
-                return callback(err, null);
-            }
-            callback(null, { affectedRows: results.affectedRows });
-        });
-    });
+// Flips a course's archived flag, scoped to the owner. rowCount lets the
+// controller 404 on a wrong/other-user course_id.
+export const setCourseArchived = async (courseId, userId, archived, callback) => {
+  try {
+    const result = await query(
+      "UPDATE courses SET archived = $1 WHERE course_id = $2 AND user_id = $3",
+      [archived, courseId, userId]
+    );
+    callback(null, { affectedRows: result.rowCount });
+  } catch (err) {
+    console.error("Error updating course archive state:", err);
+    callback(err, null);
+  }
 };
 
-// Sets or clears a course's manual final-grade override (a percentage, or null
-// to fall back to the computed weighted average). Scoped to the owner.
-export const setCourseFinalGrade = (courseId, userId, finalGrade, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        const query = `
-            UPDATE courses
-            SET final_grade = ?
-            WHERE course_id = ? AND user_id = ?
-        `;
-        db.query(query, [finalGrade, courseId, userId], (err, results) => {
-            db.release();
-            if (err) {
-                console.error("Error updating final grade:", err);
-                return callback(err, null);
-            }
-            callback(null, { affectedRows: results.affectedRows });
-        });
-    });
+// Sets or clears a course's manual final-grade override (percentage, or null to
+// fall back to the computed weighted average). Scoped to the owner.
+export const setCourseFinalGrade = async (courseId, userId, finalGrade, callback) => {
+  try {
+    const result = await query(
+      "UPDATE courses SET final_grade = $1 WHERE course_id = $2 AND user_id = $3",
+      [finalGrade, courseId, userId]
+    );
+    callback(null, { affectedRows: result.rowCount });
+  } catch (err) {
+    console.error("Error updating final grade:", err);
+    callback(err, null);
+  }
 };
 
-// Archives any of the user's courses whose term has already ended (term_end in
-// the past) and that aren't archived yet. Runs on the courses read path so
-// finished semesters clear out on their own. Courses with no term_end are left
-// alone — they rely on the manual Archive button.
-export const autoArchivePastCourses = (userId, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err);
-        }
-        const query = `
-            UPDATE courses
-            SET archived = 1
-            WHERE user_id = ?
-              AND archived = 0
-              AND term_end IS NOT NULL
-              AND term_end < CURDATE()
-        `;
-        db.query(query, [userId], (err, result) => {
-            db.release();
-            if (err) {
-                console.error("Error auto-archiving past courses:", err);
-                return callback(err);
-            }
-            callback(null, result.affectedRows);
-        });
-    });
+// Archives the user's courses whose term has already ended (term_end in the
+// past) and that aren't archived yet. Runs on the courses read path so finished
+// semesters clear out on their own. Courses with no term_end are left alone.
+export const autoArchivePastCourses = async (userId, callback) => {
+  try {
+    const result = await query(
+      `UPDATE courses
+          SET archived = TRUE
+        WHERE user_id = $1
+          AND archived = FALSE
+          AND term_end IS NOT NULL
+          AND term_end < CURRENT_DATE`,
+      [userId]
+    );
+    callback(null, result.rowCount);
+  } catch (err) {
+    console.error("Error auto-archiving past courses:", err);
+    callback(err);
+  }
 };
 
-// Creates a course and all of its activities in a single transaction. Either
+// Creates a course and all of its activities in ONE transaction: either
 // everything commits, or nothing does — no orphaned course, no half-inserted
-// activity list. Replaces the old "create course, then loop inserts on
-// separate connections" flow that could leave partial data on failure.
-export const createCourseWithActivities = (
-    userId,
-    courseData,
-    activities,
-    callback,
-) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
+// activity list.
+export const createCourseWithActivities = (userId, courseData, activities, callback) => {
+  const {
+    course_code, course_name, professor_name, term, term_end,
+    office_hours, meeting_times, room, textbook_link, gpa_goal,
+  } = courseData;
 
-        db.beginTransaction((err) => {
-            if (err) {
-                db.release();
-                return callback(err, null);
-            }
+  withTransaction(async (client) => {
+    // 1. Insert the course; RETURNING gives us its new id.
+    const courseResult = await client.query(
+      `INSERT INTO courses
+         (user_id, course_code, course_name, professor_name, term,
+          term_end, office_hours, meeting_times, room, textbook_link, gpa_goal)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING course_id`,
+      [
+        userId, course_code, course_name, professor_name || null, term,
+        term_end || null, office_hours || null, meeting_times || null,
+        room || null, textbook_link || null, gpa_goal || null,
+      ]
+    );
+    const courseId = courseResult.rows[0].course_id;
+    const newCourse = { course_id: courseId, ...courseData };
 
-            const {
-                course_code,
-                course_name,
-                professor_name,
-                term,
-                term_end,
-                office_hours,
-                meeting_times,
-                room,
-                textbook_link,
-                gpa_goal,
-            } = courseData;
+    // No activities: commit just the course.
+    if (!activities || activities.length === 0) {
+      return { course: newCourse, activities: [] };
+    }
 
-            const courseQuery = `
-                INSERT INTO courses
-                    (user_id, course_code, course_name, professor_name, term,
-                    term_end, office_hours, meeting_times, room, textbook_link, gpa_goal)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
+    // 2. One multi-row INSERT for all activities. Build the placeholders
+    //    ($1,$2,…),($9,…) and a matching flat params array.
+    const COLS = 8;
+    const params = [];
+    const rowsSql = activities.map((a, i) => {
+      const b = i * COLS;
+      params.push(
+        courseId,
+        a.activity_category_id,
+        a.activity_name,
+        a.due_date,
+        a.grading_weight || 0,
+        a.reminder_date || defaultReminder(a.due_date),
+        a.reminder_method || "email",
+        a.priority_level || "medium"
+      );
+      return `($${b + 1}, $${b + 2}, $${b + 3}, $${b + 4}, $${b + 5}, $${b + 6}, $${b + 7}, $${b + 8})`;
+    });
 
-            db.query(
-                courseQuery,
-                [
-                    userId,
-                    course_code,
-                    course_name,
-                    professor_name || null,
-                    term,
-                    term_end || null,
-                    office_hours || null,
-                    meeting_times || null,
-                    room || null,
-                    textbook_link || null,
-                    gpa_goal || null,
-                ],
-                (err, courseResult) => {
-                    if (err) return rollback(db, callback, err);
+    const actResult = await client.query(
+      `INSERT INTO activities
+         (course_id, activity_category_id, activity_name, due_date,
+          grading_weight, reminder_date, reminder_method, priority_level)
+       VALUES ${rowsSql.join(", ")}
+       RETURNING *`,
+      params
+    );
 
-                    const courseId = courseResult.insertId;
-                    const newCourse = { course_id: courseId, ...courseData };
-
-                    // No activities: commit just the course.
-                    if (!activities || activities.length === 0) {
-                        return db.commit((err) => {
-                            if (err) return rollback(db, callback, err);
-                            db.release();
-                            callback(null, { course: newCourse, activities: [] });
-                        });
-                    }
-
-                    // One bulk INSERT for every activity.
-                    const values = activities.map((a) => [
-                        courseId,
-                        a.activity_category_id,
-                        a.activity_name,
-                        a.due_date,
-                        a.grading_weight || 0,
-                        a.reminder_date || defaultReminder(a.due_date),
-                        a.reminder_method || "email",
-                        a.priority_level || "medium",
-                    ]);
-
-                    const activityQuery = `
-                        INSERT INTO activities
-                            (course_id, activity_category_id, activity_name, due_date,
-                            grading_weight, reminder_date, reminder_method, priority_level)
-                        VALUES ?
-                    `;
-
-                    db.query(activityQuery, [values], (err, actResult) => {
-                        if (err) return rollback(db, callback, err);
-
-                        db.commit((err) => {
-                            if (err) return rollback(db, callback, err);
-                            db.release();
-
-                            // A single multi-row INSERT assigns consecutive
-                            // auto-increment ids from insertId, so we can
-                            // reconstruct each activity_id for the response.
-                            const firstId = actResult.insertId;
-                            const createdActivities = activities.map((a, i) => ({
-                                activity_id: firstId + i,
-                                course_id: courseId,
-                                ...a,
-                            }));
-                            callback(null, {
-                                course: newCourse,
-                                activities: createdActivities,
-                            });
-                        });
-                    });
-                },
-            );
-        });
+    // RETURNING gives us the real inserted rows (real activity_ids and all).
+    return { course: newCourse, activities: actResult.rows };
+  })
+    .then((result) => callback(null, result))
+    .catch((err) => {
+      console.error("Transaction failed, rolling back:", err.message);
+      callback(err, null);
     });
 };
-
-// Rolls back the transaction and releases the connection on any failure.
-function rollback(db, callback, err) {
-    console.error("Transaction failed, rolling back:", err.message);
-    return db.rollback(() => {
-        db.release();
-        callback(err, null);
-    });
-}
