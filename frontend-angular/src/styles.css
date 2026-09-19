@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+/* Hide Edge/IE's built-in password reveal icon — we provide our own toggle. */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
