@@ -1,89 +1,55 @@
-import pool from "../config/db.js";
+import { query } from "../config/db.js";
 
-export const getAllUsers = (callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const query = "SELECT * FROM users";
-        db.query(query, (err, results) => {
-            if (err) {
-                console.error("Error fetching users:", err);
-                return callback(err, null);
-            }
-            callback(null, results);
-        });
-    });
+export const getAllUsers = async (callback) => {
+  try {
+    const { rows } = await query("SELECT * FROM users");
+    callback(null, rows);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    callback(err, null);
+  }
 };
 
-export const getUserByEmail = (email, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const query = "SELECT * FROM users WHERE email = ?";
-        db.query(query, [email], (err, results) => {
-            if (err) {
-                console.error("Error fetching user by email:", err);
-                return callback(err, null);
-            }
-            callback(null, results[0]);
-        });
-    });
+export const getUserByEmail = async (email, callback) => {
+  try {
+    const { rows } = await query("SELECT * FROM users WHERE email = $1", [email]);
+    callback(null, rows[0]);
+  } catch (err) {
+    console.error("Error fetching user by email:", err);
+    callback(err, null);
+  }
 };
 
-export const getUserById = (userId, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const query = "SELECT * FROM users WHERE user_id = ?";
-        db.query(query, [userId], (err, results) => {
-            if (err) {
-                console.error("Error fetching user by ID:", err);
-                return callback(err, null);
-            }
-            callback(null, results[0]);
-        });
-    });
+export const getUserById = async (userId, callback) => {
+  try {
+    const { rows } = await query("SELECT * FROM users WHERE user_id = $1", [userId]);
+    callback(null, rows[0]);
+  } catch (err) {
+    console.error("Error fetching user by ID:", err);
+    callback(err, null);
+  }
 };
 
-export const createUser = (userData, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const { first_name, last_name, email, password_hash, role } = userData;
-        const query = `
-            INSERT INTO users (first_name, last_name, email, password_hash, role)
-            VALUES (?, ?, ?, ?, ?)
-        `;
-        db.query(
-            query,
-            [first_name, last_name, email, password_hash, role || "student"],
-            (err, results) => {
-                if (err) {
-                    console.error("Error creating user:", err);
-                    return callback(err, null);
-                }
-                callback(null, {
-                    user_id: results.insertId,
-                    first_name,
-                    last_name,
-                    email,
-                    role: role || "student",
-                });
-            },
-        );
+export const createUser = async (userData, callback) => {
+  try {
+    const { first_name, last_name, email, password_hash, role } = userData;
+    const { rows } = await query(
+      `INSERT INTO users (first_name, last_name, email, password_hash, role)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING user_id`,
+      [first_name, last_name, email, password_hash, role || "student"]
+    );
+    callback(null, {
+      user_id: rows[0].user_id,
+      first_name,
+      last_name,
+      email,
+      role: role || "student",
     });
+  } catch (err) {
+    console.error("Error creating user:", err);
+    callback(err, null);
+  }
 };
 
 // Updates editable profile fields only — email/password/role are
@@ -91,173 +57,113 @@ export const createUser = (userData, callback) => {
 // (password reset, email change with re-verification, admin-only role
 // changes) rather than being editable through a general profile update.
 const UPDATABLE_PROFILE_COLUMNS = [
-    "first_name",
-    "last_name",
-    "institution",
-    "theme_mode",
-    "preferred_gpa_scale",
-    "default_reminder_days",
-    "default_reminder_method",
+  "first_name",
+  "last_name",
+  "institution",
+  "theme_mode",
+  "preferred_gpa_scale",
+  "default_reminder_days",
+  "default_reminder_method",
 ];
 
-export const updateUserProfile = (userId, profileData, callback) => {
-    // Build the UPDATE from only the fields the client actually sent
-    const columns = UPDATABLE_PROFILE_COLUMNS.filter(
-        (col) =>
-            Object.prototype.hasOwnProperty.call(profileData, col) &&
-            profileData[col] !== undefined,
+export const updateUserProfile = async (userId, profileData, callback) => {
+  const columns = UPDATABLE_PROFILE_COLUMNS.filter(
+    (col) =>
+      Object.prototype.hasOwnProperty.call(profileData, col) &&
+      profileData[col] !== undefined
+  );
+
+  // Nothing to update — successful no-op rather than an invalid empty SET.
+  if (columns.length === 0) {
+    return callback(null, { user_id: userId });
+  }
+
+  try {
+    // Column names come from the fixed whitelist above (safe to interpolate);
+    // values are always parameterized ($1, $2, …).
+    const setClause = columns.map((col, i) => `${col} = $${i + 1}`).join(", ");
+    const values = columns.map((col) => profileData[col]);
+    const sql = `UPDATE users SET ${setClause} WHERE user_id = $${columns.length + 1}`;
+    await query(sql, [...values, userId]);
+    callback(null, { user_id: userId, ...profileData });
+  } catch (err) {
+    console.error("Error updating user:", err);
+    callback(err, null);
+  }
+};
+
+export const updateUserPassword = async (userId, newPasswordHash, callback) => {
+  try {
+    await query("UPDATE users SET password_hash = $1 WHERE user_id = $2", [
+      newPasswordHash,
+      userId,
+    ]);
+    callback(null, { user_id: userId });
+  } catch (err) {
+    console.error("Error updating user password:", err);
+    callback(err, null);
+  }
+};
+
+export const getPasswordResetWithToken = async (token, callback) => {
+  try {
+    const { rows } = await query(
+      "SELECT * FROM password_reset_tokens WHERE token = $1",
+      [token]
     );
-
-    // Nothing to update — treat as a successful no-op rather than issuing an invalid "SET" with no assignments.
-    if (columns.length === 0) {
-        return callback(null, { user_id: userId });
-    }
-
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const setClause = columns.map((col) => `${col} = ?`).join(", ");
-        const values = columns.map((col) => profileData[col]);
-        const query = `UPDATE users SET ${setClause} WHERE user_id = ?`;
-
-        db.query(query, [...values, userId], (err, results) => {
-            if (err) {
-                console.error("Error updating user:", err);
-                return callback(err, null);
-            }
-            callback(null, { user_id: userId, ...profileData });
-        });
-    });
+    callback(null, rows[0]);
+  } catch (err) {
+    console.error("Error fetching password reset token:", err);
+    callback(err, null);
+  }
 };
 
-export const updateUserPassword = (userId, newPasswordHash, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const query = `
-            UPDATE users
-            SET password_hash = ?
-            WHERE user_id = ? `;
-        db.query(query, [newPasswordHash, userId], (err, results) => {
-            if (err) {
-                console.error("Error updating user password:", err);
-                return callback(err, null);
-            }
-            callback(null, { user_id: userId });
-        });
-    });
+export const getPasswordResetWithUserID = async (userID, callback) => {
+  try {
+    const { rows } = await query(
+      "SELECT * FROM password_reset_tokens WHERE user_id = $1",
+      [userID]
+    );
+    callback(null, rows[0]);
+  } catch (err) {
+    console.error("Error fetching password reset token:", err);
+    callback(err, null);
+  }
 };
 
-export const getPasswordResetWithToken = (token, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        db.query(
-            "SELECT * FROM password_reset_tokens WHERE token = ?",
-            [token],
-            (err, results) => {
-                if (err) {
-                    console.error("Error fetching password reset token:", err);
-                    return callback(err, null);
-                }
-                callback(null, results[0]);
-            },
-        );
-    });
+export const deletePasswordResetToken = async (token, callback) => {
+  try {
+    const result = await query(
+      "DELETE FROM password_reset_tokens WHERE token = $1",
+      [token]
+    );
+    callback(null, result);
+  } catch (err) {
+    console.error("Error deleting password reset token:", err);
+    callback(err, null);
+  }
 };
 
-export const getPasswordResetWithUserID = (userID, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        db.query(
-            "SELECT * FROM password_reset_tokens WHERE user_id = ?",
-            [userID],
-            (err, results) => {
-                if (err) {
-                    console.error("Error fetching password reset token:", err);
-                    return callback(err, null);
-                }
-                callback(null, results[0]);
-            },
-        );
-    });
+export const createPasswordResetToken = async (userID, token, expiresAt, callback) => {
+  try {
+    const result = await query(
+      "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)",
+      [userID, token, expiresAt]
+    );
+    callback(null, result);
+  } catch (err) {
+    console.error("Error creating password reset token:", err);
+    callback(err, null);
+  }
 };
 
-export const deletePasswordResetToken = (token, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        db.query(
-            "DELETE FROM password_reset_tokens WHERE token = ?",
-            [token],
-            (err, results) => {
-                if (err) {
-                    console.error("Error deleting password reset token:", err);
-                    return callback(err, null);
-                }
-                callback(null, results);
-            },
-        );
-    });
-};
-
-export const createPasswordResetToken = (userID, token, expiresAt, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-        db.query(
-            "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
-            [userID, token, expiresAt],
-            (err, results) => {
-                if (err) {
-                    console.error("Error creating password reset token:", err);
-                    return callback(err, null);
-                }
-                callback(null, results);
-            },
-        );
-    });
-};
-
-export const deleteUserById = (userId, callback) => {
-    pool.getConnection((err, db) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            return callback(err, null);
-        }
-
-        const query = `
-            DELETE FROM users
-            WHERE user_id = ?
-        `;
-
-        db.query(query, [userId], (err, results) => {
-            db.release();
-
-            if (err) {
-                console.error("Error deleting user account:", err);
-                return callback(err, null);
-            }
-
-            callback(null, {
-                affectedRows: results.affectedRows,
-            });
-        });
-    });
+export const deleteUserById = async (userId, callback) => {
+  try {
+    const result = await query("DELETE FROM users WHERE user_id = $1", [userId]);
+    // Keep the same shape the controller expects (affectedRows).
+    callback(null, { affectedRows: result.rowCount });
+  } catch (err) {
+    console.error("Error deleting user account:", err);
+    callback(err, null);
+  }
 };
