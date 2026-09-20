@@ -12,6 +12,8 @@ import { AddCourse } from './features/courses/add-course/add-course';
 import { UploadSyllabus } from './features/courses/upload-syllabus/upload-syllabus';
 import { AddAssignment } from './features/assignments/add-assignment/add-assignment';
 import { EditCourse } from './features/courses/edit-course/edit-course';
+import { CourseDetail } from './features/courses/course-detail/course-detail';
+
 
 export const routes: Routes = [
   { path: 'login', component: Login },        // top-level: no shell
@@ -26,6 +28,7 @@ export const routes: Routes = [
         { path: 'courses/new', component: AddCourse },
         { path: 'courses/upload', component: UploadSyllabus },
         { path: 'courses/:id/edit', component: EditCourse },
+        { path: 'courses/:id', component: CourseDetail },
         { path: 'assignments', component: Assignments },
         { path: 'assignments/new', component: AddAssignment },
         { path: 'calendar', component: Calendar },

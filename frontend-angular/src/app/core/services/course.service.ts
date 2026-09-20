@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Course, CourseColor } from '../models/course';
+import { Course, colorForCourse } from '../models/course';
 
 interface CourseRow {
   course_id: number;
@@ -13,13 +13,20 @@ interface CourseRow {
   archived: boolean;
 }
 
-interface CourseDetailRow {
+export interface CourseDetailRow {
   course_id: number;
   course_code: string;
   course_name: string;
   professor_name: string | null;
   term: string;
   term_end: string | null;
+  final_grade: string | null;
+  archived: boolean;
+  gpa_goal: string | null;
+  office_hours: string | null;
+  meeting_times: string | null;
+  room: string | null;
+  textbook_link: string | null;
 }
 
 export interface NewCourseInput {
@@ -30,7 +37,6 @@ export interface NewCourseInput {
   termEnd: string;
 }
 
-// What the syllabus extractor hands back for review.
 export interface ExtractedActivity {
   activity_category: string;
   activity_name: string;
@@ -56,12 +62,15 @@ export interface ExtractionResult {
 export class CourseService {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiBase;
-  private readonly palette: CourseColor[] = ['sky', 'violet', 'amber', 'coral', 'teal', 'lime', 'rose', 'slate'];
 
   getCourses(): Observable<Course[]> {
     return this.http
       .get<CourseRow[]>(`${this.api}/user/courses`)
-      .pipe(map((rows) => rows.map((row, i) => this.toCourse(row, i))));
+      .pipe(map((rows) => rows.map((row) => this.toCourse(row))));
+  }
+
+  getCourse(id: number): Observable<CourseDetailRow> {
+    return this.http.get<CourseDetailRow>(`${this.api}/user/courses/${id}`);
   }
 
   createCourse(input: NewCourseInput): Observable<unknown> {
@@ -77,10 +86,6 @@ export class CourseService {
     });
   }
 
-    getCourse(id: number): Observable<CourseDetailRow> {
-    return this.http.get<CourseDetailRow>(`${this.api}/user/courses/${id}`);
-  }
-
   updateCourse(id: number, input: NewCourseInput): Observable<unknown> {
     return this.http.patch(`${this.api}/user/courses/${id}`, {
       course: {
@@ -93,21 +98,23 @@ export class CourseService {
     });
   }
 
-  // Sends the PDF (+ term) to the extractor. Returns the extracted course +
-  // assignments for review — nothing is saved yet.
+  deleteCourse(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.api}/user/courses/${id}`);
+  }
+
+  setArchived(id: number, archived: boolean): Observable<unknown> {
+    return this.http.patch(`${this.api}/user/courses/${id}/archive`, { archived });
+  }
+
   uploadSyllabus(file: File, term: string): Observable<ExtractionResult> {
     const form = new FormData();
-    form.append('file', file); // field name MUST be "file" (multer)
+    form.append('file', file);
     form.append('term', term);
     return this.http.post<ExtractionResult>(`${this.api}/user/upload-syllabus`, form);
   }
 
-  // Saves a reviewed extraction as a real course + its activities, via the same
-  // endpoint the manual form uses.
-    // Saves a reviewed extraction. Converts each category NAME ("Assignment") to
-  // the id (1-4) the save endpoint expects.
   saveExtracted(result: ExtractionResult): Observable<unknown> {
-    const nameToId: Record<string, number> = { Assignment: 1, Quiz: 2, Exam: 3, Project: 4, Lab: 5, Other: 6  };
+    const nameToId: Record<string, number> = { Assignment: 1, Quiz: 2, Exam: 3, Project: 4, Lab: 5, Other: 6 };
     return this.http.post(`${this.api}/user/courses/`, {
       course: result.course,
       activities: result.activities.map((a) => ({
@@ -119,13 +126,13 @@ export class CourseService {
     });
   }
 
-  private toCourse(row: CourseRow, index: number): Course {
+  private toCourse(row: CourseRow): Course {
     return {
       id: row.course_id,
       code: row.course_code,
       name: row.course_name,
       professor: row.professor_name ?? '',
-      color: this.palette[index % this.palette.length],
+      color: colorForCourse(row.course_id),
       currentGrade: row.final_grade != null ? Number(row.final_grade) : null,
       percentComplete: 0,
     };

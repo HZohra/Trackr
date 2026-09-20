@@ -43,4 +43,8 @@ export class ActivityService {
   deleteActivity(activityId: number): Observable<void> {
     return this.http.delete<void>(`${this.api}/user/activities/${activityId}`);
   }
+
+    getByCourse(courseId: number): Observable<Activity[]> {
+    return this.http.get<Activity[]>(`${this.api}/user/courses/${courseId}/activities`);
+  }
 }

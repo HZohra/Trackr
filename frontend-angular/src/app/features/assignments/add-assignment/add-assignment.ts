@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ActivityService } from '../../../core/services/activity.service';
 import { CourseService } from '../../../core/services/course.service';
 import { Course } from '../../../core/models/course';
@@ -16,6 +16,7 @@ export class AddAssignment {
   private readonly activityService = inject(ActivityService);
   private readonly courseService = inject(CourseService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly courses = signal<Course[]>([]);
   protected readonly loading = signal(false);
@@ -24,6 +25,7 @@ export class AddAssignment {
   protected readonly categories = [
     { id: 1, name: 'Assignment' }, { id: 2, name: 'Quiz' },
     { id: 3, name: 'Exam' }, { id: 4, name: 'Project' },
+    { id: 5, name: 'Lab' }, { id: 6, name: 'Other' },
   ];
 
   protected readonly form = this.fb.nonNullable.group({
@@ -35,6 +37,10 @@ export class AddAssignment {
   });
 
   constructor() {
+    // If we arrived from a course page (?course=NN), preselect that course.
+    const preselect = Number(this.route.snapshot.queryParamMap.get('course'));
+    if (preselect) this.form.patchValue({ courseId: preselect });
+
     this.courseService.getCourses().subscribe({
       next: (courses) => this.courses.set(courses),
       error: () => this.error.set('Could not load your courses.'),

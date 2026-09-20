@@ -23,3 +23,8 @@ export const COURSE_COLORS: Record<CourseColor, string> = {
   rose: '#F43F5E',
   slate: '#64748B',
 };
+
+export function colorForCourse(courseId: number): CourseColor {
+  const palette: CourseColor[] = ['sky', 'violet', 'amber', 'coral', 'teal', 'lime', 'rose', 'slate'];
+  return palette[courseId % palette.length];
+}
