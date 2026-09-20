@@ -9,7 +9,7 @@ import { Calendar } from './features/calendar/calendar';
 import { Grades } from './features/grades/grades';
 import { authGuard } from './core/guards/auth.guard';
 import { AddCourse } from './features/courses/add-course/add-course';
-
+import { UploadSyllabus } from './features/courses/upload-syllabus/upload-syllabus';
 export const routes: Routes = [
   { path: 'login', component: Login },        // top-level: no shell
   { path: 'register', component: Register },  // top-level: no shell
@@ -18,13 +18,14 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-    { path: 'dashboard', component: Dashboard },
-    { path: 'courses', component: Courses },
-    { path: 'courses/new', component: AddCourse },
-    { path: 'assignments', component: Assignments },
-    { path: 'calendar', component: Calendar },
-    { path: 'grades', component: Grades },
-    { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+        { path: 'dashboard', component: Dashboard },
+        { path: 'courses', component: Courses },
+        { path: 'courses/new', component: AddCourse },
+        { path: 'courses/upload', component: UploadSyllabus },
+        { path: 'assignments', component: Assignments },
+        { path: 'calendar', component: Calendar },
+        { path: 'grades', component: Grades },
+        { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
 ];

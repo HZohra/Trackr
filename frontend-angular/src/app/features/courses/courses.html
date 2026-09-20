@@ -9,10 +9,16 @@
   } @else {
     <p class="mt-1 text-sm text-slate-500">{{ courses().length }} {{ courses().length === 1 ? 'course' : 'courses' }}</p>
 
-    <a routerLink="/courses/new" class="mt-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      Add course
-    </a>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a routerLink="/courses/new" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add course
+      </a>
+      <a routerLink="/courses/upload" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3"/></svg>
+        Upload syllabus
+      </a>
+    </div>
 
     @if (courses().length === 0) {
       <div class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">

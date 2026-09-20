@@ -18,7 +18,29 @@ export interface NewCourseInput {
   courseName: string;
   term: string;
   professor: string;
-  termEnd: string; // '' or 'YYYY-MM-DD'
+  termEnd: string;
+}
+
+// What the syllabus extractor hands back for review.
+export interface ExtractedActivity {
+  activity_category: string;
+  activity_name: string;
+  due_date: string | null;
+  grading_weight: number | null;
+}
+export interface ExtractionResult {
+  course: {
+    course_code: string;
+    course_name: string;
+    professor_name: string | null;
+    term: string;
+    office_hours?: string | null;
+    meeting_times?: string | null;
+    room?: string | null;
+    textbook_link?: string | null;
+    gpa_goal?: number | null;
+  };
+  activities: ExtractedActivity[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,8 +55,6 @@ export class CourseService {
       .pipe(map((rows) => rows.map((row, i) => this.toCourse(row, i))));
   }
 
-  // Sends the course to POST /user/courses/ in the { course, activities } shape
-  // the backend validator expects. No activities for a manual add.
   createCourse(input: NewCourseInput): Observable<unknown> {
     return this.http.post(`${this.api}/user/courses/`, {
       course: {
@@ -45,6 +65,24 @@ export class CourseService {
         term_end: input.termEnd || null,
       },
       activities: [],
+    });
+  }
+
+  // Sends the PDF (+ term) to the extractor. Returns the extracted course +
+  // assignments for review — nothing is saved yet.
+  uploadSyllabus(file: File, term: string): Observable<ExtractionResult> {
+    const form = new FormData();
+    form.append('file', file); // field name MUST be "file" (multer)
+    form.append('term', term);
+    return this.http.post<ExtractionResult>(`${this.api}/user/upload-syllabus`, form);
+  }
+
+  // Saves a reviewed extraction as a real course + its activities, via the same
+  // endpoint the manual form uses.
+  saveExtracted(result: ExtractionResult): Observable<unknown> {
+    return this.http.post(`${this.api}/user/courses/`, {
+      course: result.course,
+      activities: result.activities,
     });
   }
 
