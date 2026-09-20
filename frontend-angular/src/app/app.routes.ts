@@ -10,6 +10,9 @@ import { Grades } from './features/grades/grades';
 import { authGuard } from './core/guards/auth.guard';
 import { AddCourse } from './features/courses/add-course/add-course';
 import { UploadSyllabus } from './features/courses/upload-syllabus/upload-syllabus';
+import { AddAssignment } from './features/assignments/add-assignment/add-assignment';
+
+
 export const routes: Routes = [
   { path: 'login', component: Login },        // top-level: no shell
   { path: 'register', component: Register },  // top-level: no shell
@@ -23,6 +26,7 @@ export const routes: Routes = [
         { path: 'courses/new', component: AddCourse },
         { path: 'courses/upload', component: UploadSyllabus },
         { path: 'assignments', component: Assignments },
+        { path: 'assignments/new', component: AddAssignment },
         { path: 'calendar', component: Calendar },
         { path: 'grades', component: Grades },
         { path: '', redirectTo: 'dashboard', pathMatch: 'full' },

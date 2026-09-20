@@ -79,10 +79,18 @@ export class CourseService {
 
   // Saves a reviewed extraction as a real course + its activities, via the same
   // endpoint the manual form uses.
+    // Saves a reviewed extraction. Converts each category NAME ("Assignment") to
+  // the id (1-4) the save endpoint expects.
   saveExtracted(result: ExtractionResult): Observable<unknown> {
+    const nameToId: Record<string, number> = { Assignment: 1, Quiz: 2, Exam: 3, Project: 4, Lab: 5, Other: 6  };
     return this.http.post(`${this.api}/user/courses/`, {
       course: result.course,
-      activities: result.activities,
+      activities: result.activities.map((a) => ({
+        activity_category_id: nameToId[a.activity_category] ?? 1,
+        activity_name: a.activity_name,
+        due_date: a.due_date,
+        grading_weight: a.grading_weight,
+      })),
     });
   }
 

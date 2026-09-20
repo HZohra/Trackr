@@ -16,9 +16,11 @@ export const CATEGORY_NAME_TO_ID = {
     Quiz: 2,
     Exam: 3,
     Project: 4,
+    Lab: 5,
+    Other: 6,
 };
 
-const VALID_CATEGORY_IDS = new Set([1, 2, 3, 4]);
+const VALID_CATEGORY_IDS = new Set([1, 2, 3, 4, 5, 6]);
 const VALID_REMINDER_METHODS = new Set(["email", "whatsapp"]);
 const VALID_PRIORITY_LEVELS = new Set(["low", "medium", "high"]);
 
