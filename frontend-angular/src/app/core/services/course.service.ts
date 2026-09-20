@@ -4,7 +4,6 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Course, CourseColor } from '../models/course';
 
-// The raw row shape the API returns (snake_case, straight from the DB).
 interface CourseRow {
   course_id: number;
   course_code: string;
@@ -12,6 +11,14 @@ interface CourseRow {
   professor_name: string | null;
   final_grade: string | null;
   archived: boolean;
+}
+
+export interface NewCourseInput {
+  courseCode: string;
+  courseName: string;
+  term: string;
+  professor: string;
+  termEnd: string; // '' or 'YYYY-MM-DD'
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,7 +33,21 @@ export class CourseService {
       .pipe(map((rows) => rows.map((row, i) => this.toCourse(row, i))));
   }
 
-  // Maps a raw DB row into the UI Course shape the card expects.
+  // Sends the course to POST /user/courses/ in the { course, activities } shape
+  // the backend validator expects. No activities for a manual add.
+  createCourse(input: NewCourseInput): Observable<unknown> {
+    return this.http.post(`${this.api}/user/courses/`, {
+      course: {
+        course_code: input.courseCode,
+        course_name: input.courseName,
+        term: input.term,
+        professor_name: input.professor || null,
+        term_end: input.termEnd || null,
+      },
+      activities: [],
+    });
+  }
+
   private toCourse(row: CourseRow, index: number): Course {
     return {
       id: row.course_id,
@@ -35,7 +56,7 @@ export class CourseService {
       professor: row.professor_name ?? '',
       color: this.palette[index % this.palette.length],
       currentGrade: row.final_grade != null ? Number(row.final_grade) : null,
-      percentComplete: 0, // fills in once activities are wired (needs the activity data)
+      percentComplete: 0,
     };
   }
 }

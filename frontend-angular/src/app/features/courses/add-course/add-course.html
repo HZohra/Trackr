@@ -1,0 +1,42 @@
+<div class="mx-auto max-w-xl">
+  <a routerLink="/courses" class="text-sm text-indigo-600 hover:underline">← Back to courses</a>
+  <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Add a course</h1>
+  <p class="mt-1 text-sm text-slate-500">Enter the course details manually.</p>
+
+  @if (error()) {
+    <div class="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
+    <div>
+      <label class="mb-1 block text-sm font-medium text-slate-700">Course code *</label>
+      <input type="text" formControlName="courseCode" placeholder="CP476" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+      @if (form.controls.courseCode.touched && form.controls.courseCode.invalid) { <p class="mt-1 text-xs text-rose-600">Required.</p> }
+    </div>
+    <div>
+      <label class="mb-1 block text-sm font-medium text-slate-700">Course name *</label>
+      <input type="text" formControlName="courseName" placeholder="Internet Computing" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+      @if (form.controls.courseName.touched && form.controls.courseName.invalid) { <p class="mt-1 text-xs text-rose-600">Required.</p> }
+    </div>
+    <div>
+      <label class="mb-1 block text-sm font-medium text-slate-700">Term *</label>
+      <input type="text" formControlName="term" placeholder="Fall 2026" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+      @if (form.controls.term.touched && form.controls.term.invalid) { <p class="mt-1 text-xs text-rose-600">Required.</p> }
+    </div>
+    <div>
+      <label class="mb-1 block text-sm font-medium text-slate-700">Professor</label>
+      <input type="text" formControlName="professor" placeholder="Dr. Raed Karim" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+    </div>
+    <div>
+      <label class="mb-1 block text-sm font-medium text-slate-700">Term end date <span class="text-slate-400">(optional — used for auto-archiving)</span></label>
+      <input type="date" formControlName="termEnd" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+    </div>
+
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" [disabled]="loading()" class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+        {{ loading() ? 'Saving…' : 'Create course' }}
+      </button>
+      <a routerLink="/courses" class="text-sm font-medium text-slate-500 hover:underline">Cancel</a>
+    </div>
+  </form>
+</div>
