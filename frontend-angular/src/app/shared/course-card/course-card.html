@@ -1,4 +1,4 @@
-<a class="relative block overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 pl-6 shadow-sm transition hover:shadow-md">
+<a [routerLink]="['/courses', course().id, 'edit']" class="relative block overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 pl-6 shadow-sm transition hover:shadow-md">
   <!-- colored left accent bar -->
   <span class="absolute inset-y-0 left-0 w-1.5" [style.backgroundColor]="hex()"></span>
 
@@ -13,7 +13,7 @@
   <div class="mt-5">
     <div class="h-2 w-full overflow-hidden rounded-full bg-slate-100">
       <div class="h-full rounded-full transition-[width] duration-700"
-           [style.width.%]="course().percentComplete" [style.backgroundColor]="hex()"></div>
+        [style.width.%]="course().percentComplete" [style.backgroundColor]="hex()"></div>
     </div>
     <span class="mt-2 block text-xs text-slate-400">{{ course().percentComplete }}% complete</span>
   </div>

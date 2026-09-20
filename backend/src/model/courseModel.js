@@ -188,3 +188,33 @@ export const createCourseWithActivities = (userId, courseData, activities, callb
       callback(err, null);
     });
 };
+// Editable course columns. Identity, user_id, archived and final_grade are
+// intentionally excluded — those have their own dedicated flows.
+const UPDATABLE_COURSE_COLUMNS = [
+  "course_code", "course_name", "professor_name", "term", "term_end",
+  "office_hours", "meeting_times", "room", "textbook_link", "gpa_goal",
+];
+
+export const updateCourse = async (courseId, userId, courseData, callback) => {
+  const columns = UPDATABLE_COURSE_COLUMNS.filter(
+    (col) =>
+      Object.prototype.hasOwnProperty.call(courseData, col) &&
+      courseData[col] !== undefined
+  );
+  if (columns.length === 0) return callback(null, { affectedRows: 0 });
+
+  try {
+    // Column names come from the fixed whitelist (safe); values are parameterized.
+    const setClause = columns.map((col, i) => `${col} = $${i + 1}`).join(", ");
+    const values = columns.map((col) => courseData[col]);
+    const result = await query(
+      `UPDATE courses SET ${setClause}
+        WHERE course_id = $${columns.length + 1} AND user_id = $${columns.length + 2}`,
+      [...values, courseId, userId]
+    );
+    callback(null, { affectedRows: result.rowCount });
+  } catch (err) {
+    console.error("Error updating course:", err);
+    callback(err, null);
+  }
+};

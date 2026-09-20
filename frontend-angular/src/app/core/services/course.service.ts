@@ -13,6 +13,15 @@ interface CourseRow {
   archived: boolean;
 }
 
+interface CourseDetailRow {
+  course_id: number;
+  course_code: string;
+  course_name: string;
+  professor_name: string | null;
+  term: string;
+  term_end: string | null;
+}
+
 export interface NewCourseInput {
   courseCode: string;
   courseName: string;
@@ -65,6 +74,22 @@ export class CourseService {
         term_end: input.termEnd || null,
       },
       activities: [],
+    });
+  }
+
+    getCourse(id: number): Observable<CourseDetailRow> {
+    return this.http.get<CourseDetailRow>(`${this.api}/user/courses/${id}`);
+  }
+
+  updateCourse(id: number, input: NewCourseInput): Observable<unknown> {
+    return this.http.patch(`${this.api}/user/courses/${id}`, {
+      course: {
+        course_code: input.courseCode,
+        course_name: input.courseName,
+        term: input.term,
+        professor_name: input.professor || null,
+        term_end: input.termEnd || null,
+      },
     });
   }
 

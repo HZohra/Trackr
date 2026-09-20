@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -13,6 +13,7 @@ export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly showPassword = signal(false);
   protected readonly loading = signal(false);
@@ -23,6 +24,13 @@ export class Login {
     password: ['', [Validators.required]],
     remember: [false],
   });
+
+  constructor() {
+    // If we were bounced here by an expired session, say so.
+    if (this.route.snapshot.queryParamMap.get('expired') === '1') {
+      this.error.set('Your session expired — please sign in again.');
+    }
+  }
 
   protected togglePassword(): void {
     this.showPassword.update((v) => !v);

@@ -8,7 +8,7 @@ export interface NewActivityInput {
   courseId: number;
   categoryId: number;
   name: string;
-  dueDate: string; // 'YYYY-MM-DD HH:MM'
+  dueDate: string;
   weight: number;
 }
 
@@ -31,5 +31,16 @@ export class ActivityService {
         grading_weight: input.weight,
       },
     });
+  }
+
+  // Sets grade (null clears it) and status on one assignment; returns the updated row.
+  updateActivity(activityId: number, grade: number | null, status: string): Observable<Activity> {
+    return this.http.put<Activity>(`${this.api}/user/activities/${activityId}`, {
+      activity: { grade, status },
+    });
+  }
+
+  deleteActivity(activityId: number): Observable<void> {
+    return this.http.delete<void>(`${this.api}/user/activities/${activityId}`);
   }
 }

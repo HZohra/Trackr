@@ -11,7 +11,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { AddCourse } from './features/courses/add-course/add-course';
 import { UploadSyllabus } from './features/courses/upload-syllabus/upload-syllabus';
 import { AddAssignment } from './features/assignments/add-assignment/add-assignment';
-
+import { EditCourse } from './features/courses/edit-course/edit-course';
 
 export const routes: Routes = [
   { path: 'login', component: Login },        // top-level: no shell
@@ -25,6 +25,7 @@ export const routes: Routes = [
         { path: 'courses', component: Courses },
         { path: 'courses/new', component: AddCourse },
         { path: 'courses/upload', component: UploadSyllabus },
+        { path: 'courses/:id/edit', component: EditCourse },
         { path: 'assignments', component: Assignments },
         { path: 'assignments/new', component: AddAssignment },
         { path: 'calendar', component: Calendar },

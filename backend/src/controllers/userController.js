@@ -192,6 +192,27 @@ export const addCourse = (req, res) => {
     );
 };
 
+// PATCH /user/courses/:courseId — edit a course's details (owner only).
+export const updateCourseById = (req, res) => {
+  const { courseId } = req.params;
+  const { course } = req.body;
+  if (!course || typeof course !== "object") {
+    return res.status(400).json({ message: "Missing course data" });
+  }
+  courseModel.updateCourse(Number(courseId), req.user.user_id, course, (err, result) => {
+    if (err) {
+      if (err.code === "23505") {
+        return res.status(409).json({ message: "You already have a course with that code and term." });
+      }
+      return res.status(500).json({ message: "Failed to update course" });
+    }
+    if (!result.affectedRows) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    res.json({ message: "Course updated" });
+  });
+};
+
 // POST /user/activities
 // Adds a single assignment to a course the student already has — the manual
 // counterpart to the syllabus flow, driven by the Add assignment modal on the

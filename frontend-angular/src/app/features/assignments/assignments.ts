@@ -27,6 +27,11 @@ export class Assignments {
   protected readonly filters: Filter[] = ['all', 'upcoming', 'overdue', 'completed'];
   protected readonly categoryName = CATEGORY_ID_TO_NAME;
 
+  // Edit-modal state
+  protected readonly editing = signal<Activity | null>(null);
+  protected readonly editError = signal<string | null>(null);
+  protected readonly saving = signal(false);
+
   protected readonly visible = computed(() => {
     const now = new Date();
     return this.activities().filter((a) => {
@@ -62,4 +67,40 @@ export class Assignments {
 
   protected setFilter(f: Filter): void { this.filter.set(f); }
   protected courseCode(courseId: number): string { return this.courseCodes()[courseId] ?? '—'; }
+
+  protected openEdit(a: Activity): void { this.editError.set(null); this.editing.set(a); }
+  protected closeEdit(): void { this.editing.set(null); }
+
+  protected save(a: Activity, gradeRaw: string, status: string): void {
+    this.editError.set(null);
+    this.saving.set(true);
+    const grade = gradeRaw.trim() === '' ? null : Number(gradeRaw);
+    this.activityService.updateActivity(a.activity_id, grade, status).subscribe({
+      next: (updated) => {
+        this.activities.update((list) => list.map((x) => (x.activity_id === updated.activity_id ? updated : x)));
+        this.saving.set(false);
+        this.closeEdit();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.editError.set(err?.error?.message ?? 'Could not save.');
+      },
+    });
+  }
+
+  protected remove(a: Activity): void {
+    if (!confirm(`Delete "${a.activity_name}"?`)) return;
+    this.saving.set(true);
+    this.activityService.deleteActivity(a.activity_id).subscribe({
+      next: () => {
+        this.activities.update((list) => list.filter((x) => x.activity_id !== a.activity_id));
+        this.saving.set(false);
+        this.closeEdit();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.editError.set(err?.error?.message ?? 'Could not delete.');
+      },
+    });
+  }
 }
