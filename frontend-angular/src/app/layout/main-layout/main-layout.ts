@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { CourseService } from '../../core/services/course.service';
 import { ActivityService } from '../../core/services/activity.service';
+import { AssistantService, ChatMessage } from '../../core/services/assistant.service';
 import { Course } from '../../core/models/course';
 import { Activity } from '../../core/models/activity';
 
@@ -27,6 +28,7 @@ export class MainLayout {
   private readonly themeService = inject(ThemeService);
   private readonly courseService = inject(CourseService);
   private readonly activityService = inject(ActivityService);
+  private readonly assistant = inject(AssistantService);
 
   protected readonly user = this.auth.currentUser;
   protected readonly displayName = computed(() => {
@@ -83,6 +85,38 @@ export class MainLayout {
     return this.courses().find((c) => c.id === courseId)?.code ?? '';
   }
 
+  // --- Assistant chat ------------------------------------------------------
+  protected readonly messages = signal<ChatMessage[]>([]);
+  protected readonly sending = signal(false);
+  protected readonly chatError = signal<string | null>(null);
+  protected readonly starters = ["What's due this week?", 'How am I doing?', 'What should I focus on?'];
+
+  protected onSend(input: HTMLInputElement): void {
+    if (!input.value.trim() || this.sending()) return;
+    this.send(input.value);
+    input.value = '';
+  }
+
+  protected send(content: string): void {
+    const text = content.trim();
+    if (!text || this.sending()) return;
+    const next: ChatMessage[] = [...this.messages(), { role: 'user', content: text }];
+    this.messages.set(next);
+    this.sending.set(true);
+    this.chatError.set(null);
+    this.assistant.ask(next).subscribe({
+      next: (r) => {
+        this.messages.set([...this.messages(), { role: 'assistant', content: r.reply }]);
+        this.sending.set(false);
+      },
+      error: () => {
+        this.sending.set(false);
+        this.chatError.set("Sorry, I couldn't reach the assistant. Try again.");
+      },
+    });
+  }
+
+  // --- menus / misc --------------------------------------------------------
   protected toggleCollapsed(): void { this.collapsed.update((v) => !v); }
   protected toggleAddMenu(): void { this.userMenuOpen.set(false); this.addMenuOpen.update((v) => !v); }
   protected toggleUserMenu(): void { this.addMenuOpen.set(false); this.userMenuOpen.update((v) => !v); }
