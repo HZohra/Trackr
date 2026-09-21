@@ -13,6 +13,7 @@ import { UploadSyllabus } from './features/courses/upload-syllabus/upload-syllab
 import { AddAssignment } from './features/assignments/add-assignment/add-assignment';
 import { EditCourse } from './features/courses/edit-course/edit-course';
 import { CourseDetail } from './features/courses/course-detail/course-detail';
+import { Settings } from './features/settings/settings';
 
 
 export const routes: Routes = [
@@ -33,6 +34,7 @@ export const routes: Routes = [
         { path: 'assignments/new', component: AddAssignment },
         { path: 'calendar', component: Calendar },
         { path: 'grades', component: Grades },
+        { path: 'settings', component: Settings },
         { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

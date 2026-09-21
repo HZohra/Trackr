@@ -1,6 +1,135 @@
 @import "tailwindcss";
 
-/* Hide Edge/IE's built-in password reveal icon — we provide our own toggle. */
+/* =========================================================================
+   Trackr design tokens — one source of truth for colour, type, radius, depth.
+   Neutrals are intentionally accent-agnostic (a clean cool grey), so any
+   accent the user picks sits well on top. Brand values here are the pre-JS
+   fallback; ThemeService writes the live accent onto <html> at runtime.
+   ========================================================================= */
+
+/* Light theme — the default. */
+:root {
+  color-scheme: light;
+
+  --bg: #F7F8FA;
+  --surface: #FFFFFF;
+  --surface-2: #EFF1F4;
+  --line: #E4E7EC;
+  --ink: #1A1C1F;
+  --muted: #6B7280;
+  --faint: #9CA3AF;
+
+  --brand: #4F46E5;
+  --brand-ink: #4338CA;
+  --brand-soft: #EEF2FF;
+
+  --leaf: #2AA96A;
+  --leaf-soft: #E4F5EC;
+
+  --amber: #B4790B;
+  --amber-soft: #FBEFD6;
+
+  --danger: #E11D48;
+  --danger-ink: #BE123C;
+  --danger-soft: #FFE4E6;
+}
+
+/* Dark theme via OS setting (unless the user explicitly chose light). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #0E1013;
+    --surface: #17191D;
+    --surface-2: #202329;
+    --line: #2A2E35;
+    --ink: #EEF0F3;
+    --muted: #9BA3AE;
+    --faint: #6B7280;
+
+    --brand: #6366F1;
+    --brand-ink: #A5B4FC;
+    --brand-soft: #24224A;
+
+    --leaf: #3EC182;
+    --leaf-soft: #17301F;
+
+    --amber: #E9A93F;
+    --amber-soft: #2E2411;
+
+    --danger: #FB7185;
+    --danger-ink: #FDA4AF;
+    --danger-soft: #3A1720;
+  }
+}
+
+/* Dark theme when the user explicitly picks it (wins over the OS setting). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0E1013;
+  --surface: #17191D;
+  --surface-2: #202329;
+  --line: #2A2E35;
+  --ink: #EEF0F3;
+  --muted: #9BA3AE;
+  --faint: #6B7280;
+
+  --brand: #6366F1;
+  --brand-ink: #A5B4FC;
+  --brand-soft: #24224A;
+
+  --leaf: #3EC182;
+  --leaf-soft: #17301F;
+
+  --amber: #E9A93F;
+  --amber-soft: #2E2411;
+
+  --danger: #FB7185;
+  --danger-ink: #FDA4AF;
+  --danger-soft: #3A1720;
+}
+
+/* Expose tokens to Tailwind so bg-surface, text-ink, text-leaf, text-danger… work. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+
+  --color-leaf: var(--leaf);
+  --color-leaf-soft: var(--leaf-soft);
+
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+
+  --color-danger: var(--danger);
+  --color-danger-ink: var(--danger-ink);
+  --color-danger-soft: var(--danger-soft);
+
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
+
+  --radius-xl: 14px;
+  --radius-2xl: 20px;
+  --radius-3xl: 26px;
+
+  --shadow-card: 0 1px 2px rgba(15, 17, 20, 0.04), 0 10px 26px -14px rgba(15, 17, 20, 0.18);
+  --shadow-pop: 0 16px 40px -12px rgba(15, 17, 20, 0.28);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
 input::-ms-reveal,
 input::-ms-clear {
   display: none;

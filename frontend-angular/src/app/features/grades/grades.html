@@ -1,4 +1,77 @@
-<div class="mx-auto max-w-6xl">
-  <h1 class="text-3xl font-extrabold text-slate-900">Grades</h1>
-  <p class="mt-1 text-sm text-slate-500">Real content arrives in Phase 3.</p>
+<div class="mx-auto max-w-4xl">
+  <h1 class="font-display text-3xl font-bold text-ink">Grades &amp; GPA</h1>
+
+  @if (loading()) {
+    <p class="mt-4 text-sm text-muted">Loading your grades…</p>
+  } @else if (error()) {
+    <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+  } @else {
+
+    <!-- Summary -->
+    <div class="mt-6 grid gap-4" [class.sm:grid-cols-3]="hasGpa()" [class.sm:grid-cols-2]="!hasGpa()">
+      <div class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <p class="text-sm font-medium text-muted">Term average</p>
+        <p class="mt-1 font-display text-3xl font-bold tabular-nums" [style.color]="bandColor(termAverage())">{{ termAverage() != null ? termAverage() + '%' : '—' }}</p>
+      </div>
+      @if (hasGpa()) {
+        <div class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+          <p class="text-sm font-medium text-muted">GPA <span class="text-faint">/ {{ scale().max }}</span></p>
+          <p class="mt-1 font-display text-3xl font-bold tabular-nums text-ink">{{ gpaLabel() }}</p>
+        </div>
+      }
+      <div class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <p class="text-sm font-medium text-muted">Graded</p>
+        <p class="mt-1 font-display text-3xl font-bold tabular-nums text-ink">{{ gradedCount() }}<span class="text-lg text-faint">/{{ rows().length }}</span></p>
+      </div>
+    </div>
+
+    <!-- Per-course breakdown -->
+    @if (rows().length === 0) {
+      <div class="mt-6 rounded-2xl border border-dashed border-line bg-surface p-10 text-center">
+        <p class="text-sm font-semibold text-ink">No courses yet</p>
+        <p class="mt-1 text-sm text-muted">Add a course to start tracking your grades.</p>
+      </div>
+    } @else {
+      <div class="mt-6 overflow-x-auto rounded-2xl border border-line bg-surface shadow-card">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-line text-xs uppercase tracking-wide text-muted">
+            <tr>
+              <th class="px-4 py-3 font-semibold">Course</th>
+              <th class="px-4 py-3 font-semibold">Progress</th>
+              <th class="px-4 py-3 font-semibold">Grade</th>
+              <th class="px-4 py-3 font-semibold">Letter</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            @for (r of rows(); track r.id) {
+              <tr class="transition hover:bg-surface2">
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <span class="rounded-md px-2 py-0.5 text-[11px] font-bold text-white" [style.backgroundColor]="r.color">{{ r.code }}</span>
+                    <span class="font-medium text-ink">{{ r.name }}</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="h-2 w-24 overflow-hidden rounded-full bg-surface2">
+                      <div class="h-full rounded-full" [style.width.%]="r.progress" [style.backgroundColor]="r.color"></div>
+                    </div>
+                    <span class="tabular-nums text-xs text-faint">{{ r.progress }}%</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3 tabular-nums font-semibold" [style.color]="bandColor(r.grade)">{{ r.grade != null ? r.grade + '%' : '—' }}</td>
+                <td class="px-4 py-3 font-display font-bold" [style.color]="bandColor(r.grade)">{{ r.letter }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <p class="mt-3 text-xs text-faint">
+        @if (hasGpa()) { GPA uses the {{ scale().label }} and doesn't account for course credits. }
+        @else { {{ scale().label }} reports a performance letter, not a GPA number. }
+        Change it in Settings.
+      </p>
+    }
+  }
 </div>

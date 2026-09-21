@@ -1,54 +1,53 @@
-<p>upload-syllabus works!</p>
 <div class="mx-auto max-w-2xl">
-  <a routerLink="/courses" class="text-sm text-indigo-600 hover:underline">← Back to courses</a>
-  <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Upload a syllabus</h1>
-  <p class="mt-1 text-sm text-slate-500">Upload a syllabus PDF — we'll pull out the course and assignments for you to review before saving.</p>
+  <a routerLink="/courses" class="text-sm text-brand-ink hover:underline">← Back to courses</a>
+  <h1 class="mt-2 font-display text-3xl font-bold text-ink">Upload a syllabus</h1>
+  <p class="mt-1 text-sm text-muted">Upload a syllabus PDF — we'll pull out the course and assignments for you to review before saving.</p>
 
   @if (error()) {
-    <div class="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ error() }}</div>
+    <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
   }
 
   @if (!extracted()) {
-    <div class="mt-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
+    <div class="mt-6 space-y-4 rounded-2xl border border-line bg-surface p-6 shadow-card">
       <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">Syllabus PDF *</label>
+        <label class="mb-1 block text-sm font-medium text-ink">Syllabus PDF *</label>
         <input type="file" accept="application/pdf" (change)="onFileSelected($event)"
-               class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-indigo-700" />
-        @if (file()) { <p class="mt-1 text-xs text-slate-500">Selected: {{ file()!.name }}</p> }
+               class="block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-ink" />
+        @if (file()) { <p class="mt-1 text-xs text-muted">Selected: {{ file()!.name }}</p> }
       </div>
       <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">Term *</label>
+        <label class="mb-1 block text-sm font-medium text-ink">Term *</label>
         <input #termInput type="text" placeholder="Fall 2026"
-               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
-        <p class="mt-1 text-xs text-slate-400">Used to turn things like “Week 3” into real due dates.</p>
+               class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+        <p class="mt-1 text-xs text-faint">Used to turn things like “Week 3” into real due dates.</p>
       </div>
       <div class="flex items-center gap-3 pt-1">
         <button type="button" (click)="onUpload(termInput.value)" [disabled]="uploading()"
-                class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+                class="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">
           {{ uploading() ? 'Extracting…' : 'Upload & extract' }}
         </button>
-        <a routerLink="/courses/new" class="text-sm font-medium text-slate-500 hover:underline">Add manually instead</a>
+        <a routerLink="/courses/new" class="text-sm font-medium text-muted hover:underline">Add manually instead</a>
       </div>
-      @if (uploading()) { <p class="text-xs text-slate-500">Reading your syllabus with AI — this can take a few seconds.</p> }
+      @if (uploading()) { <p class="text-xs text-muted">Reading your syllabus with AI — this can take a few seconds.</p> }
     </div>
   } @else {
     <div class="mt-6 space-y-5">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Course</h2>
-        <p class="mt-2 text-lg font-bold text-slate-900">{{ extracted()!.course.course_code }} — {{ extracted()!.course.course_name }}</p>
-        <p class="text-sm text-slate-500">{{ extracted()!.course.professor_name || 'No professor found' }} · {{ extracted()!.course.term }}</p>
+      <div class="rounded-2xl border border-line bg-surface p-6 shadow-card">
+        <h2 class="text-xs font-semibold text-muted">Course</h2>
+        <p class="mt-2 font-display text-lg font-bold text-ink">{{ extracted()!.course.course_code }} — {{ extracted()!.course.course_name }}</p>
+        <p class="text-sm text-muted">{{ extracted()!.course.professor_name || 'No professor found' }} · {{ extracted()!.course.term }}</p>
       </div>
 
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Assignments found ({{ extracted()!.activities.length }})</h2>
+      <div class="rounded-2xl border border-line bg-surface p-6 shadow-card">
+        <h2 class="text-xs font-semibold text-muted">Assignments found ({{ extracted()!.activities.length }})</h2>
         @if (extracted()!.activities.length === 0) {
-          <p class="mt-2 text-sm text-slate-500">No assignments detected — you can still save the course and add them later.</p>
+          <p class="mt-2 text-sm text-muted">No assignments detected — you can still save the course and add them later.</p>
         } @else {
-          <ul class="mt-3 divide-y divide-slate-100">
+          <ul class="mt-3 divide-y divide-line">
             @for (a of extracted()!.activities; track $index) {
               <li class="flex items-center justify-between gap-3 py-2 text-sm">
-                <span class="font-medium text-slate-700">{{ a.activity_name }}</span>
-                <span class="shrink-0 text-slate-400">
+                <span class="font-medium text-ink">{{ a.activity_name }}</span>
+                <span class="shrink-0 text-faint">
                   {{ a.activity_category }}@if (a.grading_weight != null) { · {{ a.grading_weight }}%}@if (a.due_date) { · {{ a.due_date }}}
                 </span>
               </li>
@@ -59,10 +58,10 @@
 
       <div class="flex items-center gap-3">
         <button type="button" (click)="onSave()" [disabled]="saving()"
-                class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+                class="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">
           {{ saving() ? 'Saving…' : 'Save to my courses' }}
         </button>
-        <button type="button" (click)="reset()" class="text-sm font-medium text-slate-500 hover:underline">Start over</button>
+        <button type="button" (click)="reset()" class="text-sm font-medium text-muted hover:underline">Start over</button>
       </div>
     </div>
   }

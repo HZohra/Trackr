@@ -1,0 +1,32 @@
+/* Rainbow hue slider — the gradient background is set inline in the template;
+   here we just shape the track and give the thumb the current accent colour. */
+.hue-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+.hue-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid var(--brand);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.hue-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid var(--brand);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.hue-slider:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}

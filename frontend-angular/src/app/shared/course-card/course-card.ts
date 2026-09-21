@@ -8,10 +8,18 @@ import { Course, COURSE_COLORS } from '../../core/models/course';
   templateUrl: './course-card.html',
   styleUrl: './course-card.css',
 })
-
 export class CourseCard {
-  // input.required() = a value the parent MUST pass in. Read it as course().
   readonly course = input.required<Course>();
-  // computed() derives a value from a signal; it re-runs only when course changes.
+
+  /** The course's own colour (the 8-colour palette) — used for the pill + progress. */
   protected readonly hex = computed(() => COURSE_COLORS[this.course().color]);
+
+  /** Grade-band colour: green (strong) / amber (watch) / red (at risk) / muted (none yet). */
+  protected readonly gradeColor = computed(() => {
+    const g = this.course().currentGrade;
+    if (g === null) return 'var(--muted)';
+    if (g >= 80) return 'var(--leaf)';
+    if (g >= 60) return 'var(--amber)';
+    return 'var(--danger)';
+  });
 }

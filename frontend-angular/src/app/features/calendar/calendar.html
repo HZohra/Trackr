@@ -1,4 +1,248 @@
 <div class="mx-auto max-w-6xl">
-  <h1 class="text-3xl font-extrabold text-slate-900">Calendar</h1>
-  <p class="mt-1 text-sm text-slate-500">Real content arrives in Phase 3.</p>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="font-display text-3xl font-bold text-ink">Calendar</h1>
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="inline-flex rounded-lg border border-line bg-surface2 p-1">
+        <button type="button" (click)="setView('month')" class="rounded-md px-3 py-1.5 text-sm font-semibold transition"
+                [class.bg-surface]="view() === 'month'" [class.text-ink]="view() === 'month'" [class.shadow-card]="view() === 'month'" [class.text-muted]="view() !== 'month'">Month</button>
+        <button type="button" (click)="setView('week')" class="rounded-md px-3 py-1.5 text-sm font-semibold transition"
+                [class.bg-surface]="view() === 'week'" [class.text-ink]="view() === 'week'" [class.shadow-card]="view() === 'week'" [class.text-muted]="view() !== 'week'">Week</button>
+      </div>
+      <button type="button" (click)="goToday()" class="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink hover:bg-surface2">Today</button>
+      <div class="flex items-center gap-1">
+        <button type="button" (click)="prev()" aria-label="Previous" class="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface2">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="min-w-[11rem] text-center font-display text-base font-bold text-ink">{{ periodLabel() }}</span>
+        <button type="button" (click)="next()" aria-label="Next" class="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface2">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="mt-6 text-sm text-muted">Loading your calendar…</p>
+  } @else if (error()) {
+    <div class="mt-6 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+  } @else {
+
+    <!-- Month view -->
+    @if (view() === 'month') {
+      <div class="mt-6 overflow-x-auto">
+        <div class="min-w-[720px] overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
+          <div class="grid grid-cols-7 border-b border-line">
+            @for (w of weekdays; track w) {
+              <div class="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted">{{ w }}</div>
+            }
+          </div>
+          @for (week of weeks(); track $index) {
+            <div class="grid grid-cols-7">
+              @for (cell of week; track cell.key) {
+                <button type="button" (click)="openDate(cell.date)"
+                        class="min-h-28 border-b border-r border-line p-1.5 text-left transition last:border-r-0 hover:bg-surface2"
+                        [class.bg-surface]="cell.inMonth" [class.bg-surface2]="!cell.inMonth">
+                  <div class="flex justify-end">
+                    <span class="grid h-6 w-6 place-items-center rounded-full text-xs tabular-nums"
+                          [class.font-bold]="cell.isToday" [class.bg-brand]="cell.isToday" [class.text-white]="cell.isToday"
+                          [class.text-ink]="!cell.isToday && cell.inMonth" [class.text-faint]="!cell.isToday && !cell.inMonth">{{ cell.day }}</span>
+                  </div>
+                  <div class="mt-1 space-y-1">
+                    @for (item of cell.items.slice(0, 3); track item.uid) {
+                      <div class="flex min-w-0 items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium" [class.bg-danger-soft]="item.overdue">
+                        <span class="h-1.5 w-1.5 shrink-0 rounded-full" [style.backgroundColor]="item.color"></span>
+                        <span class="min-w-0 flex-1 truncate"
+                              [class.text-faint]="item.graded" [class.line-through]="item.graded"
+                              [class.text-danger-ink]="item.overdue" [class.text-ink]="!item.graded && !item.overdue">{{ item.name }}</span>
+                      </div>
+                    }
+                    @if (cell.items.length > 3) {
+                      <p class="px-1.5 text-[11px] font-medium text-faint">+{{ cell.items.length - 3 }} more</p>
+                    }
+                  </div>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Week view -->
+    @if (view() === 'week') {
+      <div class="mt-6 overflow-x-auto">
+        <div class="grid min-w-[720px] grid-cols-7 gap-2">
+          @for (d of weekDays(); track d.key; let i = $index) {
+            <button type="button" (click)="openDate(d.date)" class="flex min-h-96 flex-col rounded-2xl border border-line bg-surface p-2 text-left shadow-card transition hover:bg-surface2">
+              <div class="flex items-center justify-between px-1 pb-2">
+                <span class="text-xs font-semibold uppercase tracking-wide text-muted">{{ weekdays[i] }}</span>
+                <span class="grid h-6 w-6 place-items-center rounded-full text-xs tabular-nums"
+                      [class.bg-brand]="d.isToday" [class.text-white]="d.isToday" [class.text-ink]="!d.isToday">{{ d.day }}</span>
+              </div>
+              <div class="space-y-1">
+                @for (item of d.items; track item.uid) {
+                  <div class="flex min-w-0 items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium" [class.bg-danger-soft]="item.overdue">
+                    <span class="h-1.5 w-1.5 shrink-0 rounded-full" [style.backgroundColor]="item.color"></span>
+                    <span class="min-w-0 flex-1 truncate"
+                          [class.text-faint]="item.graded" [class.line-through]="item.graded"
+                          [class.text-danger-ink]="item.overdue" [class.text-ink]="!item.graded && !item.overdue">{{ item.name }}</span>
+                  </div>
+                }
+                @if (d.items.length === 0) { <p class="px-1.5 text-[11px] text-faint">—</p> }
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Side panels -->
+    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+      <section class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <h2 class="font-display text-base font-bold text-ink">Upcoming</h2>
+        @if (upcoming().length === 0) {
+          <p class="mt-3 text-sm text-muted">Nothing upcoming.</p>
+        } @else {
+          <ul class="mt-3 space-y-2.5">
+            @for (item of upcoming(); track item.uid) {
+              <li class="flex items-center gap-2.5">
+                <span class="h-2 w-2 shrink-0 rounded-full" [style.backgroundColor]="item.color"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium text-ink">{{ item.name }}</p>
+                  <p class="text-xs text-muted">{{ item.typeLabel }}@if (item.courseId) { · {{ courseCode(item.courseId) }} }</p>
+                </div>
+                <span class="shrink-0 text-xs tabular-nums text-faint">{{ dateLabel(item.date) }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <h2 class="font-display text-base font-bold text-ink">Filter</h2>
+        <div class="mt-3 space-y-2.5 text-sm">
+          <label class="flex items-center gap-2 text-ink">
+            <input type="checkbox" [checked]="filters().assignments" (change)="toggleFilter('assignments')" class="rounded border-line accent-brand" />
+            Assignments &amp; coursework
+          </label>
+          <label class="flex items-center gap-2 text-ink">
+            <input type="checkbox" [checked]="filters().other" (change)="toggleFilter('other')" class="rounded border-line accent-brand" />
+            Other events
+          </label>
+          <label class="flex items-center gap-2 text-ink">
+            <input type="checkbox" [checked]="filters().completed" (change)="toggleFilter('completed')" class="rounded border-line accent-brand" />
+            Show completed
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <h2 class="font-display text-base font-bold text-ink">This week</h2>
+        <ul class="mt-3 space-y-1.5">
+          @for (d of thisWeek(); track d.label) {
+            <li class="flex items-center justify-between text-sm">
+              <span class="flex items-center gap-2">
+                <span class="grid h-7 w-7 place-items-center rounded-lg text-xs tabular-nums"
+                      [class.bg-brand]="d.isToday" [class.text-white]="d.isToday"
+                      [class.bg-surface2]="!d.isToday" [class.text-muted]="!d.isToday">{{ d.day }}</span>
+                <span class="text-ink">{{ d.label }}</span>
+              </span>
+              <span class="text-xs text-muted">{{ d.count === 0 ? 'No events' : d.count === 1 ? '1 event' : d.count + ' events' }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    <p class="mt-3 text-xs text-muted">Click a day to see its schedule and add tasks. Filters apply to the grid and panels; opening a day still shows everything.</p>
+  }
+
+  <!-- Day panel -->
+  @if (selected(); as day) {
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4" (click)="closeDay()">
+      <div class="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-pop" (click)="$event.stopPropagation()">
+        <div class="flex items-center justify-between">
+          <h2 class="font-display text-lg font-bold text-ink">{{ selectedLabel() }}</h2>
+          <button type="button" (click)="closeDay()" aria-label="Close" class="grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-surface2">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        @if (selectedItems().length === 0) {
+          <p class="mt-4 text-sm text-muted">Nothing scheduled.</p>
+        } @else {
+          <ul class="mt-4 space-y-2">
+            @for (item of selectedItems(); track item.uid) {
+              <li class="flex items-center gap-3 rounded-xl border border-line px-3 py-2 text-sm" [class.bg-danger-soft]="item.overdue">
+                <span class="h-2 w-2 shrink-0 rounded-full" [style.backgroundColor]="item.color"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-medium" [class.text-ink]="!item.graded" [class.text-faint]="item.graded" [class.line-through]="item.graded">{{ item.name }}</p>
+                  <p class="text-xs text-muted">
+                    {{ item.typeLabel }}@if (item.time) { · {{ item.time }} }@if (item.courseId) { · {{ courseCode(item.courseId) }} }
+                  </p>
+                </div>
+                @if (item.kind === 'activity' && item.courseId) {
+                  <a [routerLink]="['/courses', item.courseId]" (click)="closeDay()" class="shrink-0 text-xs font-semibold text-brand-ink hover:underline">Open</a>
+                } @else if (item.kind === 'event') {
+                  <button type="button" (click)="removeEvent(item.refId + '')" aria-label="Remove" class="shrink-0 text-muted hover:text-danger-ink">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        }
+
+        <form [formGroup]="addForm" (ngSubmit)="submitAdd()" class="mt-5 space-y-3 border-t border-line pt-5">
+          <h3 class="text-sm font-bold text-ink">Add a task</h3>
+
+          @if (addError()) {
+            <div class="rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ addError() }}</div>
+          }
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mb-1 block text-xs font-medium text-muted">Type</label>
+              <select formControlName="type" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none">
+                @for (t of taskTypes; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-medium text-muted">Time <span class="text-faint">(optional)</span></label>
+              <input type="time" formControlName="time" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs font-medium text-muted">Title</label>
+            <input type="text" formControlName="title" placeholder="e.g. Group meeting, Assignment 2…" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+            @if (addForm.controls.title.touched && addForm.controls.title.invalid) { <p class="mt-1 text-xs text-danger-ink">A title is required.</p> }
+          </div>
+
+          @if (addForm.controls.type.value !== 'other') {
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="mb-1 block text-xs font-medium text-muted">Course</label>
+                <select formControlName="courseId" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none">
+                  <option [value]="0" disabled>Select…</option>
+                  @for (c of courses(); track c.id) { <option [value]="c.id">{{ c.code }}</option> }
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-medium text-muted">Weight (%)</label>
+                <input type="number" min="0" max="100" formControlName="weight" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
+              </div>
+            </div>
+            <p class="text-xs text-faint">Saves to your Assignments too.</p>
+          } @else {
+            <p class="text-xs text-faint">Saved only on the calendar.</p>
+          }
+
+          <button type="submit" [disabled]="saving()" class="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">
+            {{ saving() ? 'Adding…' : 'Add task' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  }
 </div>

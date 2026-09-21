@@ -1,4 +1,132 @@
 <div class="mx-auto max-w-6xl">
-  <h1 class="text-3xl font-extrabold text-slate-900">Dashboard</h1>
-  <p class="mt-1 text-sm text-slate-500">Real content arrives in Phase 3.</p>
+
+  @if (loading()) {
+    <!-- Skeleton mirrors the real layout -->
+    <app-skeleton class="h-9 w-64" />
+    <div class="mt-6 grid gap-4 lg:grid-cols-3">
+      <app-skeleton class="h-44 lg:col-span-2" />
+      <div class="grid grid-cols-2 gap-4">
+        <app-skeleton class="h-24" />
+        <app-skeleton class="h-24" />
+        <app-skeleton class="h-24" />
+        <app-skeleton class="h-24" />
+      </div>
+    </div>
+    <app-skeleton class="mt-4 h-48" />
+    <app-skeleton class="mt-8 h-6 w-40" />
+    <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <app-skeleton class="h-40" />
+      <app-skeleton class="h-40" />
+      <app-skeleton class="h-40" />
+    </div>
+  } @else if (error()) {
+    <div class="rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+  } @else {
+
+    <!-- Greeting -->
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <h1 class="font-display text-3xl font-bold text-ink">{{ greeting() }}, {{ firstName() }}</h1>
+      <p class="text-sm text-muted">
+        {{ dueThisWeekCount() }} due this week@if (overdueCount() > 0) {<span class="text-danger-ink"> · {{ overdueCount() }} overdue</span>}
+      </p>
+    </div>
+
+    <!-- Focus + stats -->
+    <div class="mt-6 grid gap-4 lg:grid-cols-3">
+      <div class="rounded-3xl border border-line bg-brand-soft p-6 lg:col-span-2">
+        @if (focus(); as f) {
+          <div class="flex items-center gap-2 text-sm font-medium text-brand-ink">
+            <span class="h-2 w-2 rounded-full" [style.backgroundColor]="f.overdue ? 'var(--danger)' : 'var(--brand-ink)'"></span>
+            Next up
+          </div>
+          <div class="mt-3 flex flex-wrap items-end justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="rounded-md px-2 py-0.5 text-[11px] font-bold text-white" [style.backgroundColor]="f.color">{{ f.code }}</span>
+                <span class="text-sm text-muted">{{ f.category }}{{ f.weight ? ' · ' + f.weight : '' }}</span>
+              </div>
+              <h2 class="mt-2 font-display text-2xl font-bold leading-tight text-ink">{{ f.name }}</h2>
+            </div>
+            <div class="text-right">
+              <p class="text-xs font-medium text-muted">{{ f.overdue ? 'Status' : 'Due in' }}</p>
+              <p class="font-display text-3xl font-bold tabular-nums" [style.color]="f.overdue ? 'var(--danger-ink)' : 'var(--ink)'">{{ countdown() }}</p>
+            </div>
+          </div>
+          <a [routerLink]="['/courses', f.courseId]" class="mt-5 inline-flex rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-ink">Open course</a>
+        } @else {
+          <div class="flex h-full flex-col items-start justify-center">
+            <h2 class="font-display text-2xl font-bold text-ink">You're all caught up</h2>
+            <p class="mt-1 text-sm text-muted">Nothing due right now. Add assignments to start tracking.</p>
+            <a routerLink="/assignments/new" class="mt-4 inline-flex rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-ink">Add assignment</a>
+          </div>
+        }
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="rounded-2xl border border-line bg-surface p-4 shadow-card">
+          <p class="text-sm font-medium text-muted">Average grade</p>
+          <p class="mt-1 font-display text-2xl font-bold tabular-nums" [style.color]="bandColor(avgGrade())">{{ avgGrade() != null ? avgGrade() + '%' : '—' }}</p>
+        </div>
+        <div class="rounded-2xl border border-line bg-surface p-4 shadow-card">
+          <p class="text-sm font-medium text-muted">Courses</p>
+          <p class="mt-1 font-display text-2xl font-bold tabular-nums text-ink">{{ courses().length }}</p>
+        </div>
+        <div class="rounded-2xl border border-line bg-surface p-4 shadow-card">
+          <p class="text-sm font-medium text-muted">Due this week</p>
+          <p class="mt-1 font-display text-2xl font-bold tabular-nums text-ink">{{ dueThisWeekCount() }}</p>
+        </div>
+        <div class="rounded-2xl border p-4 shadow-card"
+             [class.border-danger-soft]="overdueCount() > 0" [class.bg-danger-soft]="overdueCount() > 0"
+             [class.border-line]="overdueCount() === 0" [class.bg-surface]="overdueCount() === 0">
+          <p class="text-sm font-medium" [class.text-danger-ink]="overdueCount() > 0" [class.text-muted]="overdueCount() === 0">Overdue</p>
+          <p class="mt-1 font-display text-2xl font-bold tabular-nums" [class.text-danger-ink]="overdueCount() > 0" [class.text-ink]="overdueCount() === 0">{{ overdueCount() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Due this week -->
+    <section class="mt-4 rounded-3xl border border-line bg-surface p-5 shadow-card">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display text-lg font-bold text-ink">Due this week</h3>
+        <a routerLink="/assignments" class="text-sm font-semibold text-brand-ink hover:underline">View all</a>
+      </div>
+      @if (dueSoon().length === 0) {
+        <p class="mt-3 text-sm text-muted">Nothing due in the next 7 days.</p>
+      } @else {
+        <ul class="mt-3 divide-y divide-line">
+          @for (d of dueSoon(); track d.id) {
+            <li class="flex items-center gap-3 py-3">
+              <span class="h-2 w-2 shrink-0 rounded-full" [style.backgroundColor]="d.color"></span>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-semibold text-ink">{{ d.name }}</p>
+                <p class="text-xs text-muted">{{ d.code }}</p>
+              </div>
+              <span class="rounded-lg px-2 py-1 text-xs font-semibold"
+                    [class.bg-danger-soft]="d.overdue" [class.text-danger-ink]="d.overdue"
+                    [class.bg-surface2]="!d.overdue" [class.text-muted]="!d.overdue">{{ d.label }}</span>
+              <span class="w-10 shrink-0 text-right text-xs tabular-nums text-faint">{{ d.weight }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Your courses -->
+    <div class="mt-8 flex items-center justify-between">
+      <h3 class="font-display text-lg font-bold text-ink">Your courses</h3>
+      <a routerLink="/courses" class="text-sm font-semibold text-brand-ink hover:underline">All courses</a>
+    </div>
+    @if (courses().length === 0) {
+      <div class="mt-3 rounded-2xl border border-dashed border-line bg-surface p-8 text-center">
+        <p class="text-sm font-semibold text-ink">No courses yet</p>
+        <p class="mt-1 text-sm text-muted">Add a course or upload a syllabus to get started.</p>
+      </div>
+    } @else {
+      <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @for (course of courses(); track course.id) {
+          <app-course-card [course]="course" />
+        }
+      </div>
+    }
+  }
 </div>

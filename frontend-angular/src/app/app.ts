@@ -1,7 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
-
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -9,4 +8,7 @@ import { authGuard } from './core/guards/auth.guard';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  // Constructing ThemeService applies the saved theme + accent at startup.
+  private readonly theme = inject(ThemeService);
+}

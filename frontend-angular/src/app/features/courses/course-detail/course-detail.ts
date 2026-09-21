@@ -8,6 +8,17 @@ import { Activity, CATEGORY_ID_TO_NAME } from '../../../core/models/activity';
 import { colorForCourse, COURSE_COLORS } from '../../../core/models/course';
 import { weightedGrade, percentComplete, totalWeight } from '../../../core/grade-math';
 
+/** Result of the grade projector. Fields are optional so the template can read
+ *  whichever ones its current `kind` uses without type errors. */
+interface Projection {
+  kind: 'need' | 'secured' | 'impossible' | 'final' | 'noweights';
+  needed?: number;
+  minGuaranteed?: number;
+  maxReachable?: number;
+  finalPct?: number;
+  remainingWeight?: number;
+}
+
 @Component({
   selector: 'app-course-detail',
   imports: [RouterLink, DatePipe],
@@ -46,6 +57,52 @@ export class CourseDetail {
       .sort((a, b) => (a.due_date ?? '').localeCompare(b.due_date ?? '')),
   );
   protected readonly completed = computed(() => this.activities().filter((a) => a.grade != null));
+
+  // --- Grade projector -----------------------------------------------------
+
+  protected readonly presets = [70, 80, 85, 90];
+  protected readonly target = signal(80);
+
+  protected setTarget(v: number): void {
+    if (Number.isNaN(v)) return;
+    this.target.set(Math.max(0, Math.min(100, Math.round(v))));
+  }
+
+  protected readonly projection = computed<Projection>(() => {
+    const w = (a: Activity) => (a.grading_weight != null ? Number(a.grading_weight) : 0);
+    const acts = this.activities();
+
+    const graded = acts.filter((a) => a.grade != null);
+    const remaining = acts.filter((a) => a.grade == null && w(a) > 0);
+
+    const totW = acts.reduce((s, a) => s + w(a), 0);
+    const remainingWeight = remaining.reduce((s, a) => s + w(a), 0);
+    const earnedPoints = graded.reduce((s, a) => s + (Number(a.grade) / 100) * w(a), 0);
+
+    if (totW <= 0) return { kind: 'noweights' };
+    if (remainingWeight <= 0) return { kind: 'final', finalPct: Math.round((earnedPoints / totW) * 100) };
+
+    const targetPoints = (this.target() / 100) * totW;
+    const needed = ((targetPoints - earnedPoints) / remainingWeight) * 100;
+    const rw = Math.round(remainingWeight);
+
+    if (needed <= 0) {
+      return { kind: 'secured', minGuaranteed: Math.round((earnedPoints / totW) * 100), remainingWeight: rw };
+    }
+    if (needed > 100) {
+      return { kind: 'impossible', maxReachable: Math.round(((earnedPoints + remainingWeight) / totW) * 100), remainingWeight: rw };
+    }
+    return { kind: 'need', needed: Math.round(needed * 10) / 10, remainingWeight: rw };
+  });
+
+  protected neededColor(n: number | undefined): string {
+    if (n == null) return 'var(--ink)';
+    if (n <= 75) return 'var(--leaf)';
+    if (n <= 90) return 'var(--amber)';
+    return 'var(--danger)';
+  }
+
+  // --- lifecycle / actions -------------------------------------------------
 
   constructor() {
     forkJoin({
