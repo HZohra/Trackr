@@ -2,6 +2,7 @@ import express from "express";
 import * as userController from "../controllers/userController.js";
 import { upload } from "../middleware/upload.js";
 import { verifyToken } from "../middleware/auth.js";
+import { uploadLimiter } from "../middleware/rateLimit.js";
 
 const router = express.Router();
 
@@ -44,7 +45,8 @@ const uploadPdf = (req, res, next) => {
         next();
     });
 };
-router.post("/upload-syllabus", uploadPdf, userController.uploadSyllabus);
+
+router.post("/upload-syllabus", uploadLimiter, uploadPdf, userController.uploadSyllabus);
 router.post("/courses/", userController.addCourse);
 
 // Delete the currently logged-in user's account
