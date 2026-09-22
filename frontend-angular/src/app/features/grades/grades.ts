@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CourseService } from '../../core/services/course.service';
 import { ActivityService } from '../../core/services/activity.service';
@@ -20,7 +21,7 @@ interface GradeRow {
 
 @Component({
   selector: 'app-grades',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './grades.html',
   styleUrl: './grades.css',
 })

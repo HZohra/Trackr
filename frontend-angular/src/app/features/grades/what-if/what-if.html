@@ -1,0 +1,87 @@
+<div class="mx-auto max-w-4xl">
+  <a routerLink="/grades" class="text-sm text-brand-ink hover:underline">← Back to grades</a>
+  <div class="mt-2 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="font-display text-3xl font-bold text-ink">What-if calculator</h1>
+      <p class="mt-1 text-sm text-muted">Try hypothetical grades and see how your term average and GPA would change.</p>
+    </div>
+    <button type="button" (click)="reset()" class="text-sm font-medium text-brand-ink hover:underline">Reset</button>
+  </div>
+
+  @if (loading()) {
+    <p class="mt-6 text-sm text-muted">Loading…</p>
+  } @else if (error()) {
+    <div class="mt-6 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+  } @else {
+
+    <div class="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-card">
+      <label class="flex flex-wrap items-center gap-2 text-sm text-ink">
+        If I score
+        <input #g type="number" min="0" max="100" [value]="globalGuess() ?? ''" (input)="setGlobal(g.value)" placeholder="—"
+               class="w-20 rounded-lg border border-line bg-surface px-2 py-1.5 text-right text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+        % on every remaining assignment…
+      </label>
+      <p class="mt-1 text-xs text-faint">You can override individual assignments below.</p>
+    </div>
+
+    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+      <div class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <p class="text-sm font-medium text-muted">Term average</p>
+        <div class="mt-1 flex items-baseline gap-2">
+          <span class="font-display text-2xl font-bold tabular-nums text-faint">{{ currentAvg() != null ? currentAvg() + '%' : '—' }}</span>
+          <span class="text-faint">→</span>
+          <span class="font-display text-3xl font-bold tabular-nums" [style.color]="bandColor(projectedAvg())">{{ projectedAvg() != null ? projectedAvg() + '%' : '—' }}</span>
+        </div>
+      </div>
+      @if (hasGpa()) {
+        <div class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+          <p class="text-sm font-medium text-muted">GPA <span class="text-faint">/ {{ scale().max }}</span></p>
+          <div class="mt-1 flex items-baseline gap-2">
+            <span class="font-display text-2xl font-bold tabular-nums text-faint">{{ currentGpa() }}</span>
+            <span class="text-faint">→</span>
+            <span class="font-display text-3xl font-bold tabular-nums text-brand-ink">{{ projectedGpa() }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="mt-6 space-y-4">
+      @for (c of courses(); track c.id) {
+        <div class="rounded-2xl border border-line bg-surface p-5 shadow-card">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex min-w-0 items-center gap-2">
+              <span class="rounded-md px-2 py-0.5 text-xs font-bold text-white" [style.backgroundColor]="c.color">{{ c.code }}</span>
+              <span class="truncate font-display text-base font-bold text-ink">{{ c.name }}</span>
+            </div>
+            <div class="flex shrink-0 items-baseline gap-2 text-sm">
+              <span class="tabular-nums text-faint">{{ currentGrade(c) != null ? currentGrade(c) + '%' : '—' }}</span>
+              <span class="text-faint">→</span>
+              <span class="font-display text-lg font-bold tabular-nums" [style.color]="bandColor(projectedGrade(c))">{{ projectedGrade(c) != null ? projectedGrade(c) + '%' : '—' }}</span>
+            </div>
+          </div>
+
+          @if (ungraded(c).length === 0) {
+            <p class="mt-3 text-sm text-muted">All graded — nothing to project.</p>
+          } @else {
+            <ul class="mt-3 divide-y divide-line">
+              @for (a of ungraded(c); track a.id) {
+                <li class="flex items-center gap-3 py-2 text-sm">
+                  <span class="min-w-0 flex-1 truncate text-ink">{{ a.name }}</span>
+                  <span class="tabular-nums text-xs text-faint">{{ a.weight }}%</span>
+                  <div class="relative w-24">
+                    <input #hv type="number" min="0" max="100" [value]="hypoValue(a.id) ?? ''" (input)="setHypo(a.id, hv.value)"
+                           [placeholder]="globalGuess() != null ? (globalGuess() + '') : '—'"
+                           class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 pr-6 text-right text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+                    <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-faint">%</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+    </div>
+
+    <p class="mt-4 text-xs text-faint">Hypothetical only — nothing here changes your saved grades.</p>
+  }
+</div>

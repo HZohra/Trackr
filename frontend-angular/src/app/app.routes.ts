@@ -15,6 +15,8 @@ import { EditCourse } from './features/courses/edit-course/edit-course';
 import { CourseDetail } from './features/courses/course-detail/course-detail';
 import { Settings } from './features/settings/settings';
 import { AssignmentDetail } from './features/assignments/assignment-detail/assignment-detail';
+import { WhatIf } from './features/grades/what-if/what-if';
+
 
 export const routes: Routes = [
   { path: 'login', component: Login },        // top-level: no shell
@@ -35,6 +37,7 @@ export const routes: Routes = [
         { path: 'assignments/:id', component: AssignmentDetail },
         { path: 'calendar', component: Calendar },
         { path: 'grades', component: Grades },
+        { path: 'grades/what-if', component: WhatIf },
         { path: 'settings', component: Settings },
         { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
