@@ -1,1 +1,0 @@
-/*Dark/light mode toggle.*/
