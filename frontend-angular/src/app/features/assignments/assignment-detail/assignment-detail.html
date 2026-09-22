@@ -1,0 +1,79 @@
+<div class="mx-auto max-w-2xl">
+  <a routerLink="/assignments" class="text-sm text-brand-ink hover:underline">← Back to assignments</a>
+
+  @if (loading()) {
+    <p class="mt-6 text-sm text-muted">Loading…</p>
+  } @else if (error() && !saving()) {
+    <div class="mt-6 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+  } @else {
+    <h1 class="mt-2 font-display text-3xl font-bold text-ink">Edit assignment</h1>
+
+    @if (error()) {
+      <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="mt-6 space-y-4 rounded-2xl border border-line bg-surface p-6 shadow-card">
+      <div>
+        <label class="mb-1 block text-sm font-medium text-ink">Name</label>
+        <input type="text" formControlName="name" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
+        @if (form.controls.name.touched && form.controls.name.invalid) { <p class="mt-1 text-xs text-danger-ink">A name is required.</p> }
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Course</label>
+          <select formControlName="courseId" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none">
+            <option [value]="0" disabled>Select…</option>
+            @for (c of courses(); track c.id) { <option [value]="c.id">{{ c.code }} — {{ c.name }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Type</label>
+          <select formControlName="categoryId" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none">
+            @for (cat of categories; track cat.id) { <option [value]="cat.id">{{ cat.name }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Due date <span class="text-faint">(optional)</span></label>
+          <input type="datetime-local" formControlName="dueDate" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Weight (%)</label>
+          <input type="number" min="0" max="100" formControlName="weight" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Grade (%) <span class="text-faint">(blank = ungraded)</span></label>
+          <input type="number" min="0" max="100" formControlName="grade" placeholder="—" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Status</label>
+          <select formControlName="status" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none">
+            @for (s of statuses; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm font-medium text-ink">Instructions</label>
+        <textarea formControlName="instructions" rows="4" placeholder="What the syllabus says about this assignment…"
+                  class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none"></textarea>
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm font-medium text-ink">Notes</label>
+        <textarea formControlName="notes" rows="4" placeholder="Your own notes, reminders, links…"
+                  class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between pt-1">
+        <button type="button" (click)="onDelete()" [disabled]="saving()" class="text-sm font-medium text-danger-ink hover:underline disabled:opacity-60">Delete</button>
+        <div class="flex items-center gap-3">
+          <a routerLink="/assignments" class="text-sm font-medium text-muted hover:underline">Cancel</a>
+          <button type="submit" [disabled]="saving()" class="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">
+            {{ saving() ? 'Saving…' : 'Save changes' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</div>

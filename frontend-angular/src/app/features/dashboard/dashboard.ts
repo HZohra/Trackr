@@ -45,8 +45,11 @@ export class Dashboard implements OnDestroy {
       activities: this.activityService.getAllActivities(),
     }).subscribe({
       next: ({ courses, activities }) => {
-        this.activities.set(activities);
-        this.courses.set(this.enrich(courses, activities));
+        const active = courses.filter((c) => !c.archived);
+        const activeIds = new Set(active.map((c) => c.id));
+        const activeActivities = activities.filter((a) => activeIds.has(a.course_id));
+        this.activities.set(activeActivities);
+        this.courses.set(this.enrich(active, activeActivities));
         this.loading.set(false);
       },
       error: () => {

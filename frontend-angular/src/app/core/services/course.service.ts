@@ -135,6 +135,7 @@ export class CourseService {
       color: colorForCourse(row.course_id),
       currentGrade: row.final_grade != null ? Number(row.final_grade) : null,
       percentComplete: 0,
+      archived: row.archived,
     };
   }
 }

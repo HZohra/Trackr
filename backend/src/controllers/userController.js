@@ -74,39 +74,55 @@ const ACTIVITY_STATUSES = [
 export const updateActivityById = (req, res) => {
     const { activityId } = req.params;
     const { activity } = req.body;
+    if (!activity) return res.status(400).json({ message: "Missing activity data" });
 
-    if (!activity) {
-        return res.status(400).json({ message: "Missing activity data" });
+    const activity_name = typeof activity.activity_name === "string" ? activity.activity_name.trim() : "";
+    if (!activity_name) return res.status(400).json({ message: "Assignment name is required" });
+
+    const course_id = Number(activity.course_id);
+    if (!Number.isInteger(course_id) || course_id < 1) {
+        return res.status(400).json({ message: "A course is required" });
     }
 
-    // Grade: null clears it, otherwise it has to be a number the DB will accept
+    const activity_category_id = Number(activity.activity_category_id);
+    if (![1, 2, 3, 4, 5, 6].includes(activity_category_id)) {
+        return res.status(400).json({ message: "Invalid category" });
+    }
+
+    // Grade: null clears it, otherwise 0–100.
     let grade = null;
     if (activity.grade !== null && activity.grade !== undefined && activity.grade !== "") {
         grade = Number(activity.grade);
         if (!Number.isFinite(grade) || grade < 0 || grade > 100) {
-            return res
-                .status(400)
-                .json({ message: "Grade must be a number between 0 and 100" });
+            return res.status(400).json({ message: "Grade must be a number between 0 and 100" });
         }
     }
 
-    // Status defaults to whatever the grade implies, so a client that only sends a grade still ends up consistent.
+    let grading_weight = Number(activity.grading_weight);
+    if (!Number.isFinite(grading_weight) || grading_weight < 0) grading_weight = 0;
+    if (grading_weight > 100) return res.status(400).json({ message: "Weight must be between 0 and 100" });
+
+    // Due date is optional; accept 'YYYY-MM-DD' or a datetime, store null if blank.
+    const due_date = activity.due_date ? String(activity.due_date).replace("T", " ") : null;
+
     const status = activity.status ?? (grade != null ? "graded" : "not_started");
-    if (!ACTIVITY_STATUSES.includes(status)) {
-        return res.status(400).json({ message: "Invalid status" });
-    }
+    if (!ACTIVITY_STATUSES.includes(status)) return res.status(400).json({ message: "Invalid status" });
+
+    const instructions = typeof activity.instructions === "string" && activity.instructions.trim() ? activity.instructions : null;
+    const notes = typeof activity.notes === "string" && activity.notes.trim() ? activity.notes : null;
 
     activityModel.updateActivity(
         activityId,
         req.user.user_id,
-        { grade, status },
+        { course_id, activity_category_id, activity_name, due_date, grading_weight, grade, status, instructions, notes },
         (err, updated) => {
-            if (err)
-                return res
-                    .status(500)
-                    .json({ message: "Failed to update activity" });
-            if (!updated)
-                return res.status(404).json({ message: "Activity not found" });
+            if (err) {
+                if (err.code === "23505") {
+                    return res.status(409).json({ message: "An assignment with that name and date already exists in this course." });
+                }
+                return res.status(500).json({ message: "Failed to update activity" });
+            }
+            if (!updated) return res.status(404).json({ message: "Activity not found" });
             res.json(updated);
         },
     );

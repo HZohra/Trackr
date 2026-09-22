@@ -139,4 +139,15 @@
       </div>
     }
   </section>
+
+  <!-- Courses -->
+  <section class="mt-4 rounded-2xl border border-line bg-surface p-5 shadow-card">
+    <h2 class="text-base font-bold text-ink">Courses</h2>
+    <p class="mt-0.5 text-sm text-muted">Control which courses appear across the app.</p>
+    <label class="mt-4 flex items-center gap-2 text-sm text-ink">
+      <input type="checkbox" [checked]="showArchived()" (change)="setShowArchived(!showArchived())" class="rounded border-line accent-brand" />
+      Show archived courses on the Courses page
+    </label>
+    <p class="mt-1 text-xs text-faint">Archived courses stay hidden from the Dashboard either way.</p>
+  </section>
 </div>

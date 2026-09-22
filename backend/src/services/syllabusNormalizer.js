@@ -165,12 +165,10 @@ export function validateActivityPayload(a, prefix = "") {
 
     const activity_category_id = Number(a?.activity_category_id);
     if (!VALID_CATEGORY_IDS.has(activity_category_id)) {
-        errors.push(`${prefix}activity_category_id must be one of 1,2,3,4`);
+        errors.push(`${prefix}activity_category_id must be one of 1-6`);
     }
 
     const due_date = toDateTime(a?.due_date);
-    if (!due_date) errors.push(`${prefix}a valid due_date is required`);
-
     let grading_weight = toNumberOrNull(a?.grading_weight);
     if (grading_weight == null || grading_weight < 0) grading_weight = 0;
     if (grading_weight > 100) errors.push(`${prefix}grading_weight must be between 0 and 100`);

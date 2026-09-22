@@ -12,6 +12,18 @@ export interface NewActivityInput {
   weight: number;
 }
 
+export interface UpdateActivityInput {
+  courseId: number;
+  categoryId: number;
+  name: string;
+  dueDate: string | null; // 'YYYY-MM-DDTHH:MM' or null
+  weight: number;
+  grade: number | null;
+  status: string;
+  instructions: string | null;
+  notes: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ActivityService {
   private readonly http = inject(HttpClient);
@@ -33,10 +45,19 @@ export class ActivityService {
     });
   }
 
-  // Sets grade (null clears it) and status on one assignment; returns the updated row.
-  updateActivity(activityId: number, grade: number | null, status: string): Observable<Activity> {
+  updateActivity(activityId: number, input: UpdateActivityInput): Observable<Activity> {
     return this.http.put<Activity>(`${this.api}/user/activities/${activityId}`, {
-      activity: { grade, status },
+      activity: {
+        course_id: input.courseId,
+        activity_category_id: input.categoryId,
+        activity_name: input.name,
+        due_date: input.dueDate,
+        grading_weight: input.weight,
+        grade: input.grade,
+        status: input.status,
+        instructions: input.instructions,
+        notes: input.notes,
+      },
     });
   }
 
@@ -44,7 +65,7 @@ export class ActivityService {
     return this.http.delete<void>(`${this.api}/user/activities/${activityId}`);
   }
 
-    getByCourse(courseId: number): Observable<Activity[]> {
+  getByCourse(courseId: number): Observable<Activity[]> {
     return this.http.get<Activity[]>(`${this.api}/user/courses/${courseId}/activities`);
   }
 }

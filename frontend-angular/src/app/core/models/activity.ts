@@ -7,6 +7,8 @@ export interface Activity {
   grading_weight: string | number | null; // pg returns NUMERIC as a string
   grade: string | number | null;
   status: string;
+  instructions?: string | null;
+  notes?: string | null;
 }
 
 export const CATEGORY_ID_TO_NAME: Record<number, string> = {

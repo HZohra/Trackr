@@ -10,6 +10,7 @@ export interface Course {
   color: CourseColor;
   currentGrade: number | null; // percent, or null if nothing graded yet
   percentComplete: number;     // 0–100
+  archived: boolean;
 }
 
 // The exact palette from your original tokens.css — one source of truth.

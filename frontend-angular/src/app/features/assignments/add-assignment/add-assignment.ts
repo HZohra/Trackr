@@ -1,13 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+﻿import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ActivityService } from '../../../core/services/activity.service';
 import { CourseService } from '../../../core/services/course.service';
 import { Course } from '../../../core/models/course';
 
 @Component({
   selector: 'app-add-assignment',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './add-assignment.html',
   styleUrl: './add-assignment.css',
 })

@@ -6,7 +6,10 @@
   } @else if (error()) {
     <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
   } @else {
-    <p class="mt-1 text-sm text-muted">{{ courses().length }} {{ courses().length === 1 ? 'course' : 'courses' }}</p>
+    <p class="mt-1 text-sm text-muted">
+      {{ visibleCourses().length }} {{ visibleCourses().length === 1 ? 'course' : 'courses' }}
+      @if (archivedCount() > 0 && !showArchived()) { <span class="text-faint">· {{ archivedCount() }} archived hidden</span> }
+    </p>
 
     <div class="mt-6 flex flex-wrap gap-3">
       <a routerLink="/courses/new" class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white shadow-card transition hover:bg-brand-ink">
@@ -19,14 +22,19 @@
       </a>
     </div>
 
-    @if (courses().length === 0) {
+    @if (visibleCourses().length === 0) {
       <div class="mt-6 rounded-2xl border border-dashed border-line bg-surface p-10 text-center">
-        <p class="text-sm font-semibold text-ink">No courses yet</p>
-        <p class="mt-1 text-sm text-muted">Add a course or upload a syllabus to get started.</p>
+        @if (archivedCount() > 0 && !showArchived()) {
+          <p class="text-sm font-semibold text-ink">All your courses are archived</p>
+          <p class="mt-1 text-sm text-muted">Turn on “Show archived courses” in Settings to see them.</p>
+        } @else {
+          <p class="text-sm font-semibold text-ink">No courses yet</p>
+          <p class="mt-1 text-sm text-muted">Add a course or upload a syllabus to get started.</p>
+        }
       </div>
     } @else {
       <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        @for (course of courses(); track course.id) {
+        @for (course of visibleCourses(); track course.id) {
           <app-course-card [course]="course" />
         }
       </div>

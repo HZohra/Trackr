@@ -1,45 +1,5 @@
-<div class="mx-auto max-w-xl">
-  <a routerLink="/assignments" class="text-sm text-brand-ink hover:underline">← Back to assignments</a>
-  <h1 class="mt-2 font-display text-3xl font-bold text-ink">Add an assignment</h1>
-
-  @if (error()) {
-    <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
-  }
-
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4 rounded-2xl border border-line bg-surface p-6 shadow-card">
     <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Course *</label>
-      <select formControlName="courseId" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none">
-        <option [value]="0" disabled>Select a course…</option>
-        @for (c of courses(); track c.id) { <option [value]="c.id">{{ c.code }} — {{ c.name }}</option> }
-      </select>
-      @if (form.controls.courseId.touched && form.controls.courseId.invalid) { <p class="mt-1 text-xs text-danger-ink">Pick a course.</p> }
-    </div>
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Type *</label>
-      <select formControlName="categoryId" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none">
-        @for (cat of categories; track cat.id) { <option [value]="cat.id">{{ cat.name }}</option> }
-      </select>
-    </div>
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Name *</label>
-      <input type="text" formControlName="name" placeholder="Assignment 2" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-      @if (form.controls.name.touched && form.controls.name.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
-    </div>
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Due date *</label>
+      <label class="mb-1 block text-sm font-medium text-ink">Due date <span class="text-faint">(optional)</span></label>
       <input type="datetime-local" formControlName="dueDate" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
-      @if (form.controls.dueDate.touched && form.controls.dueDate.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
+      <p class="mt-1 text-xs text-faint">Leave blank if there's no date yet.</p>
     </div>
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Weight (%)</label>
-      <input type="number" min="0" max="100" formControlName="weight" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
-    </div>
-    <div class="flex items-center gap-3 pt-1">
-      <button type="submit" [disabled]="loading()" class="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">
-        {{ loading() ? 'Saving…' : 'Add assignment' }}
-      </button>
-      <a routerLink="/assignments" class="text-sm font-medium text-muted hover:underline">Cancel</a>
-    </div>
-  </form>
-</div>

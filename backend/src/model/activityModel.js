@@ -83,22 +83,40 @@ export const createActivity = async (courseId, activityData, callback) => {
   }
 };
 
-// Records grade/status on one activity — but ONLY if it belongs to the user.
-// The ownership check and the update run in ONE query (UPDATE ... FROM courses),
-// so there's no gap between "confirm they own it" and "change it". RETURNING
-// hands back the updated row, or nothing if it wasn't theirs.
-export const updateActivity = async (activityId, userId, activityData, callback) => {
+
+export const updateActivity = async (activityId, userId, data, callback) => {
   try {
-    const { grade, status } = activityData;
+    const {
+      course_id, activity_category_id, activity_name, due_date,
+      grading_weight, grade, status, instructions, notes,
+    } = data;
+    const reminder_date = defaultReminder(due_date);
+
     const { rows } = await query(
       `UPDATE activities a
-          SET grade = $1, status = $2
+          SET course_id = COALESCE(
+                (SELECT c2.course_id FROM courses c2
+                  WHERE c2.course_id = $1 AND c2.user_id = $12),
+                a.course_id),
+              activity_category_id = $2,
+              activity_name        = $3,
+              due_date             = $4,
+              grading_weight       = $5,
+              grade                = $6,
+              status               = $7,
+              instructions         = $8,
+              notes                = $9,
+              reminder_date        = $10,
+              reminder_sent        = FALSE,
+              updated_at           = CURRENT_TIMESTAMP
          FROM courses c
         WHERE a.course_id = c.course_id
-          AND a.activity_id = $3
-          AND c.user_id = $4
+          AND a.activity_id = $11
+          AND c.user_id     = $12
       RETURNING a.*`,
-      [grade, status, activityId, userId]
+      [course_id, activity_category_id, activity_name, due_date,
+       grading_weight, grade, status, instructions, notes,
+       reminder_date, activityId, userId]
     );
     callback(null, rows[0] ?? null); // null = missing, or not this user's
   } catch (err) {

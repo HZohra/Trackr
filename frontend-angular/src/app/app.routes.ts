@@ -14,7 +14,7 @@ import { AddAssignment } from './features/assignments/add-assignment/add-assignm
 import { EditCourse } from './features/courses/edit-course/edit-course';
 import { CourseDetail } from './features/courses/course-detail/course-detail';
 import { Settings } from './features/settings/settings';
-
+import { AssignmentDetail } from './features/assignments/assignment-detail/assignment-detail';
 
 export const routes: Routes = [
   { path: 'login', component: Login },        // top-level: no shell
@@ -32,6 +32,7 @@ export const routes: Routes = [
         { path: 'courses/:id', component: CourseDetail },
         { path: 'assignments', component: Assignments },
         { path: 'assignments/new', component: AddAssignment },
+        { path: 'assignments/:id', component: AssignmentDetail },
         { path: 'calendar', component: Calendar },
         { path: 'grades', component: Grades },
         { path: 'settings', component: Settings },
