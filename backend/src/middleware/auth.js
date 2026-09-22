@@ -1,44 +1,34 @@
-import crypto from "crypto";
-import fs from "fs";
 import jwt from "jsonwebtoken";
+
+const MIN_SECRET_LENGTH = 32;
 
 let JWT_SECRET = "";
 
+
 export const initJWTSecret = () => {
-    let envContent = "";
+    const secret = process.env.JWT_SECRET;
 
-    if (fs.existsSync(".env")) {
-        envContent = fs.readFileSync(".env", "utf8");
+    if (!secret || secret === "GENERATE_A_SECRET_KEY_FOR_JWT") {
+        console.error(
+            "JWT_SECRET is not set. Add it to backend/.env — generate one with:\n" +
+                "  node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
+        );
+        JWT_SECRET = "";
+        return;
     }
 
-    const newSecret = crypto.randomBytes(64).toString("hex");
-
-    // Replace existing JWT_SECRET
-    if (/^JWT_SECRET=/m.test(envContent)) {
-        JWT_SECRET = envContent.match(/^JWT_SECRET=(.*)$/m)[1];
-        if (
-            !JWT_SECRET ||
-            JWT_SECRET === "GENERATE_A_SECRET_KEY_FOR_JWT" ||
-            JWT_SECRET.length < 128
-        ) {
-            envContent = envContent.replace(
-                /^JWT_SECRET=.*$/m,
-                `JWT_SECRET=${newSecret}`,
-            );
-            JWT_SECRET = newSecret;
-        }
-    } else {
-        // Add it if it does not exist
-        envContent += `\nJWT_SECRET=${newSecret}\n`;
-        JWT_SECRET = newSecret;
+    if (secret.length < MIN_SECRET_LENGTH) {
+        console.error(
+            `JWT_SECRET is too short (${secret.length} chars). Use at least ${MIN_SECRET_LENGTH}.`,
+        );
+        JWT_SECRET = "";
+        return;
     }
 
-    fs.writeFileSync(".env", envContent);
+    JWT_SECRET = secret;
 };
 
-export const getJWTSecret = () => {
-    return JWT_SECRET;
-};
+export const getJWTSecret = () => JWT_SECRET;
 
 export const createToken = (user) => {
     const token = jwt.sign(
