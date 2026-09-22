@@ -1,272 +1,1384 @@
-# Trackr — Less Tracking, More Studying 🎓
+# Trackr
 
-> A full-stack academic productivity platform that helps students organize courses, assignments, grades, deadlines, and semester progress in one place.
+> **AI-powered academic planning, grade intelligence, and workload management for students.**
 
-Trackr was originally developed as a team project for **CP476 — Internet Computing at Wilfrid Laurier University**.
+Trackr is a full-stack student productivity platform designed to turn course information, deadlines, grades, and workload into a clear academic plan.
 
-Following the original course submission, I am continuing development independently by improving the existing application, adding new features, expanding its AI capabilities, and preparing the project for deployment.
+Instead of forcing students to rebuild their semester manually across multiple apps, Trackr is being built around one simple idea:
+
+> **Upload your courses once. Trackr turns them into an academic plan and tells you what needs your attention next.**
 
 ---
 
-## Overview
+## Table of Contents
 
-Trackr is designed to reduce the amount of time students spend manually organizing course information.
+* [Overview](#overview)
+* [Why Trackr](#why-trackr)
+* [Product Vision](#product-vision)
+* [Current Features](#current-features)
+* [Planned Features](#planned-features)
+* [AI Architecture](#ai-architecture)
+* [Technology Stack](#technology-stack)
+* [Architecture](#architecture)
+* [Project Structure](#project-structure)
+* [Security](#security)
+* [Getting Started](#getting-started)
+* [Environment Variables](#environment-variables)
+* [Testing](#testing)
+* [Deployment](#deployment)
+* [Roadmap](#roadmap)
+* [Design Direction](#design-direction)
+* [Project Status](#project-status)
+* [Author](#author)
+* [License](#license)
 
-Students can upload or provide course syllabus information and use Trackr to organize important academic details such as assignments, deadlines, grading weights, courses, and grades.
+---
 
-The application combines academic tracking tools with a full-stack architecture consisting of a JavaScript frontend, Node.js backend, PostgreSQL database, authentication, and AI-assisted syllabus processing.
+# Overview
+
+Students often manage academic work across several disconnected tools:
+
+* course portals
+* syllabi
+* calendars
+* spreadsheets
+* GPA calculators
+* reminder apps
+* task managers
+* notes
+
+Trackr aims to bring the most important parts of that workflow into one student-focused system.
+
+The long-term Trackr workflow is:
+
+```text
+Syllabus / Course Information
+            ↓
+      AI Extraction
+            ↓
+ Courses + Assessments
+            ↓
+ Deadlines + Weights + Grades
+            ↓
+    Grade Intelligence
+            ↓
+   Workload Intelligence
+            ↓
+ Personalized Study Plan
+            ↓
+      Next Best Action
+```
+
+The goal is not to become another generic student dashboard.
+
+Trackr is being built to answer a more useful question:
+
+> **What should I work on next, and how does it affect my semester?**
+
+---
+
+# Why Trackr
+
+Most academic tools are good at storing information.
+
+Trackr is being designed to help students **understand and act on that information**.
+
+For example:
+
+```text
+CP470 — Android Assignment 2
+
+Due tomorrow
+20% of course
+Estimated work remaining: 1h 45m
+Priority: High
+
+Recommended:
+Work on this next.
+```
+
+Trackr will eventually consider signals such as:
+
+* due date
+* assignment weight
+* current course grade
+* target grade
+* estimated effort
+* completed effort
+* remaining workload
+* user priority
+* exam proximity
+* course risk
+* calendar availability
+
+---
+
+# Product Vision
+
+Trackr began as a university team project and is now being independently redesigned into a modern, production-focused full-stack application.
+
+The new Trackr experience is being organized around five primary areas:
+
+```text
+TODAY
+PLANNER
+COURSES
+CALENDAR
+GRADES
+```
+
+Supporting features include:
+
+```text
+Search
+Ask Trackr
+Notifications
+Profile
+Settings
+Help
+```
+
+Trackr is currently focused on the **student experience first**.
+
+Teacher dashboards, classrooms, join codes, and larger institution features are considered future expansion areas rather than core v1 functionality.
 
 ---
 
 # Current Features
 
-The following functionality is currently part of the application.
+> **Important:** Trackr is actively being modernized. Some functionality is still being migrated from the original frontend into the Angular application.
 
-### User Authentication
+## Authentication
 
-* User account authentication
+* User registration
+* User login
 * JWT-based authentication
-* Password protection and validation
-* Protected user and administrative routes
-* Role-based backend access
+* Protected routes
+* Password hashing
+* User-scoped data
+* Password-reset infrastructure
 
 ---
 
-### Course Management
+## Course Management
 
-* Create and manage courses
+* Create courses manually
+* View active courses
 * Store course information
-* Organize courses by semester
-* View course-related academic information from the student dashboard
+* View course details
+* Associate assignments with courses
+* Track course progress
+* Archive/delete course workflows
+* Store grade-related course information
 
 ---
 
-### Syllabus Processing
+## AI Syllabus Processing
 
-* Upload or provide syllabus information
-* Extract important course information from a syllabus
-* Convert syllabus information into structured academic data
-* Extract assignment information
-* Extract deadlines
-* Extract grading weights and course-related information
+Trackr can use AI to convert syllabus information into structured academic data.
 
----
+The intended workflow is:
 
-### Assignment & Activity Tracking
+```text
+Upload syllabus
+      ↓
+Extract course information
+      ↓
+Extract assessments
+      ↓
+Extract weights
+      ↓
+Extract due dates
+      ↓
+Review extracted information
+      ↓
+Create course
+```
 
-Students can track academic activities including:
-
-* Assignment/activity name
-* Due date
-* Grading weight
-* Completion status
-* Grades
-* Hours spent on activities
-
-This allows students to keep course work and deadlines organized from one place.
-
----
-
-### Grade & GPA Tracking
-
-* Track grades across courses
-* View academic statistics
-* Monitor course performance
-* GPA tracking
-* Support for academic progress monitoring
+This reduces the repetitive setup students usually perform at the beginning of every semester.
 
 ---
 
-### Student Dashboard
+## Assignment & Activity Tracking
 
-The dashboard provides students with a centralized view of their academic information, including:
+Trackr supports the foundation for tracking:
 
-* Courses
-* Assignments and activities
-* Deadlines
-* Academic progress
-* Grade information
-
----
-
-### Student Profile & Statistics
-
-* Student profile information
-* Academic statistics
-* Course-related progress data
-* User-specific academic information
+* assignment title
+* associated course
+* due date
+* weight
+* completion status
+* grade
+* estimated work
+* academic activities
 
 ---
 
-### Validation & Access Control
+## Grades
 
-The backend includes:
+Trackr currently includes foundations for:
 
-* API validation
-* Authentication middleware
-* Protected endpoints
-* Role-based route protection
-* Database validation
-
----
-
-### Responsive Interface
-
-Trackr includes a responsive web interface designed to work across different screen sizes.
+* weighted grades
+* course performance
+* GPA calculations
+* grade progress
+* academic statistics
 
 ---
 
-# Current Development
+## Dashboard
 
-After the original university project was submitted, I began continuing development independently.
+The existing application includes dashboard information such as:
 
-The current goal is to transform Trackr from a university project into a more complete, deployable academic productivity application.
+* active courses
+* upcoming assignments
+* deadlines
+* GPA/statistics
+* progress
+* academic overview
 
-### Trackr AI Chatbot
-
-I am currently working on adding an AI-powered chatbot that will allow students to interact with their academic information conversationally.
-
-Planned chatbot capabilities include questions such as:
-
-* "What assignments do I have coming up?"
-* "What should I work on this week?"
-* "When is my next deadline?"
-* "What assignments are worth the most?"
-* "How am I doing in this course?"
-* "What do I need on my final to reach my target grade?"
-
-The goal is for the chatbot to eventually use information stored inside Trackr rather than functioning as a general-purpose chatbot.
+The dashboard is being redesigned into the more action-oriented **Today / Next Move** experience.
 
 ---
 
-### Notification & Reminder System
+## Calendar
 
-A notification system is also being developed to help students avoid missing important academic deadlines.
+Trackr includes academic calendar concepts such as:
 
-Planned functionality includes:
+* deadlines
+* academic events
+* weekly views
+* monthly views
 
-* Upcoming assignment reminders
-* Deadline notifications
-* Study reminders
-* Custom reminder preferences
-* Notifications based on course and assignment information
-
----
-
-### Expanded AI Features
-
-Future AI functionality is being explored to make Trackr more useful as an academic assistant.
-
-Potential additions include:
-
-* More advanced syllabus understanding
-* Course-aware chatbot responses
-* Assignment prioritization
-* Study recommendations
-* Academic progress insights
-
-These features are currently under development and are **not considered completed functionality yet**.
+The production version will expand this into a complete planning system.
 
 ---
 
-### Deployment
+## Profile & Settings
 
-Another major goal of the current development phase is deploying Trackr so that it can be accessed as a live web application rather than only through local development.
+Current/profile-related functionality includes:
 
-Deployment work includes:
+* account information
+* student information
+* academic statistics
+* preferences
+* settings concepts
 
-* Production configuration
-* Environment-variable management
-* Database deployment
-* Backend hosting
-* Frontend hosting
-* Security improvements
-* Production testing
+Important settings will eventually be stored server-side so they follow the student across devices.
 
 ---
 
-### Continued UI/UX Improvements
+# Planned Features
 
-The interface is also being improved to make the application:
+The following features represent the planned production direction for Trackr.
 
-* Easier to navigate
-* More visually consistent
-* More responsive
-* More intuitive for students
-* Better suited for a production environment
+They are separated from current functionality so unfinished features are not presented as already implemented.
 
 ---
 
-# Tech Stack
+# 1. Today / Next Move
 
-| Layer             | Technology             |
-| ----------------- | ---------------------- |
-| Frontend          | HTML, CSS, JavaScript  |
-| Backend           | Node.js / Express      |
-| Database          | PostgreSQL             |
-| Authentication    | JWT Authentication     |
-| Password Security | bcrypt                 |
-| AI Integration    | Claude / Anthropic API |
-| Version Control   | Git & GitHub           |
-| Design            | Figma                  |
-| Deployment        | In progress            |
+The future Trackr home screen.
+
+Instead of displaying a collection of unrelated statistics, Trackr will identify the student's most important next actions.
+
+Example:
+
+```text
+Good afternoon
+
+Tuesday, September 22
+
+YOUR NEXT MOVE
+
+CP470 — Android Assignment 2
+Due tomorrow · 20% · ~1h 45m remaining
+
+[ Start Focus Session ]
+
+COMING UP
+
+1. CP414 Quiz
+   Friday · 10%
+
+2. CP468 Project
+   7 days · 35%
+
+3. Review CP470 Chapter 6
+   Estimated: 45 min
+```
+
+Trackr can eventually prioritize tasks using:
+
+* due date
+* assignment weight
+* estimated duration
+* remaining work
+* task progress
+* user priority
+* current grade
+* target grade
+* course risk
+* exam proximity
+
+---
+
+# 2. Smart Planner
+
+The Smart Planner will connect academic work to actual available time.
+
+Planned features:
+
+* daily planning
+* weekly planning
+* workload overview
+* study blocks
+* drag-and-drop scheduling
+* unscheduled task queue
+* task duration estimates
+* remaining-work calculations
+* automatic workload distribution
+* conflict detection
+* overdue-work recovery planning
+* suggested study periods
+
+Example:
+
+```text
+Assignment remaining work: 3.5 hours
+
+Suggested Schedule
+
+Tuesday      7:00 PM – 8:00 PM
+Wednesday    2:00 PM – 3:30 PM
+Thursday     6:00 PM – 7:00 PM
+```
+
+---
+
+# 3. Estimated Effort & Workload Tracking
+
+Assignments should represent more than just deadlines.
+
+Planned workload fields:
+
+```text
+Estimated effort: 4h
+Completed:        1.5h
+Remaining:        2.5h
+```
+
+Trackr will use this information for:
+
+* planning
+* priority ranking
+* workload forecasting
+* study scheduling
+* deadline-risk detection
+
+---
+
+# 4. Improved Assignment Management
+
+Planned assignment features include:
+
+* priority
+* estimated duration
+* completed duration
+* remaining duration
+* subtasks
+* checklists
+* recurrence
+* labels
+* notes
+* resources
+* status
+* progress
+* quick edit
+* duplicate assignment
+* search
+* sorting
+* countdown to deadline
+* assignment history
+
+Planned filters include:
+
+```text
+Course
+Due Date
+Status
+Priority
+Weight
+Completion
+Overdue
+Upcoming
+Assessment Type
+```
+
+---
+
+# 5. Natural-Language Quick Add
+
+Students should be able to create assignments without filling out large forms.
+
+Example input:
+
+```text
+CP470 lab Friday 11:59 PM worth 5% about 2 hours
+```
+
+Trackr could interpret it as:
+
+```text
+Course: CP470
+Type: Lab
+Due: Friday at 11:59 PM
+Weight: 5%
+Estimated effort: 2 hours
+```
+
+Quick Add is planned to be globally available throughout Trackr.
+
+---
+
+# 6. Course Workspace Redesign
+
+Each course will become its own academic workspace.
+
+Planned tabs:
+
+```text
+Overview | Work | Grades | Files | Course Info
+```
+
+## Overview
+
+Planned information:
+
+* current grade
+* target grade
+* remaining course weight
+* next assessment
+* upcoming deadlines
+* course progress
+* grade outlook
+* course risk
+* upcoming study sessions
+
+Example:
+
+```text
+CP470
+Android Programming
+
+Current Grade       82.4%
+Target Grade        85%
+Remaining Weight    38%
+```
+
+---
+
+## Work
+
+Students will be able to manage:
+
+* assignments
+* labs
+* quizzes
+* projects
+* exams
+* study tasks
+* workload
+* filters
+* completion status
+
+---
+
+## Grades
+
+Planned functionality:
+
+* weighted grade breakdown
+* completed-weight grade
+* remaining weight
+* target calculator
+* what-if calculations
+* assessment categories
+* GPA impact
+
+---
+
+## Files
+
+Planned course file support:
+
+* syllabus
+* rubrics
+* readings
+* lecture materials
+* notes
+* extracted text
+* AI-searchable course documents
+
+---
+
+## Course Info
+
+Planned fields:
+
+* course code
+* course name
+* instructor
+* semester
+* credits
+* grading scale
+* class schedule
+* classroom/location
+* office hours
+* important links
+
+---
+
+# 7. Grade Intelligence
+
+Trackr is being redesigned around one authoritative grade-calculation engine.
+
+Planned functions include:
+
+```text
+calculateCourseGrade()
+calculateWeightedCompletedGrade()
+calculateRemainingWeight()
+calculateTargetNeeded()
+calculateGPA()
+percentageToGPA()
+```
+
+Planned grade functionality:
+
+* current course grade
+* completed-weight grade
+* remaining course weight
+* target grade
+* required remaining average
+* what-if calculator
+* course credits
+* weighted GPA
+* configurable GPA scales
+* percentage-to-GPA conversion
+* course-specific grading schemes
+* category weighting
+* dropped assessments
+* bonus grades
+* pass/fail support
+* GPA trends
+* grade history
+
+Example:
+
+```text
+Current Grade:              82.4%
+Target Grade:               85%
+Remaining Course Weight:    38%
+
+Required Average on
+Remaining Assessments:      89.2%
+```
+
+---
+
+# 8. Exam & Revision Planner
+
+Exams should become planning objects rather than simple calendar dates.
+
+Example:
+
+```text
+Final Exam
+December 14
+
+12 chapters
+18 study days remaining
+
+Study Plan
+
+Nov 24 — Chapter 1
+Nov 26 — Chapter 2
+Nov 28 — Chapter 3
+
+...
+
+Dec 11 — Practice exam
+Dec 13 — Light review
+```
+
+Planned features:
+
+* exam date
+* chapters/topics
+* confidence level
+* estimated revision time
+* automatic revision schedule
+* spaced review
+* practice exam scheduling
+* progress tracking
+* missed-session rescheduling
+
+---
+
+# 9. Calendar Improvements
+
+Planned calendar functionality:
+
+* month view
+* week view
+* day view
+* assignment deadlines
+* exams
+* recurring classes
+* study blocks
+* personal events
+* drag-and-drop rescheduling
+* course color coding
+* filters
+* recurring academic events
+* timezone-aware timestamps
+
+Trackr should eventually combine:
+
+```text
+Academic Deadlines
++
+Class Schedule
++
+Study Sessions
++
+Personal Calendar
+```
+
+---
+
+# 10. Google Calendar Integration
+
+Google Calendar is planned as the first external calendar integration.
+
+Goals:
+
+* display calendar events inside Trackr
+* push Trackr study blocks to Google Calendar
+* synchronize academic events
+* prevent double-booking
+* use actual availability when creating study plans
+
+Possible future integrations:
+
+* Outlook Calendar
+* Apple Calendar
+* iCal / ICS
+
+---
+
+# 11. Notifications & Reminders
+
+Planned notification functionality:
+
+* in-app notification center
+* read/unread state
+* due-date reminders
+* overdue reminders
+* upcoming exam reminders
+* study-session reminders
+* grade alerts
+* syllabus-import alerts
+* schedule-change alerts
+
+Potential notification methods:
+
+* in-app
+* email
+* browser push
+
+Students will eventually be able to configure their reminder preferences.
+
+---
+
+# 12. Ask Trackr — Academic AI Assistant
+
+Trackr's AI assistant will be contextual rather than simply being a standalone chatbot.
+
+## From Today
+
+Students could ask:
+
+```text
+What should I work on first?
+
+Can I finish everything this week?
+
+What is currently at risk?
+```
+
+## From a Course
+
+```text
+What do I need on my final to get an 85?
+
+Which assessment is worth the most?
+
+What work is still incomplete?
+```
+
+## From Grades
+
+```text
+Which courses need more attention?
+
+How would getting 90% on Assignment 3 affect my grade?
+```
+
+## From Course Documents
+
+```text
+What is the late policy?
+
+What chapters are on the midterm?
+
+What does the syllabus say about attendance?
+```
+
+---
+
+# 13. AI Source Citations
+
+When Trackr answers questions using uploaded documents, responses should show where the information came from.
+
+Example:
+
+```text
+Late assignments receive a 10% deduction per day.
+
+Source:
+CP470 Syllabus · Page 6
+```
+
+This will make AI responses easier to verify and more trustworthy.
+
+---
+
+# 14. Hybrid AI Architecture
+
+Trackr's long-term AI design uses two different approaches depending on the question.
+
+## Structured Academic Data
+
+Questions involving deadlines, grades, assignments, schedules, and workloads should use structured application data.
+
+```text
+Student Question
+       ↓
+Intent / Tool Selection
+       ↓
+Safe Application Service
+       ↓
+PostgreSQL
+       ↓
+Structured Result
+       ↓
+LLM Explanation
+```
+
+Examples:
+
+```text
+What is due this week?
+
+What is my current grade?
+
+What do I need on my final?
+
+Which assignment should I prioritize?
+```
+
+---
+
+## Course Documents
+
+Unstructured information will use document retrieval.
+
+```text
+Syllabus
+Lecture Notes
+Readings
+Rubrics
+       ↓
+Chunk + Embed
+       ↓
+Retrieve Relevant Content
+       ↓
+LLM Answer
+       ↓
+Source Citation
+```
+
+The planned architecture is therefore:
+
+```text
+Structured Academic Tools
+          +
+Document Retrieval
+          +
+Source Citations
+```
+
+---
+
+# 15. Search & Command Bar
+
+Trackr will eventually include a global search/command interface.
+
+Example:
+
+```text
+⌘ K — Search or Ask Trackr
+```
+
+Searchable content:
+
+* courses
+* assignments
+* exams
+* calendar events
+* settings
+* course documents
+
+Possible commands:
+
+```text
+Add Assignment
+
+Add Course
+
+Open Planner
+
+Ask Trackr
+
+Calculate Target Grade
+
+Start Focus Session
+```
+
+---
+
+# 16. Focus Sessions
+
+Planned focus functionality:
+
+* start focus session from an assignment
+* timer
+* pause/resume
+* study-time tracking
+* progress tracking
+* associate study time with a course
+* associate study time with an assignment
+* compare estimated vs actual effort
+
+This information can later improve workload estimates.
+
+---
+
+# 17. Academic Term Management
+
+Trackr will support the full academic semester lifecycle.
+
+Planned functionality:
+
+* semesters/terms
+* active semester
+* previous semesters
+* archived courses
+* restore course
+* course history
+* semester GPA
+* cumulative GPA
+* academic trends
+
+Completed semesters should remain accessible without cluttering the current workspace.
+
+---
+
+# 18. Course Credits & GPA Systems
+
+Planned support:
+
+* course credits
+* credit-weighted GPA
+* percentage grades
+* 4.0 GPA
+* 12.0 GPA
+* custom institutional GPA scales
+* configurable grading scales
+* pass/fail courses
+
+---
+
+# 19. Flexible / TBD Due Dates
+
+Not every assignment has a confirmed due date.
+
+Trackr will support:
+
+```text
+Research Paper
+
+Due Date: TBD
+```
+
+Students should never be required to enter fake dates simply to save academic work.
+
+---
+
+# 20. Mobile Experience
+
+Trackr will be designed as a true mobile experience rather than a smaller version of the desktop interface.
+
+Planned mobile navigation:
+
+```text
+Today | Planner | + | Courses | Calendar
+```
+
+Mobile priorities:
+
+* bottom navigation
+* large touch targets
+* quick add
+* swipe actions
+* compact assignment cards
+* fast grade entry
+* deadline visibility
+* notifications
+* responsive calendar
+* fast Today view
+
+---
+
+# 21. Progressive Web App / Offline Support
+
+Potential PWA functionality:
+
+* installable web application
+* app-like mobile launch
+* cached application shell
+* basic offline access
+* offline assignment viewing
+* synchronization after reconnecting
+
+---
+
+# 22. Accessibility
+
+Trackr will target strong accessibility practices.
+
+Planned areas include:
+
+* semantic HTML
+* keyboard navigation
+* visible focus states
+* sufficient contrast
+* screen-reader labels
+* accessible forms
+* understandable error messages
+* reduced-motion support
+* responsive text
+* large touch targets
+
+---
+
+# 23. Data Export
+
+Students should be able to take their data with them.
+
+Planned export functionality:
+
+* courses
+* assignments
+* grades
+* calendar information
+* academic history
+
+Possible formats:
+
+```text
+CSV
+JSON
+ICS
+```
+
+---
+
+# 24. Account & Privacy Controls
+
+Planned production account functionality:
+
+* change password
+* security settings
+* notification preferences
+* session management
+* export user data
+* delete account
+* privacy controls
+* data-retention controls
+
+---
+
+# 25. Instructor / Classroom Features
+
+Instructor functionality is considered a later expansion area.
+
+Possible future features:
+
+* instructor accounts
+* course publishing
+* join codes
+* classroom enrollment
+* instructor-created assignments
+* announcements
+* shared resources
+
+These features will not be prioritized until the core student workflow is reliable.
+
+---
+
+# AI Architecture
+
+Trackr currently uses AI primarily around syllabus extraction.
+
+The production architecture will avoid giving the LLM unrestricted database access.
+
+Instead:
+
+```text
+Angular Client
+      ↓
+Express API
+      ↓
+Application Services
+      ↓
+Validated Academic Tools
+      ↓
+PostgreSQL
+```
+
+The AI layer should only call controlled application functions.
+
+Examples:
+
+```text
+getUpcomingAssignments()
+
+getCourseGrade()
+
+calculateTargetGrade()
+
+getAvailableStudyTime()
+
+getCourseSchedule()
+
+getAssessmentBreakdown()
+```
+
+Document-aware AI will only retrieve approved user-owned course material.
+
+---
+
+# Technology Stack
+
+## Frontend
+
+* Angular
+* TypeScript
+* Tailwind CSS
+* Angular Router
+* Angular services
+* Route guards
+* HTTP interceptors
+* Responsive component architecture
+
+---
+
+## Backend
+
+* Node.js
+* Express.js
+* REST API
+* JavaScript / TypeScript migration
+* Authentication services
+* Application/service architecture
+* Server-side validation
+
+---
+
+## Database
+
+Trackr's modernization target is:
+
+```text
+PostgreSQL
+```
+
+The original project used MySQL and is being migrated toward one PostgreSQL-based data layer.
+
+---
+
+## AI
+
+* Anthropic Claude API
+* structured syllabus extraction
+* future academic tool calling
+* future document retrieval/RAG
+* source-aware responses
 
 ---
 
 # Architecture
 
 ```text
-User
- │
- ▼
-Frontend
-HTML / CSS / JavaScript
- │
- │ HTTP / API Requests
- ▼
-Node.js / Express Backend
- │
- ├── Authentication
- ├── Course Management
- ├── Assignment Management
- ├── Grade / GPA Logic
- ├── Syllabus Processing
- └── AI Services
- │
- ▼
-PostgreSQL Database
+┌──────────────────────────────┐
+│        Angular Client        │
+│                              │
+│ Today                        │
+│ Planner                      │
+│ Courses                      │
+│ Calendar                     │
+│ Grades                       │
+└──────────────┬───────────────┘
+               │
+             HTTPS
+               │
+               ▼
+┌──────────────────────────────┐
+│         Express API          │
+│                              │
+│ Routes                       │
+│ Controllers                  │
+│ Authentication               │
+│ Authorization                │
+│ Validation                   │
+│ Services                     │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│         PostgreSQL           │
+│                              │
+│ Users                        │
+│ Courses                      │
+│ Assessments                  │
+│ Grades                       │
+│ Calendar Events              │
+│ Preferences                  │
+└──────────────────────────────┘
+
+               +
+
+┌──────────────────────────────┐
+│           AI Layer           │
+│                              │
+│ Syllabus Extraction          │
+│ Academic Tools               │
+│ Document Retrieval           │
+│ Source Citations             │
+└──────────────────────────────┘
 ```
 
-As development continues, additional services such as the chatbot and notification system will be integrated into this architecture.
+---
+
+# Project Structure
+
+Trackr is being modernized toward a structure similar to:
+
+```text
+Trackr/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   ├── environments/
+│   │   └── ...
+│   └── package.json
+│
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── ...
+│   └── package.json
+│
+├── database/
+│   └── migrations/
+│
+├── docs/
+│
+├── tests/
+│
+├── .github/
+│   └── workflows/
+│
+├── README.md
+└── ...
+```
+
+The exact structure may evolve during development.
+
+---
+
+# Security
+
+Trackr handles private academic information, accounts, uploaded files, and AI requests.
+
+Security is therefore part of the application's architecture.
+
+---
+
+## Authentication & Authorization
+
+Production goals:
+
+* server-controlled roles
+* secure password hashing
+* protected API routes
+* object-level ownership checks
+* stable environment-managed secrets
+* authorization testing
+* prevention of cross-user data access
+
+---
+
+## Login Protection
+
+Planned security controls:
+
+* login rate limiting
+* repeated-attempt protection
+* password-reset rate limits
+* AI request limits
+* upload limits
+
+---
+
+## Password Reset
+
+Production reset flow:
+
+```text
+Random token
+     ↓
+Short expiration
+     ↓
+Hashed database storage
+     ↓
+Single use
+     ↓
+Invalidated after reset
+```
+
+Reset tokens must never be logged.
+
+Responses should not reveal whether an email exists.
+
+---
+
+## Server-Side Validation
+
+Trackr will validate important data on the backend.
+
+Examples:
+
+```text
+Emails
+IDs
+Grades
+Weights
+Credits
+Dates
+Course Information
+Reminder Times
+AI Input Length
+File Metadata
+Request Body Size
+```
+
+Angular validation is treated as a user-experience layer, not as a security boundary.
+
+---
+
+## File Upload Security
+
+Syllabus/document uploads should enforce:
+
+* PDF allowlisting
+* upload size limits
+* MIME validation
+* file signature verification
+* generated storage filenames
+* parser limits
+* parser timeouts
+* temporary-file cleanup
+* storage outside public web directories
+
+---
+
+## Browser Security
+
+Production configuration should include:
+
+* restricted CORS origins
+* HTTPS
+* security headers
+* secure authentication strategy
+* CSRF protection where required
+
+---
+
+## Data Protection
+
+Planned production protections:
+
+* database backups
+* restore testing
+* least-privilege infrastructure
+* secure secret management
+* safe production logging
+* account deletion
+* data export
+* defined data-retention policy
 
 ---
 
 # Getting Started
 
+> Trackr is currently under active development. Setup instructions may change during the Angular and PostgreSQL migration.
+
 ## Prerequisites
 
-You will need:
+Install:
 
-* Node.js 18+
+* Node.js
 * npm
-* Git
-* Access to the required PostgreSQL database
-* Required environment variables/API credentials
+* PostgreSQL
+* Angular CLI
 
----
+Install Angular CLI:
 
-# Running Trackr Locally
+```bash
+npm install -g @angular/cli
+```
 
-Both the frontend and backend need to be running.
-
-| Application | Port   |
-| ----------- | ------ |
-| Frontend    | `3000` |
-| Backend API | `5000` |
-
----
-
-## 1. Clone the Repository
+Clone Trackr:
 
 ```bash
 git clone https://github.com/HZohra/Trackr.git
@@ -275,190 +1387,574 @@ cd Trackr
 
 ---
 
-## 2. Configure Environment Variables
+# Backend Setup
 
-Create a `.env` file inside the backend directory.
-
-```text
-Trackr/
-└── backend/
-    └── .env
-```
-
-The environment file contains private configuration such as:
-
-* Database credentials
-* JWT secret
-* AI API credentials
-
-Environment files containing secrets should **never be committed to GitHub**.
-
----
-
-## 3. Install Backend Dependencies
+Move into the backend:
 
 ```bash
 cd backend
+```
+
+Install dependencies:
+
+```bash
 npm install
 ```
 
-The current frontend does not require a separate dependency installation step.
+Create your environment configuration.
 
----
+Start the backend using the script defined in `backend/package.json`.
 
-## 4. Start the Backend
-
-From the backend directory:
+Example:
 
 ```bash
 npm run dev
 ```
 
-The API should run on:
-
-```text
-http://localhost:5000
-```
-
 ---
 
-## 5. Start the Frontend
+# Frontend Setup
 
-Open another terminal from the project root:
+Move into the frontend:
 
 ```bash
-npx serve frontend -l 3000
+cd frontend
 ```
 
-Then open:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start Angular:
+
+```bash
+ng serve
+```
+
+The application will normally be available locally at:
 
 ```text
-http://localhost:3000
+http://localhost:4200
 ```
+
+The Angular development environment should point to the local backend.
+
+Example:
+
+```ts
+export const environment = {
+  production: false,
+  apiBase: 'http://localhost:5000'
+};
+```
+
+Production should use the deployed API URL instead.
 
 ---
 
-# Project Structure
+# Environment Variables
+
+Exact variable names should match the backend implementation.
+
+A production environment may require values such as:
+
+```env
+NODE_ENV=
+PORT=
+
+DATABASE_URL=
+
+JWT_SECRET=
+
+ANTHROPIC_API_KEY=
+
+FRONTEND_URL=
+
+EMAIL_HOST=
+EMAIL_PORT=
+EMAIL_USER=
+EMAIL_PASSWORD=
+EMAIL_FROM=
+```
+
+Additional variables may be introduced as new features are implemented.
+
+> Never commit production API keys, secrets, passwords, reset tokens, or database credentials to Git.
+
+---
+
+# Testing
+
+Trackr is moving toward automated testing as part of production readiness.
+
+---
+
+## Backend Tests
+
+Planned coverage:
+
+* authentication
+* authorization
+* cross-user access prevention
+* course CRUD
+* assignment CRUD
+* syllabus import
+* grade calculations
+* GPA calculations
+* password reset
+* timezone handling
+* validation
+* upload security
+
+---
+
+## Frontend Tests
+
+Planned coverage:
+
+* Angular services
+* route guards
+* forms
+* state handling
+* loading states
+* error states
+* important user workflows
+
+---
+
+## Grade Engine Tests
+
+Critical grade functions should have dedicated unit tests.
+
+Examples:
+
+* weighted averages
+* remaining weight
+* target-grade calculations
+* credit-weighted GPA
+* GPA conversion
+* missing grades
+* invalid weights
+* bonus assessments
+
+---
+
+# Continuous Integration
+
+Planned GitHub Actions workflow:
 
 ```text
-Trackr/
-│
-├── frontend/
-│   ├── HTML
-│   ├── CSS
-│   └── JavaScript
-│
-├── backend/
-│   ├── routes
-│   ├── authentication
-│   ├── API logic
-│   ├── database logic
-│   └── AI integration
-│
-├── docs/
-│   ├── planning documentation
-│   ├── meeting notes
-│   └── project documentation
-│
-└── README.md
+Install
+  ↓
+Lint
+  ↓
+Test
+  ↓
+Type Check
+  ↓
+Angular Build
+  ↓
+Backend Validation
+  ↓
+Dependency / Security Checks
 ```
 
 ---
 
-# Development Roadmap
+# Deployment
 
-### Completed / Existing
+The intended Trackr production architecture separates each application layer.
 
-* [x] Full-stack application architecture
-* [x] Student authentication
-* [x] JWT-protected routes
-* [x] Course management
-* [x] Assignment/activity tracking
-* [x] Grade tracking
-* [x] GPA/progress tracking
-* [x] Student dashboard
-* [x] Student profile
-* [x] Academic statistics
-* [x] Syllabus information processing
-* [x] PostgreSQL database integration
-* [x] Backend API
-* [x] Responsive frontend
+```text
+Angular Frontend
+       ↓
+      HTTPS
+       ↓
+Express REST API
+       ↓
+PostgreSQL Database
+```
 
-### Currently Developing
+The Angular frontend does **not** connect directly to PostgreSQL.
 
-* [ ] Trackr AI chatbot
-* [ ] Academic-data-aware chatbot responses
-* [ ] Deadline notification system
-* [ ] Custom reminder system
-* [ ] Additional student productivity features
-* [ ] UI/UX improvements
-* [ ] Production deployment
-* [ ] Production security improvements
+All data access passes through the backend API.
 
-### Future Improvements
+Production deployment will also require:
 
-* [ ] Smarter assignment prioritization
-* [ ] Study recommendations
-* [ ] Expanded academic analytics
-* [ ] More advanced AI course assistance
-* [ ] Additional notification options
-* [ ] Improved mobile experience
+* production environment variables
+* HTTPS
+* managed PostgreSQL
+* restricted CORS
+* database backups
+* error monitoring
+* structured logging
+* health checks
+* transactional email
+* rate limiting
+* secure file handling
 
 ---
 
-# Original Team Project
+# Roadmap
 
-Trackr was originally created collaboratively as part of **CP476 — Internet Computing** at Wilfrid Laurier University.
+Trackr's roadmap follows one principle:
 
-| Team Member       | Original Project Contributions                                                                  |
-| ----------------- | ----------------------------------------------------------------------------------------------- |
-| Zach Gould        | Project setup, repository organization, and development tasks                                   |
-| **Zohra Haidary** | Planning documentation, frontend and backend development/design tasks, and project organization |
-| Tyler Rizzi       | Backend setup, README updates, and project documentation                                        |
-| Thanh Phan        | Development tasks, milestone planning, and implementation support                               |
-| Qichen Hao        | Planning, project documentation, and implementation support                                     |
+> **Reliability before expansion.**
 
 ---
 
-# 👩‍💻 Continued Development
+## Phase 0 — Security Blockers
 
-Following the completion of the university project, **Zohra Haidary is independently continuing development of Trackr**.
-
-Current post-submission work focuses on:
-
-* Expanding the existing application
-* Improving frontend and backend functionality
-* Developing the Trackr chatbot
-* Building a notification/reminder system
-* Adding new student productivity features
-* Improving the user experience
-* Preparing Trackr for production deployment
-
-This repository now serves as both the original collaborative academic project and the continued development of Trackr beyond the course requirements.
-
----
-
-# Course
-
-**CP476 — Internet Computing**
-Wilfrid Laurier University
+* [ ] Remove public privilege/role escalation paths
+* [ ] Harden password reset
+* [ ] Secure JWT secrets
+* [ ] Add login rate limiting
+* [ ] Add password-reset rate limiting
+* [ ] Add AI endpoint limits
+* [ ] Add upload limits
+* [ ] Verify object-level authorization
+* [ ] Add authorization/IDOR tests
+* [ ] Restrict production CORS
+* [ ] Add security headers
+* [ ] Harden file uploads
+* [ ] Add request-size limits
+* [ ] Remove unfinished/dead UI controls
+* [ ] Validate production environment configuration
 
 ---
 
-# Maintainer
+## Phase 1 — Data Correctness
+
+* [ ] Complete PostgreSQL migration
+* [ ] Remove obsolete MySQL infrastructure
+* [ ] Use one migration system
+* [ ] Create one authoritative grade engine
+* [ ] Add course credits
+* [ ] Define grade calculation rules
+* [ ] Add configurable GPA scales
+* [ ] Standardize timezone handling
+* [ ] Support nullable/TBD deadlines
+* [ ] Improve assessment/category integrity
+* [ ] Use database transactions for multi-step imports
+* [ ] Enforce ownership in database queries
+
+---
+
+## Phase 2 — Automated Safety Net
+
+* [ ] Backend integration tests
+* [ ] Frontend tests
+* [ ] Authorization tests
+* [ ] Grade-engine unit tests
+* [ ] GPA tests
+* [ ] Timezone/date tests
+* [ ] Syllabus-import tests
+* [ ] Password-reset tests
+* [ ] Upload-security tests
+* [ ] GitHub Actions CI
+* [ ] Linting
+* [ ] Type checks
+* [ ] Angular production build checks
+* [ ] Dependency/security audits
+
+---
+
+## Phase 3 — Complete Existing UX
+
+* [ ] Finish Angular migration
+* [ ] Remove dead controls
+* [ ] Complete loading states
+* [ ] Complete error states
+* [ ] Complete empty states
+* [ ] Persist settings server-side
+* [ ] Persist calendar information
+* [ ] Add archive/restore
+* [ ] Add global search
+* [ ] Add notification center
+* [ ] Add mobile navigation
+* [ ] Improve onboarding
+* [ ] Improve syllabus review flow
+
+---
+
+## Phase 4 — Production Operations
+
+* [ ] Structured application logging
+* [ ] Error monitoring
+* [ ] Health endpoint
+* [ ] Automated database backups
+* [ ] Documented restore process
+* [ ] Restore testing
+* [ ] Transactional email
+* [ ] Privacy policy
+* [ ] Terms of service
+* [ ] Account export
+* [ ] Account deletion
+* [ ] Data-retention policy
+* [ ] Production observability
+
+---
+
+## Phase 5 — Product Differentiation
+
+* [ ] Today / Next Move
+* [ ] Smart priority system
+* [ ] Estimated effort tracking
+* [ ] Remaining-effort calculations
+* [ ] Subtasks/checklists
+* [ ] Recurring tasks
+* [ ] Recurring classes
+* [ ] Study blocks
+* [ ] Smart Planner
+* [ ] Exam/revision planner
+* [ ] Google Calendar integration
+* [ ] Natural-language Quick Add
+* [ ] Redesigned course workspace
+* [ ] Target-grade calculator
+* [ ] What-if grade calculator
+* [ ] Academic term management
+* [ ] Mobile experience improvements
+* [ ] Focus sessions
+
+---
+
+## Phase 6 — Ask Trackr AI
+
+* [ ] Structured academic-data tools
+* [ ] Controlled AI tool layer
+* [ ] Course-document ingestion
+* [ ] Document chunking
+* [ ] Embeddings/retrieval
+* [ ] Course-document Q&A
+* [ ] Source/page citations
+* [ ] Prompt-injection defenses
+* [ ] Cross-user retrieval protection
+* [ ] AI usage limits
+* [ ] AI cost controls
+* [ ] Context-aware Ask Trackr interface
+
+---
+
+## Phase 7 — Integrations & Advanced Experience
+
+* [ ] Outlook Calendar
+* [ ] ICS/iCal integration
+* [ ] PWA installability
+* [ ] Offline experience
+* [ ] Browser push notifications
+* [ ] Advanced academic analytics
+* [ ] Better workload forecasting
+* [ ] Improved cross-device synchronization
+* [ ] Additional import/export options
+
+---
+
+# Later / Optional Features
+
+The following features are intentionally not immediate priorities:
+
+* teacher dashboards
+* classroom publishing
+* join codes
+* parent accounts
+* social feeds
+* student communities
+* chat rooms
+* complex gamification
+* full flashcard system
+* full note-taking editor
+* native iOS application
+* native Android application
+* large numbers of third-party integrations
+
+Trackr should first make the core student workflow exceptional.
+
+---
+
+# Design Direction
+
+Trackr's visual direction is:
+
+> **Calm Academic Intelligence**
+
+The interface should emphasize:
+
+* clear information hierarchy
+* generous whitespace
+* focused task presentation
+* calm visual design
+* fast interactions
+* course-specific colors
+* responsive layouts
+* academic context
+
+Trackr should feel like a premium academic productivity product rather than a generic administration dashboard.
+
+---
+
+## Primary Navigation
+
+```text
+Today
+Planner
+Courses
+Calendar
+Grades
+```
+
+Secondary navigation:
+
+```text
+Settings
+Help
+Profile
+```
+
+Global action:
+
+```text
+Search or Ask Trackr...
+```
+
+---
+
+# Core User Journey
+
+The most important Trackr workflow is:
+
+```text
+REGISTER
+   ↓
+ADD COURSE / UPLOAD SYLLABUS
+   ↓
+REVIEW AI EXTRACTION
+   ↓
+COURSE CREATED
+   ↓
+ASSIGNMENTS APPEAR
+   ↓
+GRADES WORK CORRECTLY
+   ↓
+CALENDAR WORKS
+   ↓
+TODAY TELLS THE STUDENT WHAT TO DO
+   ↓
+REMINDER ARRIVES
+   ↓
+COMPLETE TASK
+   ↓
+PROGRESS + GRADE UPDATE
+```
+
+The product is not considered complete until this workflow works reliably across desktop and mobile.
+
+---
+
+# What Makes Trackr Different
+
+Trackr is not intended to become:
+
+```text
+Notion
++
+Canvas
++
+Todoist
++
+ChatGPT
++
+Every Student App
+```
+
+inside one product.
+
+Trackr's intended advantage is connecting:
+
+```text
+Course Structure
+       +
+Academic Deadlines
+       +
+Assessment Weight
+       +
+Grades
+       +
+Available Time
+       +
+Workload
+       ↓
+Recommended Next Action
+```
+
+The long-term product goal is:
+
+> **Trackr understands the structure of a student's semester, deadlines, workload, and grades — and turns that information into the next thing they should do.**
+
+---
+
+# Project Status
+
+🚧 **Active Development**
+
+Trackr began as a university team project and is now being independently redesigned and developed into a modern full-stack software product.
+
+Current modernization work includes:
+
+* Angular frontend migration
+* backend cleanup
+* PostgreSQL migration
+* improved security
+* grade-engine consolidation
+* UI/UX redesign
+* automated testing
+* production deployment preparation
+
+Because Trackr is actively being migrated, the repository may temporarily contain legacy or transitional code.
+
+---
+
+# Screenshots
+
+Screenshots will be added as the redesigned Angular interface stabilizes.
+
+Planned showcase screens:
+
+```text
+Today
+Planner
+Courses
+Course Detail
+Grades
+Calendar
+Mobile
+```
+
+---
+
+# Contributing
+
+Trackr is currently an independently developed project.
+
+Formal contribution guidelines may be added in the future.
+
+---
+
+# Author
 
 **Zohra Haidary**
 
-Computer Science — Wilfrid Laurier University
+Computer Science student and developer building Trackr as an independent full-stack software project.
 
-GitHub: [github.com/HZohra](https://github.com/HZohra)
+GitHub:
 
-LinkedIn: [linkedin.com/in/zohra-haidary-318575201](https://www.linkedin.com/in/zohra-haidary-318575201/)
+```text
+https://github.com/HZohra
+```
 
----
+Repository:
 
-## Project Status
-
-**Active Development**
-
-Trackr is currently being expanded beyond its original university-project scope with new AI, chatbot, notification, productivity, UI/UX, and deployment functionality.
+```text
+https://github.com/HZohra/Trackr
+```
