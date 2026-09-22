@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
-import { createToken, getJWTSecret } from "../middleware/auth.js";
+import { createToken } from "../middleware/auth.js";
 import { sendMail } from "../services/mailer.js";
 import {
     createPasswordResetToken,
@@ -13,34 +13,84 @@ import {
     updateUserPassword,
 } from "../model/userModel.js";
 
-const JWT_SECRET = getJWTSecret();
+const hashToken = (token) =>
+    crypto.createHash("sha256").update(String(token)).digest("hex");
 
-// Handles POST /auth/register
-// Creates a new user account. Note: we identify users by EMAIL, not
-// username — our schema (users table) has no username column, only email
-// with a UNIQUE constraint. Password is never stored as-is; bcrypt turns
-// it into a one-way hash before it touches the database.
+const isStrongPassword = (value) => {
+    const s = String(value ?? "");
+    return (
+        s.length >= 8 &&
+        /[a-z]/.test(s) &&
+        /[A-Z]/.test(s) &&
+        /\d/.test(s)
+    );
+};
 
-export const userRegister = async (req, res) => {
-    console.log("Received registration request:", {
-        email: req.body.email,
-        role: req.body.role,
+const getUserByEmailAsync = (email) =>
+    new Promise((resolve, reject) => {
+        getUserByEmail(email, (err, user) => {
+            if (err) return reject(err);
+            resolve(user);
+        });
     });
 
+const createUserAsync = (userData) =>
+    new Promise((resolve, reject) => {
+        createUser(userData, (err, user) => {
+            if (err) return reject(err);
+            resolve(user);
+        });
+    });
+
+const updateUserPasswordAsync = (userId, passwordHash) =>
+    new Promise((resolve, reject) => {
+        updateUserPassword(userId, passwordHash, (err) => {
+            if (err) return reject(err);
+            resolve();
+        });
+    });
+
+const getPasswordResetWithTokenAsync = (tokenHash) =>
+    new Promise((resolve, reject) => {
+        getPasswordResetWithToken(tokenHash, (err, row) => {
+            if (err) return reject(err);
+            resolve(row);
+        });
+    });
+
+const getPasswordResetWithUserIDAsync = (userId) =>
+    new Promise((resolve, reject) => {
+        getPasswordResetWithUserID(userId, (err, row) => {
+            if (err) return reject(err);
+            resolve(row);
+        });
+    });
+
+const createPasswordResetTokenAsync = (userId, tokenHash, expiresAt) =>
+    new Promise((resolve, reject) => {
+        createPasswordResetToken(userId, tokenHash, expiresAt, (err) => {
+            if (err) return reject(err);
+            resolve();
+        });
+    });
+
+const deletePasswordResetTokenAsync = (tokenHash) =>
+    new Promise((resolve, reject) => {
+        deletePasswordResetToken(tokenHash, (err) => {
+            if (err) return reject(err);
+            resolve();
+        });
+    });
+
+// Handles POST /auth/register
+// Public registration must always create a student account.
+// Admin role is never accepted from the client.
+export const userRegister = async (req, res) => {
     try {
-        const { first_name, last_name, email, password } = req.body;
-
-        const requestedRole = String(req.body.role || "student")
-            .trim()
-            .toLowerCase();
-
-        if (!["student", "admin"].includes(requestedRole)) {
-            return res.status(400).json({
-                message: "Invalid account role",
-            });
-        }
-
-        const role = requestedRole;
+        const first_name = String(req.body?.first_name ?? "").trim();
+        const last_name = String(req.body?.last_name ?? "").trim();
+        const email = String(req.body?.email ?? "").trim().toLowerCase();
+        const password = String(req.body?.password ?? "");
 
         if (!first_name || !last_name || !email || !password) {
             return res.status(400).json({ message: "Missing required fields" });
@@ -50,96 +100,44 @@ export const userRegister = async (req, res) => {
             return res.status(400).json({ message: "Invalid email format" });
         }
 
-        getUserByEmail(email, async (err, existingUser) => {
-            if (err) return res.status(500).json({ message: "Server error" });
-            if (existingUser)
-                return res
-                    .status(409)
-                    .json({ message: "Email already registered" });
+        if (!isStrongPassword(password)) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters and include uppercase, lowercase, and a number",
+            });
+        }
 
-            const password_hash = await bcrypt.hash(password, 10);
+        const existingUser = await getUserByEmailAsync(email);
+        if (existingUser) {
+            return res.status(409).json({ message: "Email already registered" });
+        }
 
-            createUser(
-                { first_name, last_name, email, password_hash, role },
-                (err, newUser) => {
-                    if (err)
-                        return res
-                            .status(500)
-                            .json({ message: "Failed to create user" });
+        const password_hash = await bcrypt.hash(password, 10);
+        const newUser = await createUserAsync({
+            first_name,
+            last_name,
+            email,
+            password_hash,
+            role: "student",
+        });
 
-                    const token = createToken(newUser);
+        const token = createToken(newUser);
 
-                    res.status(201).json({
-                        message: "User registered successfully",
-                    });
-                },
-            );
+        return res.status(201).json({
+            message: "User registered successfully",
+            user: {
+                ...newUser,
+                password_hash: undefined,
+            },
+            token,
         });
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        console.error("Register failed:", err.message);
+        return res.status(500).json({ message: "Server error" });
     }
-};
-
-export const userRegisterOAuth = async (req, res) => {
-    const accessToken = req.body.access_token;
-
-    try {
-        const googleUser = await getGoogleUserInfo(accessToken);
-
-        console.log("Google user info:", googleUser);
-
-        if (!googleUser || !googleUser.email || !googleUser.email_verified) {
-            throw new Error();
-        }
-
-        const first_name = googleUser.given_name;
-        const last_name = googleUser.family_name;
-        const email = googleUser.email;
-
-        if (!/^\S+@\S+\.\S+$/.test(email)) {
-            return res.status(400).json({ message: "Invalid email format" });
-        }
-
-        getUserByEmail(email, async (err, existingUser) => {
-            if (err) return res.status(500).json({ message: "Server error" });
-            if (existingUser)
-                return res
-                    .status(409)
-                    .json({ message: "Email already registered" });
-        });
-
-        res.status(200).json({ first_name, last_name, email });
-    } catch (error) {
-        res.status(401).json({ message: "Invalid Google credentials" });
-    }
-};
-
-export const userLogin = (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ message: "Email and password required" });
-    }
-
-    getUserByEmail(email, async (err, user) => {
-        if (err) return res.status(500).json({ message: "Server error" });
-        if (!user)
-            return res.status(401).json({ message: "Invalid credentials" });
-
-        const match = await bcrypt.compare(password, user.password_hash);
-        if (!match)
-            return res.status(401).json({ message: "Invalid credentials" });
-
-        const token = createToken(user);
-
-        const { password_hash, ...safeUser } = user;
-        res.status(200).json({ user: safeUser, token });
-    });
 };
 
 async function getGoogleUserInfo(accessToken) {
     const client = new OAuth2Client();
-
     client.setCredentials({ access_token: accessToken });
 
     const response = await client.request({
@@ -149,133 +147,230 @@ async function getGoogleUserInfo(accessToken) {
     return response.data;
 }
 
-export const userLoginOAuth = async (req, res) => {
-    const accessToken = req.body.access_token;
-
+export const userRegisterOAuth = async (req, res) => {
     try {
-        const googleUser = await getGoogleUserInfo(accessToken);
-        if (!googleUser || !googleUser.email || !googleUser.email_verified) {
-            throw new Error();
+        const accessToken = req.body?.access_token;
+
+        if (!accessToken) {
+            return res.status(400).json({ message: "Missing Google access token" });
         }
 
-        getUserByEmail(googleUser.email, async (err, user) => {
-            if (err) return res.status(500).json({ message: "Server error" });
-            if (!user) {
-                return res
-                    .status(401)
-                    .json({ message: "Invalid Google credentials" });
-            }
+        const googleUser = await getGoogleUserInfo(accessToken);
 
-            const token = createToken(user);
-            const { password_hash, ...safeUser } = user;
-            res.status(200).json({ user: safeUser, token });
+        if (!googleUser || !googleUser.email || !googleUser.email_verified) {
+            throw new Error("Invalid Google credentials");
+        }
+
+        const email = String(googleUser.email).trim().toLowerCase();
+
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+            return res.status(400).json({ message: "Invalid email format" });
+        }
+
+        const existingUser = await getUserByEmailAsync(email);
+        if (existingUser) {
+            return res.status(409).json({ message: "Email already registered" });
+        }
+
+        const randomPassword = crypto.randomBytes(32).toString("hex");
+        const password_hash = await bcrypt.hash(randomPassword, 10);
+
+        const newUser = await createUserAsync({
+            first_name: googleUser.given_name || "Google",
+            last_name: googleUser.family_name || "User",
+            email,
+            password_hash,
+            role: "student",
+        });
+
+        const token = createToken(newUser);
+
+        return res.status(201).json({
+            message: "User registered successfully",
+            user: {
+                ...newUser,
+                password_hash: undefined,
+            },
+            token,
         });
     } catch (error) {
-        res.status(401).json({ message: "Invalid Google credentials" });
+        console.error("OAuth register failed:", error.message);
+        return res.status(401).json({ message: "Invalid Google credentials" });
     }
 };
 
-export const userResetPassword = (req, res) => {
-    const token = req.params.token;
-    const password = req.body.password;
-    console.log("Received token:", token);
-    getPasswordResetWithToken(token, (err, tokenRecord) => {
-        if (err || !tokenRecord) {
-            return res
-                .status(400)
-                .json({ message: "Invalid or expired token" });
+export const userLogin = async (req, res) => {
+    try {
+        const email = String(req.body?.email ?? "").trim().toLowerCase();
+        const password = String(req.body?.password ?? "");
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password required" });
         }
-        if (new Date(tokenRecord.expires_at) < new Date()) {
-            return res
-                .status(400)
-                .json({ message: "Invalid or expired token" });
+
+        const user = await getUserByEmailAsync(email);
+
+        // Always respond the same for invalid login attempts.
+        if (!user) {
+            return res.status(401).json({ message: "Invalid credentials" });
         }
-        if (!password) {
-            return res.status(400).json({ message: "Password is required" });
+
+        const match = await bcrypt.compare(password, user.password_hash);
+        if (!match) {
+            return res.status(401).json({ message: "Invalid credentials" });
         }
-        const passwordHash = bcrypt.hashSync(password, 10);
-        updateUserPassword(tokenRecord.user_id, passwordHash, (err) => {
-            if (err) {
-                return res.status(500).json({
-                    message: "Failed to reset password. Please try again.",
-                });
-            }
-            deletePasswordResetToken(token, (err) => {
-                if (err) {
-                    console.error("Error deleting password reset token:", err);
-                }
+
+        const token = createToken(user);
+        const { password_hash, ...safeUser } = user;
+
+        return res.status(200).json({
+            user: safeUser,
+            token,
+        });
+    } catch (err) {
+        console.error("Login failed:", err.message);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const userLoginOAuth = async (req, res) => {
+    try {
+        const accessToken = req.body?.access_token;
+
+        if (!accessToken) {
+            return res.status(400).json({ message: "Missing Google access token" });
+        }
+
+        const googleUser = await getGoogleUserInfo(accessToken);
+
+        if (!googleUser || !googleUser.email || !googleUser.email_verified) {
+            throw new Error("Invalid Google credentials");
+        }
+
+        const email = String(googleUser.email).trim().toLowerCase();
+
+        const user = await getUserByEmailAsync(email);
+
+        if (!user) {
+            return res.status(401).json({ message: "Invalid Google credentials" });
+        }
+
+        const token = createToken(user);
+        const { password_hash, ...safeUser } = user;
+
+        return res.status(200).json({
+            user: safeUser,
+            token,
+        });
+    } catch (error) {
+        console.error("OAuth login failed:", error.message);
+        return res.status(401).json({ message: "Invalid Google credentials" });
+    }
+};
+
+export const userResetPassword = async (req, res) => {
+    try {
+        const token = String(req.params?.token ?? "");
+        const password = String(req.body?.password ?? "");
+
+        if (!token) {
+            return res.status(400).json({ message: "Invalid or expired token" });
+        }
+
+        if (!password || !isStrongPassword(password)) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters and include uppercase, lowercase, and a number",
             });
-            res.status(200).json({ message: "Password reset successful" });
-        });
-    });
-};
-
-export const userForgotPassword = (req, res) => {
-    const { email } = req.body;
-    getUserByEmail(email, (err, user) => {
-        if (err || !user) {
-            // For security reasons, we don't reveal whether the email exists or not
-            return;
         }
-        getPasswordResetWithUserID(user.user_id, (err, tokenRecord) => {
-            if (err) {
-                console.error(
-                    "Error checking existing password reset token:",
-                    err,
-                );
-                return;
-            }
-            if (user) {
-                if (tokenRecord) {
-                    if (
-                        new Date(tokenRecord.expires_at) > new Date(Date.now())
-                    ) {
-                        console.log(
-                            "Password reset token already exists and is valid.",
-                        );
-                        return;
-                    } else {
-                        deletePasswordResetToken(tokenRecord.token, (err) => {
-                            if (err) {
-                                console.error(
-                                    "Error deleting old password reset token:",
-                                    err,
-                                );
-                                return;
-                            }
-                        });
-                    }
-                }
-                const token = crypto.randomBytes(64).toString("hex");
-                const expiresAt = new Date(Date.now() + 1800000); // 0.5 hour from now
-                createPasswordResetToken(
-                    user.user_id,
-                    token,
-                    expiresAt,
-                    (err) => {
-                        if (err) {
-                            console.error(
-                                "Error inserting new password reset token:",
-                                err,
-                            );
-                            return;
-                        }
-                        sendResetPasswordMail(token, email);
-                    },
-                );
-            }
-        });
-    });
+
+        const tokenHash = hashToken(token);
+        const tokenRecord = await getPasswordResetWithTokenAsync(tokenHash);
+
+        if (!tokenRecord) {
+            return res.status(400).json({ message: "Invalid or expired token" });
+        }
+
+        if (!tokenRecord.expires_at) {
+            return res.status(400).json({ message: "Invalid or expired token" });
+        }
+
+        const expiresAt = new Date(tokenRecord.expires_at);
+        if (Number.isNaN(expiresAt.getTime()) || expiresAt < new Date()) {
+            return res.status(400).json({ message: "Invalid or expired token" });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        await updateUserPasswordAsync(tokenRecord.user_id, passwordHash);
+        await deletePasswordResetTokenAsync(tokenHash);
+
+        return res.status(200).json({ message: "Password reset successful" });
+    } catch (err) {
+        console.error("Reset password failed:", err.message);
+        return res.status(500).json({ message: "Failed to reset password" });
+    }
 };
 
+export const userForgotPassword = async (req, res) => {
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
 
-export const sendResetPasswordMail = (token, email) => {
-    sendMail(
+    const genericResponse = {
+        message: "If an account exists for this email, a reset link will be sent.",
+    };
+
+    if (!email) {
+        return res.status(202).json(genericResponse);
+    }
+
+    try {
+        const user = await getUserByEmailAsync(email);
+
+        if (!user) {
+            return res.status(202).json(genericResponse);
+        }
+
+        const existing = await getPasswordResetWithUserIDAsync(user.user_id);
+
+        if (existing && existing.expires_at) {
+            const expiresAt = new Date(existing.expires_at);
+
+            if (!Number.isNaN(expiresAt.getTime()) && expiresAt > new Date()) {
+                return res.status(202).json(genericResponse);
+            }
+        }
+
+        if (existing) {
+            // existing.token is ALREADY the stored SHA-256 hash — delete by it
+            // directly. Hashing it again would match nothing and leave a stale
+            // row that blocks the new INSERT (UNIQUE user_id) and locks the
+            // user out of password reset.
+            await deletePasswordResetTokenAsync(existing.token);
+        }
+
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = hashToken(rawToken);
+
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+        await createPasswordResetTokenAsync(user.user_id, tokenHash, expiresAt);
+        console.log("DEV reset token:", rawToken);
+        await sendResetPasswordMail(rawToken, email);
+
+        return res.status(202).json(genericResponse);
+    } catch (err) {
+        console.error("Forgot password failed:", err.message);
+
+        // Do not expose internal errors or user existence.
+        return res.status(202).json(genericResponse);
+    }
+};
+
+export const sendResetPasswordMail = async (token, email) => {
+    const resetLink = `${process.env.FRONTEND_URL || "http://localhost:4200"}/reset-password?token=${encodeURIComponent(token)}`;
+
+    await sendMail(
         email,
         "Password Reset Request",
-        `You requested a password reset. Use the following links to reset your password: ${process.env.FRONTEND_URL}/pages/reset-password?token=${token}. This token will expire in 30 minutes.`,
+        `You requested a password reset. Use the following link to reset your password:\n\n${resetLink}\n\nThis token will expire in 30 minutes.`
     );
-    console.log(`Password reset email sent to ${email} with token: ${token}`);
 };
-
-

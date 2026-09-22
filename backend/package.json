@@ -7,7 +7,9 @@
         "test": "node tests/run-tests.js",
         "start": "node server.js",
         "dev": "nodemon server.js",
-        "migrate": "node src/db/migrate.js"
+        "migrate": "node src/db/migrate.js",
+        "make-admin": "node src/scripts/make-admin.js",
+        "verify:admin-lock": "node scripts/verify-admin-lock.mjs"
     },
     "keywords": [],
     "author": "",

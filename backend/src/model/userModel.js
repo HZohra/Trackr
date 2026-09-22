@@ -32,19 +32,22 @@ export const getUserById = async (userId, callback) => {
 
 export const createUser = async (userData, callback) => {
   try {
-    const { first_name, last_name, email, password_hash, role } = userData;
+    const { first_name, last_name, email, password_hash } = userData;
+    // Defense in depth: this function NEVER creates an admin. Any role passed
+    // by a caller is ignored — the column is hard-set to 'student'. The only
+    // path to admin is src/scripts/make-admin.js (developer + DB access).
     const { rows } = await query(
       `INSERT INTO users (first_name, last_name, email, password_hash, role)
-       VALUES ($1, $2, $3, $4, $5)
+       VALUES ($1, $2, $3, $4, 'student')
        RETURNING user_id`,
-      [first_name, last_name, email, password_hash, role || "student"]
+      [first_name, last_name, email, password_hash]
     );
     callback(null, {
       user_id: rows[0].user_id,
       first_name,
       last_name,
       email,
-      role: role || "student",
+      role: "student",
     });
   } catch (err) {
     console.error("Error creating user:", err);
