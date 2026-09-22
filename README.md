@@ -30,7 +30,6 @@ Instead of forcing students to rebuild their semester manually across multiple a
 * [Design Direction](#design-direction)
 * [Project Status](#project-status)
 * [Author](#author)
-* [License](#license)
 
 ---
 
