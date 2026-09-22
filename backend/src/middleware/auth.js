@@ -50,7 +50,7 @@ export const verifyToken = (req, res, next) => {
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
             return res
-                .status(403)
+                .status(401)
                 .json({ message: "Invalid or expired token" });
         }
         req.user = decoded;
