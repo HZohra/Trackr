@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import * as activityModel from "../model/activityModel.js";
 import * as courseModel from "../model/courseModel.js";
 import * as userModel from "../model/userModel.js";
@@ -7,6 +8,53 @@ import {
     validateActivityPayload,
     validateCoursePayload,
 } from "../services/syllabusNormalizer.js";
+
+// PUT /user/change-password
+// Lets a logged-in user change their password by proving the current one.
+export const changePassword = (req, res) => {
+    const userId = req.user.user_id;
+    const currentPassword = String(req.body?.currentPassword ?? "");
+    const newPassword = String(req.body?.newPassword ?? "");
+
+    if (!currentPassword || !newPassword) {
+        return res
+            .status(400)
+            .json({ message: "Current and new password are required" });
+    }
+
+    const strong =
+        newPassword.length >= 8 &&
+        /[a-z]/.test(newPassword) &&
+        /[A-Z]/.test(newPassword) &&
+        /\d/.test(newPassword);
+    if (!strong) {
+        return res.status(400).json({
+            message:
+                "New password must be at least 8 characters and include uppercase, lowercase, and a number",
+        });
+    }
+
+    userModel.getUserById(userId, async (err, user) => {
+        if (err) return res.status(500).json({ message: "Server error" });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const match = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!match) {
+            return res
+                .status(401)
+                .json({ message: "Current password is incorrect" });
+        }
+
+        const newHash = await bcrypt.hash(newPassword, 10);
+        userModel.updateUserPassword(userId, newHash, (err2) => {
+            if (err2)
+                return res
+                    .status(500)
+                    .json({ message: "Failed to update password" });
+            res.status(200).json({ message: "Password updated" });
+        });
+    });
+};
 
 // GET /user/courses
 // req.user comes from verifyToken middleware — this is the trustworthy
@@ -49,6 +97,7 @@ export const getCourseById = (req, res) => {
         res.json(course);
     });
 };
+
 
 // GET /user/courses/:courseId/activities
 export const getActivitiesByUserIdAndCourseId = (req, res) => {

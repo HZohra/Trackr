@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import { createToken } from "../middleware/auth.js";
 import { sendMail } from "../services/mailer.js";
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from "../utils/passwordPolicy.js";
 import {
     createPasswordResetToken,
     createUser,
@@ -15,16 +16,6 @@ import {
 
 const hashToken = (token) =>
     crypto.createHash("sha256").update(String(token)).digest("hex");
-
-const isStrongPassword = (value) => {
-    const s = String(value ?? "");
-    return (
-        s.length >= 8 &&
-        /[a-z]/.test(s) &&
-        /[A-Z]/.test(s) &&
-        /\d/.test(s)
-    );
-};
 
 const getUserByEmailAsync = (email) =>
     new Promise((resolve, reject) => {
@@ -101,9 +92,7 @@ export const userRegister = async (req, res) => {
         }
 
         if (!isStrongPassword(password)) {
-            return res.status(400).json({
-                message: "Password must be at least 8 characters and include uppercase, lowercase, and a number",
-            });
+            return res.status(400).json({ message: PASSWORD_POLICY_MESSAGE });
         }
 
         const existingUser = await getUserByEmailAsync(email);
@@ -278,9 +267,7 @@ export const userResetPassword = async (req, res) => {
         }
 
         if (!password || !isStrongPassword(password)) {
-            return res.status(400).json({
-                message: "Password must be at least 8 characters and include uppercase, lowercase, and a number",
-            });
+            return res.status(400).json({ message: PASSWORD_POLICY_MESSAGE });
         }
 
         const tokenHash = hashToken(token);
@@ -350,10 +337,9 @@ export const userForgotPassword = async (req, res) => {
         const rawToken = crypto.randomBytes(32).toString("hex");
         const tokenHash = hashToken(rawToken);
 
-        const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
         await createPasswordResetTokenAsync(user.user_id, tokenHash, expiresAt);
-        console.log("DEV reset token:", rawToken);
         await sendResetPasswordMail(rawToken, email);
 
         return res.status(202).json(genericResponse);
@@ -371,6 +357,6 @@ export const sendResetPasswordMail = async (token, email) => {
     await sendMail(
         email,
         "Password Reset Request",
-        `You requested a password reset. Use the following link to reset your password:\n\n${resetLink}\n\nThis token will expire in 30 minutes.`
+        `You requested a password reset. Use the following link to reset your password:\n\n${resetLink}\n\nThis token will expire in 10 minutes.`
     );
 };

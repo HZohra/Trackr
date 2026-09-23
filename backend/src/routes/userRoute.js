@@ -52,6 +52,8 @@ router.post("/courses/", userController.addCourse);
 // Delete the currently logged-in user's account
 router.delete("/account", userController.deleteCurrentUserAccount);
 
+router.put("/change-password", userController.changePassword);
+
 // Profile page routes
 router.get("/:id/profile", userController.getProfileById);
 router.put("/:id/profile", userController.updateProfileById);
