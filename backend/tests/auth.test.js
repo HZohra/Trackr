@@ -19,6 +19,12 @@ test("GET /health -> 200", async () => {
     assert.equal(res.body.ok, true);
 });
 
+test("security headers are set (helmet)", async () => {
+    const res = await api("GET", "/health");
+    assert.equal(res.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(res.headers.get("x-powered-by"), null); // helmet strips this
+});
+
 describe("Registration", () => {
     test("weak password -> 400", async () => {
         const res = await api("POST", "/auth/register", {
