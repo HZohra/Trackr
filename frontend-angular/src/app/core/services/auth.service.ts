@@ -80,11 +80,19 @@ export class AuthService {
   changePassword(
     currentPassword: string,
     newPassword: string,
-  ): Observable<{ message: string }> {
-    return this.http.put<{ message: string }>(
-      `${this.api}/user/change-password`,
-      { currentPassword, newPassword },
-    );
+  ): Observable<{ message: string; token?: string }> {
+    return this.http
+      .put<{ message: string; token?: string }>(
+        `${this.api}/user/change-password`,
+        { currentPassword, newPassword },
+      )
+      .pipe(
+        tap((res) => {
+          // The change rotated our token — swap in the fresh one so this session
+          // keeps working (all other sessions are now invalidated).
+          if (res?.token) localStorage.setItem(TOKEN_KEY, res.token);
+        }),
+      );
   }
 
   // Requests a reset email. The backend always responds the same way whether or

@@ -4,6 +4,7 @@ import * as courseModel from "../model/courseModel.js";
 import * as userModel from "../model/userModel.js";
 import { extractSyllabus } from "../services/extractor.js";
 import { createToken } from "../middleware/auth.js";
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from "../utils/passwordPolicy.js";
 
 import {
     normalizeExtraction,
@@ -22,17 +23,9 @@ export const changePassword = (req, res) => {
         return res.status(400).json({ message: "Current and new password are required" });
     }
 
-    const strong =
-        newPassword.length >= 8 &&
-        /[a-z]/.test(newPassword) &&
-        /[A-Z]/.test(newPassword) &&
-        /\d/.test(newPassword);
-    if (!strong) {
-        return res.status(400).json({
-            message: "New password must be at least 8 characters and include uppercase, lowercase, and a number",
-        });
+        if (!isStrongPassword(newPassword)) {
+        return res.status(400).json({ message: PASSWORD_POLICY_MESSAGE });
     }
-
     userModel.getUserById(userId, async (err, user) => {
         if (err) return res.status(500).json({ message: "Server error" });
         if (!user) return res.status(404).json({ message: "User not found" });

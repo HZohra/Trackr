@@ -180,6 +180,17 @@ describe("Change password (logged in)", () => {
         assert.equal(res.status, 200);
         assert.equal((await loginStudent(s.email, "Newpass0!")).status, 200);
     });
+
+    test("enforces the full policy (rejects no special character)", async () => {
+        const { email, password } = await registerStudent();
+        const token = (await loginStudent(email, password)).body.token;
+        // upper + lower + digit + 8 chars, but NO special char -> now rejected
+        const res = await api("PUT", "/user/change-password", {
+            token,
+            body: { currentPassword: password, newPassword: "Passw0rdx" },
+        });
+        assert.equal(res.status, 400);
+    });
 });
 
 describe("Session invalidation on password change/reset", () => {
