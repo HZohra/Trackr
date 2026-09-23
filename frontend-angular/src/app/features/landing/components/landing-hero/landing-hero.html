@@ -1,0 +1,233 @@
+<section
+  class="hero"
+  id="product"
+>
+  <div class="hero__inner">
+
+    <div class="hero__copy">
+
+      <span class="eyebrow">
+        <span class="eyebrow__dot"></span>
+        Your semester, organized
+      </span>
+
+      <h1>
+        Turn your syllabus into a plan you can
+        <span class="marker">
+          actually follow.
+        </span>
+      </h1>
+
+      <p class="hero__description">
+        Upload your course syllabus and Trackr turns
+        deadlines, assessments, grades, and course details
+        into one organized academic workspace — so you
+        always know what needs your attention next.
+      </p>
+
+      <div class="hero__actions">
+
+        <a
+          routerLink="/register"
+          class="hero-button hero-button--primary"
+        >
+          Get started
+
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14" />
+            <path d="m13 6 6 6-6 6" />
+          </svg>
+        </a>
+
+        <button
+          type="button"
+          class="hero-button hero-button--secondary"
+          (click)="scrollToHowItWorks()"
+        >
+          See how it works
+        </button>
+
+      </div>
+
+      <p class="hero__note">
+        Built for students
+        <span></span>
+        Set up your semester in minutes
+      </p>
+
+    </div>
+
+
+    <!-- =====================================
+         PRODUCT VISUAL
+         syllabus → structured action
+         ===================================== -->
+
+    <div
+      class="hero-visual"
+      aria-hidden="true"
+    >
+
+      <div class="syllabus-card">
+
+        <div class="syllabus-card__top">
+          <span class="file-icon">
+            PDF
+          </span>
+
+          <span>course-syllabus.pdf</span>
+        </div>
+
+        <div class="document-title"></div>
+
+        <div class="document-lines">
+          <span></span>
+          <span></span>
+          <span class="highlight"></span>
+          <span></span>
+          <span class="highlight"></span>
+          <span></span>
+          <span></span>
+          <span class="highlight"></span>
+        </div>
+
+      </div>
+
+
+      <div class="extracted-pill">
+
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M12 2l1.9 5.6L19.5 9l-4.5 3.3L16.7 18 12 14.7 7.3 18l1.7-5.7L4.5 9l5.6-1.4z"
+          />
+        </svg>
+
+        Course extracted
+      </div>
+
+
+      <div class="workspace-preview">
+
+        <!-- NEXT MOVE -->
+
+        <article class="next-move">
+
+          <div class="next-move__header">
+
+            <div>
+              <span class="next-move__eyebrow">
+                Your next move
+              </span>
+
+              <h3>
+                Android Assignment 2
+              </h3>
+            </div>
+
+            <span class="course-badge">
+              CP470
+            </span>
+
+          </div>
+
+          <p class="next-move__meta">
+            Due tomorrow
+            <span>•</span>
+            20% of course
+          </p>
+
+          <div class="remaining-time">
+
+            <div>
+              <span>Estimated remaining</span>
+              <strong>1h 45m</strong>
+            </div>
+
+            <span class="priority">
+              Priority
+            </span>
+
+          </div>
+
+          <button
+            type="button"
+            tabindex="-1"
+          >
+            Start working
+          </button>
+
+        </article>
+
+
+        <!-- SMALL STATS -->
+
+        <div class="preview-stats">
+
+          <article class="preview-stat">
+            <span class="preview-stat__label">
+              Active courses
+            </span>
+
+            <strong>4</strong>
+
+            <span class="preview-stat__meta">
+              Fall term
+            </span>
+          </article>
+
+
+          <article class="preview-stat">
+            <span class="preview-stat__label">
+              Due this week
+            </span>
+
+            <strong>3</strong>
+
+            <span class="preview-stat__meta">
+              Nothing overdue
+            </span>
+          </article>
+
+        </div>
+
+
+        <!-- GPA -->
+
+        <article class="grade-preview">
+
+          <div>
+            <span>Current GPA</span>
+
+            <strong>
+              3.72
+              <small>/ 4.0</small>
+            </strong>
+          </div>
+
+          <div class="grade-preview__trend">
+            Semester on track
+          </div>
+
+        </article>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>

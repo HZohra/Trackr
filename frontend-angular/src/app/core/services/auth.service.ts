@@ -47,6 +47,46 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.api}/auth/register`, payload);
   }
 
+    getProfile(): Observable<AuthUser & { institution?: string | null }> {
+    const id = this.userSignal()?.user_id;
+    return this.http.get<AuthUser & { institution?: string | null }>(
+      `${this.api}/user/${id}/profile`,
+    );
+  }
+
+  updateProfile(profile: {
+    first_name: string;
+    last_name: string;
+    institution: string | null;
+  }): Observable<unknown> {
+    const id = this.userSignal()?.user_id;
+    return this.http.put(`${this.api}/user/${id}/profile`, { profile }).pipe(
+      // Reflect the new name in the stored session so the UI updates everywhere.
+      tap(() => {
+        const current = this.userSignal();
+        if (current) {
+          const updated = {
+            ...current,
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+          };
+          localStorage.setItem(USER_KEY, JSON.stringify(updated));
+          this.userSignal.set(updated);
+        }
+      }),
+    );
+  }
+
+  changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(
+      `${this.api}/user/change-password`,
+      { currentPassword, newPassword },
+    );
+  }
+
   // Requests a reset email. The backend always responds the same way whether or
   // not the account exists, so the UI never learns which — no enumeration.
   forgotPassword(email: string): Observable<{ message: string }> {

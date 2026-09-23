@@ -1,0 +1,118 @@
+:host {
+  display: block;
+
+  --lp-paper: #faf8f3;
+  --lp-surface: #ffffff;
+  --lp-surface-2: #f2eee5;
+  --lp-border: #e8e2d5;
+
+  --lp-ink: #1a1813;
+  --lp-muted: #6e6a5e;
+
+  --lp-primary: #2f54eb;
+  --lp-primary-hover: #2643c4;
+  --lp-primary-soft: #e9edfd;
+
+  --lp-marker: #ffc93d;
+  --lp-marker-soft: #fff3d2;
+
+  --lp-success: #1e9e6a;
+  --lp-success-soft: #e4f4ec;
+
+  --lp-progress: #e8890c;
+  --lp-progress-soft: #fbebcd;
+
+  --lp-danger: #e1483b;
+  --lp-danger-soft: #fbe9e6;
+
+  --lp-radius-lg: 0.625rem;
+  --lp-radius-xl: 0.9rem;
+  --lp-radius-2xl: 1.25rem;
+
+  --lp-shadow-card:
+    0 1px 2px rgba(40, 34, 20, 0.05),
+    0 6px 16px rgba(40, 34, 20, 0.06);
+
+  --lp-shadow-raised:
+    0 12px 30px rgba(40, 34, 20, 0.1);
+
+  --lp-font-sans:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+
+  --lp-font-display:
+    "Bricolage Grotesque",
+    "Inter",
+    system-ui,
+    sans-serif;
+
+  --lp-font-mono:
+    "JetBrains Mono",
+    ui-monospace,
+    monospace;
+}
+
+.landing-page {
+  min-height: 100vh;
+
+  background: var(--lp-paper);
+  color: var(--lp-ink);
+
+  font-family: var(--lp-font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:host-context([data-theme="dark"]) {
+  --lp-paper: #131210;
+  --lp-surface: #1b1916;
+  --lp-surface-2: #24221c;
+  --lp-border: #322f27;
+
+  --lp-ink: #f3f0e8;
+  --lp-muted: #a39d8e;
+
+  --lp-primary: #5e7bff;
+  --lp-primary-hover: #738eff;
+  --lp-primary-soft: #1c2140;
+
+  --lp-marker: #ffd24a;
+  --lp-marker-soft: #2d2611;
+
+  --lp-success: #34c98a;
+  --lp-success-soft: #11281f;
+
+  --lp-progress: #f0a33a;
+  --lp-progress-soft: #2e2410;
+
+  --lp-danger: #f26b5e;
+  --lp-danger-soft: #2e1714;
+
+  --lp-shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 6px 18px rgba(0, 0, 0, 0.45);
+
+  --lp-shadow-raised:
+    0 14px 34px rgba(0, 0, 0, 0.55);
+}
+
+.landing-page *,
+.landing-page *::before,
+.landing-page *::after {
+  box-sizing: border-box;
+}
+
+.landing-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.landing-page ::selection {
+  background: var(--lp-marker);
+  color: #1a1813;
+}

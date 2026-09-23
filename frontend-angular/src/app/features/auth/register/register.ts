@@ -2,12 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-
-function strongPassword(control: AbstractControl): ValidationErrors | null {
-  const value: string = control.value ?? '';
-  const ok = value.length >= 8 && /[a-z]/.test(value) && /[A-Z]/.test(value) && /[0-9]/.test(value);
-  return ok ? null : { weak: true };
-}
+import { strongPasswordValidator } from '../../../core/password-policy';
+import { PasswordRequirements } from '../../../shared/password-requirements/password-requirements';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   return group.get('password')?.value === group.get('confirmPassword')?.value ? null : { mismatch: true };
@@ -15,7 +11,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PasswordRequirements],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -33,7 +29,7 @@ export class Register {
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, strongPassword]],
+      password: ['', [Validators.required, strongPasswordValidator]],
       confirmPassword: ['', [Validators.required]],
     },
     { validators: passwordsMatch },
@@ -50,7 +46,6 @@ export class Register {
       .register({ first_name: v.firstName, last_name: v.lastName, email: v.email, password: v.password, role: 'student' })
       .subscribe({
         next: () => {
-          // Register returns no token, so log in immediately to enter the app.
           this.auth.login(v.email, v.password).subscribe({
             next: () => this.router.navigateByUrl('/dashboard'),
             error: () => this.router.navigateByUrl('/login'),

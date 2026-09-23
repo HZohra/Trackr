@@ -1,19 +1,42 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { ThemeService, Theme, AccentId } from '../../core/services/theme.service';
 import { GpaService } from '../../core/services/gpa.service';
 import { GpaScaleId, GradeBand } from '../../core/gpa';
 import { PreferencesService } from '../../core/services/preferences.service';
+import { AuthService } from '../../core/services/auth.service';
+
+// Mirrors the backend rule: 8+ chars, with lower, upper, and a digit.
+function strongPassword(control: AbstractControl): ValidationErrors | null {
+  const v = String(control.value ?? '');
+  const ok = v.length >= 8 && /[a-z]/.test(v) && /[A-Z]/.test(v) && /\d/.test(v);
+  return ok ? null : { weak: true };
+}
+
+function passwordsMatch(group: AbstractControl): ValidationErrors | null {
+  const a = group.get('newPassword')?.value;
+  const b = group.get('confirm')?.value;
+  return a === b ? null : { mismatch: true };
+}
 
 @Component({
   selector: 'app-settings',
-  imports: [],
+  imports: [ReactiveFormsModule],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
-export class Settings {
+export class Settings implements OnInit {
   private readonly themeService = inject(ThemeService);
   private readonly gpaService = inject(GpaService);
   private readonly prefs = inject(PreferencesService);
+  private readonly auth = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
 
   protected readonly theme = this.themeService.theme;
   protected readonly accent = this.themeService.accent;
@@ -25,6 +48,95 @@ export class Settings {
   protected readonly customBands = this.gpaService.customBands;
 
   protected readonly showArchived = this.prefs.showArchivedCourses;
+
+  // --- Personal information ---
+  protected readonly personalSaving = signal(false);
+  protected readonly personalSaved = signal(false);
+  protected readonly personalError = signal<string | null>(null);
+  protected readonly personalForm = this.fb.nonNullable.group({
+    first_name: ['', [Validators.required]],
+    last_name: ['', [Validators.required]],
+    institution: [''],
+  });
+
+  // --- Password ---
+  protected readonly passwordSaving = signal(false);
+  protected readonly passwordSaved = signal(false);
+  protected readonly passwordError = signal<string | null>(null);
+  protected readonly passwordForm = this.fb.nonNullable.group(
+    {
+      currentPassword: ['', [Validators.required]],
+      newPassword: ['', [Validators.required, strongPassword]],
+      confirm: ['', [Validators.required]],
+    },
+    { validators: passwordsMatch },
+  );
+
+  ngOnInit(): void {
+    this.auth.getProfile().subscribe({
+      next: (p) => {
+        this.personalForm.patchValue({
+          first_name: p.first_name ?? '',
+          last_name: p.last_name ?? '',
+          institution: p.institution ?? '',
+        });
+      },
+      error: () => {
+        const u = this.auth.currentUser();
+        if (u) {
+          this.personalForm.patchValue({
+            first_name: u.first_name,
+            last_name: u.last_name,
+          });
+        }
+      },
+    });
+  }
+
+  protected savePersonal(): void {
+    if (this.personalForm.invalid) {
+      this.personalForm.markAllAsTouched();
+      return;
+    }
+    this.personalError.set(null);
+    this.personalSaved.set(false);
+    this.personalSaving.set(true);
+    const { first_name, last_name, institution } = this.personalForm.getRawValue();
+    this.auth
+      .updateProfile({ first_name, last_name, institution: institution || null })
+      .subscribe({
+        next: () => {
+          this.personalSaving.set(false);
+          this.personalSaved.set(true);
+        },
+        error: (err) => {
+          this.personalSaving.set(false);
+          this.personalError.set(err?.error?.message ?? 'Could not save your changes.');
+        },
+      });
+  }
+
+  protected savePassword(): void {
+    if (this.passwordForm.invalid) {
+      this.passwordForm.markAllAsTouched();
+      return;
+    }
+    this.passwordError.set(null);
+    this.passwordSaved.set(false);
+    this.passwordSaving.set(true);
+    const { currentPassword, newPassword } = this.passwordForm.getRawValue();
+    this.auth.changePassword(currentPassword, newPassword).subscribe({
+      next: () => {
+        this.passwordSaving.set(false);
+        this.passwordSaved.set(true);
+        this.passwordForm.reset();
+      },
+      error: (err) => {
+        this.passwordSaving.set(false);
+        this.passwordError.set(err?.error?.message ?? 'Could not update your password.');
+      },
+    });
+  }
 
   protected setTheme(t: Theme): void { this.themeService.setTheme(t); }
   protected setAccent(id: AccentId): void { this.themeService.setAccent(id); }

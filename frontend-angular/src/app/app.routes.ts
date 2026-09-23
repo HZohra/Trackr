@@ -18,8 +18,11 @@ import { AssignmentDetail } from './features/assignments/assignment-detail/assig
 import { WhatIf } from './features/grades/what-if/what-if';
 import { ForgotPassword } from './features/auth/forgot-password/forgot-password';
 import { ResetPassword } from './features/auth/reset-password/reset-password';
+import { Landing } from './features/landing/landing';
+
 
 export const routes: Routes = [
+  { path: '', component: Landing, pathMatch: 'full' },
   { path: 'login', component: Login },        // top-level: no shell
   { path: 'register', component: Register },  // top-level: no shell
   { path: 'forgot-password', component: ForgotPassword },

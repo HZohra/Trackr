@@ -1,8 +1,98 @@
 <div class="mx-auto max-w-2xl">
   <p class="text-sm font-medium text-muted">Settings</p>
-  <h1 class="mt-1 font-display text-3xl font-bold text-ink">Appearance</h1>
-  <p class="mt-1 text-sm text-muted">Choose how Trackr looks. Your choice is saved on this device.</p>
+  <h1 class="mt-1 font-display text-3xl font-bold text-ink">Account</h1>
+  <p class="mt-1 text-sm text-muted">Manage your personal details, password, and appearance.</p>
 
+
+    <!-- Personal information -->
+  <section class="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-card">
+    <h2 class="text-base font-bold text-ink">Personal information</h2>
+    <p class="mt-0.5 text-sm text-muted">Update your name and school.</p>
+
+    @if (personalError()) {
+      <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ personalError() }}</div>
+    }
+    @if (personalSaved()) {
+      <div class="mt-4 rounded-xl border border-leaf-soft bg-leaf-soft px-3 py-2 text-sm text-leaf">Saved.</div>
+    }
+
+    <form [formGroup]="personalForm" (ngSubmit)="savePersonal()" class="mt-4 space-y-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="first_name" class="mb-1 block text-sm font-medium text-ink">First name</label>
+          <input id="first_name" type="text" formControlName="first_name"
+                 class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+          @if (personalForm.controls.first_name.touched && personalForm.controls.first_name.invalid) {
+            <p class="mt-1 text-xs text-danger-ink">First name is required.</p>
+          }
+        </div>
+        <div>
+          <label for="last_name" class="mb-1 block text-sm font-medium text-ink">Last name</label>
+          <input id="last_name" type="text" formControlName="last_name"
+                 class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+          @if (personalForm.controls.last_name.touched && personalForm.controls.last_name.invalid) {
+            <p class="mt-1 text-xs text-danger-ink">Last name is required.</p>
+          }
+        </div>
+      </div>
+      <div>
+        <label for="institution" class="mb-1 block text-sm font-medium text-ink">School / institution <span class="text-faint">(optional)</span></label>
+        <input id="institution" type="text" formControlName="institution" placeholder="Wilfrid Laurier University"
+               class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+      </div>
+      <button type="submit" [disabled]="personalSaving()"
+              class="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">
+        {{ personalSaving() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </form>
+  </section>
+
+  <!-- Password -->
+  <section class="mt-4 rounded-2xl border border-line bg-surface p-5 shadow-card">
+    <h2 class="text-base font-bold text-ink">Password</h2>
+    <p class="mt-0.5 text-sm text-muted">Change the password you use to sign in.</p>
+
+    @if (passwordError()) {
+      <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ passwordError() }}</div>
+    }
+    @if (passwordSaved()) {
+      <div class="mt-4 rounded-xl border border-leaf-soft bg-leaf-soft px-3 py-2 text-sm text-leaf">Password updated.</div>
+    }
+
+    <form [formGroup]="passwordForm" (ngSubmit)="savePassword()" class="mt-4 space-y-4">
+      <div>
+        <label for="currentPassword" class="mb-1 block text-sm font-medium text-ink">Current password</label>
+        <input id="currentPassword" type="password" formControlName="currentPassword"
+               class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+        @if (passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid) {
+          <p class="mt-1 text-xs text-danger-ink">Enter your current password.</p>
+        }
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="newPassword" class="mb-1 block text-sm font-medium text-ink">New password</label>
+          <input id="newPassword" type="password" formControlName="newPassword"
+                 class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+          @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid) {
+            <p class="mt-1 text-xs text-danger-ink">At least 8 characters, with upper, lower, and a number.</p>
+          }
+        </div>
+        <div>
+          <label for="confirm" class="mb-1 block text-sm font-medium text-ink">Confirm new password</label>
+          <input id="confirm" type="password" formControlName="confirm"
+                 class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+          @if (passwordForm.controls.confirm.touched && passwordForm.errors?.['mismatch']) {
+            <p class="mt-1 text-xs text-danger-ink">Passwords don't match.</p>
+          }
+        </div>
+      </div>
+      <button type="submit" [disabled]="passwordSaving()"
+              class="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">
+        {{ passwordSaving() ? 'Updating…' : 'Update password' }}
+      </button>
+    </form>
+  </section>
+  
   <!-- Theme -->
   <section class="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-card">
     <h2 class="text-base font-bold text-ink">Theme</h2>
