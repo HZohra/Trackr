@@ -1,9 +1,7 @@
-import {
-  Component,
-  HostListener,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, signal, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
+
+import { ThemeService } from '../../../../core/services/theme.service';
 
 @Component({
   selector: 'app-landing-nav',
@@ -12,30 +10,38 @@ import { RouterLink } from '@angular/router';
   styleUrl: './landing-nav.css',
 })
 export class LandingNav {
-  readonly menuOpen = signal(false);
-  readonly scrolled = signal(false);
+  private readonly themeService = inject(ThemeService);
 
-  toggleMenu(): void {
+  protected readonly isDark = computed(
+    () => this.themeService.theme() === 'dark',
+  );
+
+  protected readonly menuOpen = signal(false);
+  protected readonly scrolled = signal(false);
+
+  protected toggleTheme(): void {
+    this.themeService.toggle();
+  }
+
+  protected toggleMenu(): void {
     this.menuOpen.update((open) => !open);
   }
 
-  closeMenu(): void {
+  protected closeMenu(): void {
     this.menuOpen.set(false);
   }
 
   @HostListener('window:scroll')
-  onWindowScroll(): void {
+  protected onWindowScroll(): void {
     this.scrolled.set(window.scrollY > 8);
   }
 
-  scrollTo(sectionId: string): void {
+  protected scrollTo(sectionId: string): void {
     this.closeMenu();
 
-    document
-      .getElementById(sectionId)
-      ?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
   }
 }
