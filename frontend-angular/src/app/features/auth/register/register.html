@@ -5,59 +5,70 @@
       <span class="font-display text-xl font-bold tracking-tight text-ink">Trackr</span>
     </div>
 
-    <h1 class="font-display text-2xl font-bold text-ink">Create your account</h1>
-    <p class="mt-1 text-sm text-muted">Start tracking your courses and grades</p>
+    @if (registered()) {
+      <h1 class="font-display text-2xl font-bold text-ink">Check your email</h1>
+      <p class="mt-2 text-sm text-muted">
+        We sent a verification link to <span class="font-medium text-ink">{{ registeredEmail() }}</span>.
+        Open it to activate your account, then sign in. The link expires in 24 hours.
+      </p>
+      <a routerLink="/login" class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink">
+        Go to sign in
+      </a>
+    } @else {
+      <h1 class="font-display text-2xl font-bold text-ink">Create your account</h1>
+      <p class="mt-1 text-sm text-muted">Start tracking your courses and grades</p>
 
-    @if (error()) {
-      <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+      @if (error()) {
+        <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-ink">First name</label>
+            <input type="text" formControlName="firstName" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
+            @if (form.controls.firstName.touched && form.controls.firstName.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-ink">Last name</label>
+            <input type="text" formControlName="lastName" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
+            @if (form.controls.lastName.touched && form.controls.lastName.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Email</label>
+          <input type="email" formControlName="email" placeholder="you@university.ca" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <p class="mt-1 text-xs text-danger-ink">
+              @if (form.controls.email.errors?.['required']) { Email is required. } @else { Enter a valid email address. }
+            </p>
+          }
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Password</label>
+          <div class="relative">
+            <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" class="w-full rounded-lg border border-line bg-surface px-3 py-2 pr-10 text-sm text-ink focus:border-brand focus:outline-none" />
+            <button type="button" (click)="togglePassword()" aria-label="Toggle password" class="absolute right-2 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <app-password-requirements [value]="form.controls.password.value" />
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-medium text-ink">Confirm password</label>
+          <input [type]="showPassword() ? 'text' : 'password'" formControlName="confirmPassword" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
+          @if (form.controls.confirmPassword.touched && form.errors?.['mismatch']) { <p class="mt-1 text-xs text-danger-ink">Passwords don't match.</p> }
+        </div>
+
+        <button type="submit" [disabled]="loading()" class="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">{{ loading() ? 'Creating account…' : 'Create account' }}</button>
+      </form>
+
+      <p class="mt-6 text-center text-sm text-muted">
+        Already have an account? <a routerLink="/login" class="font-medium text-brand-ink hover:underline">Sign in</a>
+      </p>
     }
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="mb-1 block text-sm font-medium text-ink">First name</label>
-          <input type="text" formControlName="firstName" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
-          @if (form.controls.firstName.touched && form.controls.firstName.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-ink">Last name</label>
-          <input type="text" formControlName="lastName" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
-          @if (form.controls.lastName.touched && form.controls.lastName.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
-        </div>
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-ink">Email</label>
-        <input type="email" formControlName="email" placeholder="you@university.ca" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-        @if (form.controls.email.touched && form.controls.email.invalid) {
-          <p class="mt-1 text-xs text-danger-ink">
-            @if (form.controls.email.errors?.['required']) { Email is required. } @else { Enter a valid email address. }
-          </p>
-        }
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-ink">Password</label>
-        <div class="relative">
-          <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" class="w-full rounded-lg border border-line bg-surface px-3 py-2 pr-10 text-sm text-ink focus:border-brand focus:outline-none" />
-          <button type="button" (click)="togglePassword()" aria-label="Toggle password" class="absolute right-2 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-        <app-password-requirements [value]="form.controls.password.value" />
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-ink">Confirm password</label>
-        <input [type]="showPassword() ? 'text' : 'password'" formControlName="confirmPassword" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
-        @if (form.controls.confirmPassword.touched && form.errors?.['mismatch']) { <p class="mt-1 text-xs text-danger-ink">Passwords don't match.</p> }
-      </div>
-
-      <button type="submit" [disabled]="loading()" class="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">{{ loading() ? 'Creating account…' : 'Create account' }}</button>
-    </form>
-
-    <p class="mt-6 text-center text-sm text-muted">
-      Already have an account? <a routerLink="/login" class="font-medium text-brand-ink hover:underline">Sign in</a>
-    </p>
   </div>
 </div>

@@ -32,22 +32,24 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiBase;
 
-  // Reactive auth state, seeded from storage so a page refresh stays logged in.
   private readonly userSignal = signal<AuthUser | null>(this.readUser());
   readonly currentUser = this.userSignal.asReadonly();
   readonly isAuthenticated = computed(() => this.userSignal() !== null);
 
-  login(email: string, password: string): Observable<LoginResponse> {
+  // "Remember me" decides where the session lives:
+  //   localStorage   → survives closing the browser (remembered)
+  //   sessionStorage → cleared when the tab/browser closes (not remembered)
+  login(email: string, password: string, remember = true): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${this.api}/auth/login`, { email, password })
-      .pipe(tap((res) => this.persistSession(res.token, res.user)));
+      .pipe(tap((res) => this.persistSession(res.token, res.user, remember)));
   }
 
   register(payload: RegisterPayload): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.api}/auth/register`, payload);
   }
 
-    getProfile(): Observable<AuthUser & { institution?: string | null }> {
+  getProfile(): Observable<AuthUser & { institution?: string | null }> {
     const id = this.userSignal()?.user_id;
     return this.http.get<AuthUser & { institution?: string | null }>(
       `${this.api}/user/${id}/profile`,
@@ -61,7 +63,6 @@ export class AuthService {
   }): Observable<unknown> {
     const id = this.userSignal()?.user_id;
     return this.http.put(`${this.api}/user/${id}/profile`, { profile }).pipe(
-      // Reflect the new name in the stored session so the UI updates everywhere.
       tap(() => {
         const current = this.userSignal();
         if (current) {
@@ -70,7 +71,7 @@ export class AuthService {
             first_name: profile.first_name,
             last_name: profile.last_name,
           };
-          localStorage.setItem(USER_KEY, JSON.stringify(updated));
+          this.activeStore().setItem(USER_KEY, JSON.stringify(updated));
           this.userSignal.set(updated);
         }
       }),
@@ -90,18 +91,15 @@ export class AuthService {
         tap((res) => {
           // The change rotated our token — swap in the fresh one so this session
           // keeps working (all other sessions are now invalidated).
-          if (res?.token) localStorage.setItem(TOKEN_KEY, res.token);
+          if (res?.token) this.activeStore().setItem(TOKEN_KEY, res.token);
         }),
       );
   }
 
-  // Requests a reset email. The backend always responds the same way whether or
-  // not the account exists, so the UI never learns which — no enumeration.
   forgotPassword(email: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.api}/auth/forgot-password`, { email });
   }
 
-  // Completes the reset using the token from the emailed link.
   resetPassword(token: string, password: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(
       `${this.api}/auth/reset-password/${encodeURIComponent(token)}`,
@@ -109,29 +107,52 @@ export class AuthService {
     );
   }
 
+    verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.api}/auth/verify-email/${encodeURIComponent(token)}`,
+      {},
+    );
+  }
+
+  resendVerification(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.api}/auth/resend-verification`, { email });
+  }
+
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    for (const store of [localStorage, sessionStorage]) {
+      store.removeItem(TOKEN_KEY);
+      store.removeItem(USER_KEY);
+    }
     this.userSignal.set(null);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
   }
 
-  private persistSession(token: string, user: AuthUser): void {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  // Whichever store currently holds the session (localStorage wins if both).
+  private activeStore(): Storage {
+    return localStorage.getItem(TOKEN_KEY) !== null ? localStorage : sessionStorage;
+  }
+
+  private persistSession(token: string, user: AuthUser, remember: boolean): void {
+    const store = remember ? localStorage : sessionStorage;
+    const other = remember ? sessionStorage : localStorage;
+    other.removeItem(TOKEN_KEY);
+    other.removeItem(USER_KEY);
+    store.setItem(TOKEN_KEY, token);
+    store.setItem(USER_KEY, JSON.stringify(user));
     this.userSignal.set(user);
   }
 
   private readUser(): AuthUser | null {
-    const raw = localStorage.getItem(USER_KEY);
+    const raw = localStorage.getItem(USER_KEY) ?? sessionStorage.getItem(USER_KEY);
     if (!raw) return null;
     try {
       return JSON.parse(raw) as AuthUser;
     } catch {
       localStorage.removeItem(USER_KEY);
+      sessionStorage.removeItem(USER_KEY);
       return null;
     }
   }

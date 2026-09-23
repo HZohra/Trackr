@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { strongPasswordValidator } from '../../../core/password-policy';
 import { PasswordRequirements } from '../../../shared/password-requirements/password-requirements';
@@ -18,11 +18,12 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 export class Register {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
 
   protected readonly showPassword = signal(false);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly registered = signal(false);
+  protected readonly registeredEmail = signal('');
 
   protected readonly form = this.fb.nonNullable.group(
     {
@@ -46,10 +47,9 @@ export class Register {
       .register({ first_name: v.firstName, last_name: v.lastName, email: v.email, password: v.password, role: 'student' })
       .subscribe({
         next: () => {
-          this.auth.login(v.email, v.password).subscribe({
-            next: () => this.router.navigateByUrl('/dashboard'),
-            error: () => this.router.navigateByUrl('/login'),
-          });
+          this.loading.set(false);
+          this.registeredEmail.set(v.email);
+          this.registered.set(true);
         },
         error: (err) => {
           this.loading.set(false);

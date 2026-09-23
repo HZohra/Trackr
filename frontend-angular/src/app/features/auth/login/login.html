@@ -11,6 +11,15 @@
     @if (error()) {
       <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
     }
+    @if (needsVerification()) {
+        @if (resent()) {
+          <p class="mt-2 text-sm text-muted">Verification email sent — check your inbox.</p>
+        } @else {
+          <button type="button" (click)="resend()" class="mt-2 text-sm font-medium text-brand-ink hover:underline">
+            Resend verification email
+          </button>
+        }
+      }
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4">
       <div>

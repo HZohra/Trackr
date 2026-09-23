@@ -1,0 +1,21 @@
+<div class="flex min-h-screen items-center justify-center bg-bg p-4">
+  <div class="w-full max-w-sm rounded-2xl border border-line bg-surface p-8 shadow-card text-center">
+    <div class="mb-6 flex items-center justify-center gap-2">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-brand text-sm font-bold text-white">T</span>
+      <span class="font-display text-xl font-bold tracking-tight text-ink">Trackr</span>
+    </div>
+
+    @if (state() === 'verifying') {
+      <h1 class="font-display text-2xl font-bold text-ink">Verifying…</h1>
+      <p class="mt-2 text-sm text-muted">Just a moment while we confirm your email.</p>
+    } @else if (state() === 'done') {
+      <h1 class="font-display text-2xl font-bold text-ink">Email verified</h1>
+      <p class="mt-2 text-sm text-muted">{{ message() }}</p>
+      <a routerLink="/login" class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink">Go to sign in</a>
+    } @else {
+      <h1 class="font-display text-2xl font-bold text-ink">Verification failed</h1>
+      <p class="mt-2 text-sm text-muted">{{ message() }}</p>
+      <a routerLink="/login" class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink">Back to sign in</a>
+    }
+  </div>
+</div>

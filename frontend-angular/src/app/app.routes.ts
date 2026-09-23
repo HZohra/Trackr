@@ -19,6 +19,7 @@ import { WhatIf } from './features/grades/what-if/what-if';
 import { ForgotPassword } from './features/auth/forgot-password/forgot-password';
 import { ResetPassword } from './features/auth/reset-password/reset-password';
 import { Landing } from './features/landing/landing';
+import { VerifyEmail } from './features/auth/verify-email/verify-email';
 
 
 export const routes: Routes = [
@@ -27,6 +28,7 @@ export const routes: Routes = [
   { path: 'register', component: Register },  // top-level: no shell
   { path: 'forgot-password', component: ForgotPassword },
   { path: 'reset-password', component: ResetPassword },
+  { path: 'verify-email', component: VerifyEmail },
   {
     path: '',
     component: MainLayout,
