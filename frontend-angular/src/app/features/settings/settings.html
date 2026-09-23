@@ -3,7 +3,6 @@
   <h1 class="mt-1 font-display text-3xl font-bold text-ink">Account</h1>
   <p class="mt-1 text-sm text-muted">Manage your personal details, password, and appearance.</p>
 
-
     <!-- Personal information -->
   <section class="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-card">
     <h2 class="text-base font-bold text-ink">Personal information</h2>
@@ -62,7 +61,7 @@
     <form [formGroup]="passwordForm" (ngSubmit)="savePassword()" class="mt-4 space-y-4">
       <div>
         <label for="currentPassword" class="mb-1 block text-sm font-medium text-ink">Current password</label>
-        <input id="currentPassword" type="password" formControlName="currentPassword"
+        <input id="currentPassword" [type]="showPassword() ? 'text' : 'password'" formControlName="currentPassword"
                class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
         @if (passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid) {
           <p class="mt-1 text-xs text-danger-ink">Enter your current password.</p>
@@ -71,15 +70,18 @@
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
           <label for="newPassword" class="mb-1 block text-sm font-medium text-ink">New password</label>
-          <input id="newPassword" type="password" formControlName="newPassword"
-                 class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-          @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid) {
-            <p class="mt-1 text-xs text-danger-ink">At least 8 characters, with upper, lower, and a number.</p>
-          }
+          <div class="relative">
+            <input id="newPassword" [type]="showPassword() ? 'text' : 'password'" formControlName="newPassword"
+                   class="w-full rounded-lg border border-line bg-surface px-3 py-2 pr-10 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
+            <button type="button" (click)="togglePassword()" aria-label="Toggle password" class="absolute right-2 top-1/2 -translate-y-1/2 text-faint hover:text-muted">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <app-password-requirements [value]="passwordForm.controls.newPassword.value" />
         </div>
         <div>
           <label for="confirm" class="mb-1 block text-sm font-medium text-ink">Confirm new password</label>
-          <input id="confirm" type="password" formControlName="confirm"
+          <input id="confirm" [type]="showPassword() ? 'text' : 'password'" formControlName="confirm"
                  class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
           @if (passwordForm.controls.confirm.touched && passwordForm.errors?.['mismatch']) {
             <p class="mt-1 text-xs text-danger-ink">Passwords don't match.</p>
@@ -92,7 +94,7 @@
       </button>
     </form>
   </section>
-  
+
   <!-- Theme -->
   <section class="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-card">
     <h2 class="text-base font-bold text-ink">Theme</h2>

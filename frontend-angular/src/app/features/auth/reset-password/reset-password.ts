@@ -8,6 +8,9 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { strongPasswordValidator } from '../../../core/password-policy';
+import { PasswordRequirements } from '../../../shared/password-requirements/password-requirements';
+
 
 // Mirrors the backend rule: 8+ chars, with lower, upper, and a digit.
 function strongPassword(control: AbstractControl): ValidationErrors | null {
@@ -24,7 +27,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-reset-password',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PasswordRequirements],
   templateUrl: './reset-password.html',
   styleUrl: './reset-password.css',
 })
@@ -41,7 +44,7 @@ export class ResetPassword {
 
   protected readonly form = this.fb.nonNullable.group(
     {
-      password: ['', [Validators.required, strongPassword]],
+      password: ['', [Validators.required, strongPasswordValidator]],
       confirm: ['', [Validators.required]],
     },
     { validators: passwordsMatch },

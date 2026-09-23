@@ -214,6 +214,12 @@ export const uploadSyllabus = async (req, res) => {
             term_start,
             term_end,
         });
+            if (raw.is_syllabus === false) {
+            return res.status(422).json({
+                message:
+                    "This doesn't look like a course syllabus. Please upload your syllabus PDF, or add the course manually.",
+            });
+        }
         const result = normalizeExtraction(raw, { term });
         res.status(200).json(result);
     } catch (err) {

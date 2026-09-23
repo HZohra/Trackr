@@ -28,7 +28,7 @@ const COURSE_TOOL = {
         additionalProperties: false,
         required: [
             "course_code", "course_name", "professor_name", "office_hours",
-            "meeting_times", "room", "textbook_link",
+            "meeting_times", "room", "textbook_link", "is_syllabus",
         ],
         properties: {
             course_code: { ...nullableStr, description: "Course code, e.g. 'CP476'. Null if absent." },
@@ -38,6 +38,7 @@ const COURSE_TOOL = {
             meeting_times: { ...nullableStr, description: "Lecture/meeting times, e.g. 'Mon/Wed 2:00-4:00pm'. Null if absent." },
             room: { ...nullableStr, description: "Room / location, e.g. 'N1002'. Null if absent." },
             textbook_link: { ...nullableStr, description: "URL to the textbook if one is given, else null." },
+            is_syllabus: { type: "boolean", description: "true if this document is a course syllabus or course outline; false if it is some other kind of document (a resume/CV, a report, an article, etc.)." },
         },
     },
 };
@@ -277,6 +278,7 @@ export async function extractSyllabus({ pdfBuffer, term, term_start, term_end } 
     log(`Done: ${activities.length} activities.`);
 
     return {
+        is_syllabus: course.is_syllabus,
         course: {
             course_code: course.course_code,
             course_name: course.course_name,

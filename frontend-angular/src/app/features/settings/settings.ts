@@ -11,13 +11,8 @@ import { GpaService } from '../../core/services/gpa.service';
 import { GpaScaleId, GradeBand } from '../../core/gpa';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { AuthService } from '../../core/services/auth.service';
-
-// Mirrors the backend rule: 8+ chars, with lower, upper, and a digit.
-function strongPassword(control: AbstractControl): ValidationErrors | null {
-  const v = String(control.value ?? '');
-  const ok = v.length >= 8 && /[a-z]/.test(v) && /[A-Z]/.test(v) && /\d/.test(v);
-  return ok ? null : { weak: true };
-}
+import { strongPasswordValidator } from '../../core/password-policy';
+import { PasswordRequirements } from '../../shared/password-requirements/password-requirements';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   const a = group.get('newPassword')?.value;
@@ -27,7 +22,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-settings',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, PasswordRequirements],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
@@ -63,10 +58,11 @@ export class Settings implements OnInit {
   protected readonly passwordSaving = signal(false);
   protected readonly passwordSaved = signal(false);
   protected readonly passwordError = signal<string | null>(null);
+  protected readonly showPassword = signal(false);
   protected readonly passwordForm = this.fb.nonNullable.group(
     {
       currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, strongPassword]],
+      newPassword: ['', [Validators.required, strongPasswordValidator]],
       confirm: ['', [Validators.required]],
     },
     { validators: passwordsMatch },
@@ -91,6 +87,10 @@ export class Settings implements OnInit {
         }
       },
     });
+  }
+
+  protected togglePassword(): void {
+    this.showPassword.update((v) => !v);
   }
 
   protected savePersonal(): void {

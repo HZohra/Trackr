@@ -28,7 +28,15 @@ export class UploadSyllabus {
 
   protected onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.file.set(input.files?.[0] ?? null);
+    const f = input.files?.[0] ?? null;
+    if (f && f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) {
+      this.error.set("That's not a PDF. Please choose a PDF syllabus.");
+      this.file.set(null);
+      input.value = '';
+      return;
+    }
+    this.error.set(null);
+    this.file.set(f);
   }
 
   protected onUpload(term: string): void {
