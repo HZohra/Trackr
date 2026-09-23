@@ -267,3 +267,31 @@ describe("Syllabus upload validation", () => {
         assert.equal(res.status, 401);
     });
 });
+
+describe("Account deletion (re-auth required)", () => {
+    test("wrong or missing password is refused; correct password deletes", async () => {
+        const { email, password } = await registerStudent();
+        const token = (await loginStudent(email, password)).body.token;
+
+        // missing password
+        assert.equal((await api("DELETE", "/user/account", { token })).status, 400);
+
+        // wrong password
+        assert.equal(
+            (await api("DELETE", "/user/account", { token, body: { password: "Wrongpass0!" } })).status,
+            401,
+        );
+
+        // still there — login still works
+        assert.equal((await loginStudent(email, password)).status, 200);
+
+        // correct password deletes
+        assert.equal(
+            (await api("DELETE", "/user/account", { token, body: { password } })).status,
+            200,
+        );
+
+        // gone — login now fails
+        assert.equal((await loginStudent(email, password)).status, 401);
+    });
+});

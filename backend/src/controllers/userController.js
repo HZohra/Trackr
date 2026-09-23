@@ -384,24 +384,36 @@ export const updateProfileById = (req, res) => {
 
 export const deleteCurrentUserAccount = (req, res) => {
     const userId = req.user.user_id;
+    const password = String(req.body?.password ?? "");
 
-    userModel.deleteUserById(userId, (err, result) => {
-        if (err) {
-            console.error("Delete account error:", err);
+    if (!password) {
+        return res
+            .status(400)
+            .json({ message: "Password is required to delete your account" });
+    }
 
-            return res.status(500).json({
-                message: "Failed to delete account.",
-            });
+    userModel.getUserById(userId, async (err, user) => {
+        if (err) return res.status(500).json({ message: "Server error" });
+        if (!user) return res.status(404).json({ message: "Account not found." });
+
+        const match = await bcrypt.compare(password, user.password_hash);
+        if (!match) {
+            return res.status(401).json({ message: "Incorrect password" });
         }
 
-        if (!result || result.affectedRows === 0) {
-            return res.status(404).json({
-                message: "Account not found.",
-            });
-        }
-
-        return res.status(200).json({
-            message: "Account deleted successfully.",
+        userModel.deleteUserById(userId, (err2, result) => {
+            if (err2) {
+                console.error("Delete account error:", err2);
+                return res
+                    .status(500)
+                    .json({ message: "Failed to delete account." });
+            }
+            if (!result || result.affectedRows === 0) {
+                return res.status(404).json({ message: "Account not found." });
+            }
+            return res
+                .status(200)
+                .json({ message: "Account deleted successfully." });
         });
     });
 };
