@@ -171,3 +171,13 @@ export const deleteUserById = async (userId, callback) => {
     callback(err, null);
   }
 };
+
+export const setEmailVerified = async (userId, callback) => {
+  try {
+    const result = await query("UPDATE users SET email_verified = TRUE WHERE user_id = $1", [userId]);
+    callback(null, { affected: result.rowCount });
+  } catch (err) {
+    console.error("Error verifying email:", err);
+    callback(err, null);
+  }
+};

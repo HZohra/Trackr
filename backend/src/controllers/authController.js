@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
-import { createToken } from "../middleware/auth.js";
+import { createToken, getJWTSecret } from "../middleware/auth.js";
 import { sendMail } from "../services/mailer.js";
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from "../utils/passwordPolicy.js";
 import {
@@ -11,6 +12,7 @@ import {
     getPasswordResetWithToken,
     getPasswordResetWithUserID,
     getUserByEmail,
+    setEmailVerified,
     updateUserPassword,
 } from "../model/userModel.js";
 
@@ -73,9 +75,28 @@ const deletePasswordResetTokenAsync = (tokenHash) =>
         });
     });
 
+// --- Email verification --------------------------------------------------- //
+// Verification links carry a short-lived signed JWT (no DB token table needed).
+const VERIFY_TTL = "24h";
+
+const makeVerifyToken = (userId) =>
+    jwt.sign({ user_id: userId, purpose: "email_verify" }, getJWTSecret(), {
+        expiresIn: VERIFY_TTL,
+    });
+
+export const sendVerificationEmail = async (userId, email) => {
+    const token = makeVerifyToken(userId);
+    const link = `${process.env.FRONTEND_URL || "http://localhost:4200"}/verify-email?token=${encodeURIComponent(token)}`;
+    await sendMail(
+        email,
+        "Verify your email",
+        `Welcome to Trackr! Please verify your email by opening this link:\n\n${link}\n\nThis link expires in 24 hours.`,
+    );
+};
+
 // Handles POST /auth/register
 // Public registration must always create a student account.
-// Admin role is never accepted from the client.
+// Admin role is never accepted from the client. New accounts start unverified.
 export const userRegister = async (req, res) => {
     try {
         const first_name = String(req.body?.first_name ?? "").trim();
@@ -109,15 +130,17 @@ export const userRegister = async (req, res) => {
             role: "student",
         });
 
-        const token = createToken(newUser);
+        // Account starts unverified. Email a verification link; login is blocked
+        // until the user clicks it. We do NOT return an auth token here.
+        try {
+            await sendVerificationEmail(newUser.user_id, email);
+        } catch (mailErr) {
+            console.error("Verification email failed to send:", mailErr.message);
+            // The account exists; they can request a fresh link via resend.
+        }
 
         return res.status(201).json({
-            message: "User registered successfully",
-            user: {
-                ...newUser,
-                password_hash: undefined,
-            },
-            token,
+            message: "Account created. Check your email to verify it before signing in.",
         });
     } catch (err) {
         console.error("Register failed:", err.message);
@@ -136,6 +159,8 @@ async function getGoogleUserInfo(accessToken) {
     return response.data;
 }
 
+// NOTE: OAuth controllers are dormant — their routes are not mounted (see
+// authRoute.js). Kept for when "Sign in with Google" is built properly.
 export const userRegisterOAuth = async (req, res) => {
     try {
         const accessToken = req.body?.access_token;
@@ -209,6 +234,14 @@ export const userLogin = async (req, res) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
+        if (!user.email_verified) {
+            return res.status(403).json({
+                message:
+                    "Please verify your email before signing in. Check your inbox for the verification link.",
+                needsVerification: true,
+            });
+        }
+
         const token = createToken(user);
         const { password_hash, ...safeUser } = user;
 
@@ -254,6 +287,54 @@ export const userLoginOAuth = async (req, res) => {
     } catch (error) {
         console.error("OAuth login failed:", error.message);
         return res.status(401).json({ message: "Invalid Google credentials" });
+    }
+};
+
+// Handles POST /auth/verify-email/:token
+export const verifyEmail = (req, res) => {
+    const token = String(req.params?.token ?? "");
+    if (!token) {
+        return res.status(400).json({ message: "Invalid or expired verification link" });
+    }
+
+    let decoded;
+    try {
+        decoded = jwt.verify(token, getJWTSecret());
+    } catch {
+        return res.status(400).json({ message: "Invalid or expired verification link" });
+    }
+    if (decoded?.purpose !== "email_verify" || !decoded?.user_id) {
+        return res.status(400).json({ message: "Invalid or expired verification link" });
+    }
+
+    setEmailVerified(decoded.user_id, (err, result) => {
+        if (err) return res.status(500).json({ message: "Server error" });
+        if (!result || result.affected === 0) {
+            return res
+                .status(400)
+                .json({ message: "Invalid or expired verification link" });
+        }
+        return res.status(200).json({ message: "Email verified. You can sign in now." });
+    });
+};
+
+// Handles POST /auth/resend-verification
+export const resendVerification = async (req, res) => {
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    const generic = {
+        message: "If that account exists and isn't verified, a new link has been sent.",
+    };
+    if (!email) return res.status(202).json(generic);
+
+    try {
+        const user = await getUserByEmailAsync(email);
+        if (user && !user.email_verified) {
+            await sendVerificationEmail(user.user_id, email);
+        }
+        return res.status(202).json(generic);
+    } catch (err) {
+        console.error("Resend verification failed:", err.message);
+        return res.status(202).json(generic);
     }
 };
 
@@ -345,8 +426,6 @@ export const userForgotPassword = async (req, res) => {
         return res.status(202).json(genericResponse);
     } catch (err) {
         console.error("Forgot password failed:", err.message);
-
-        // Do not expose internal errors or user existence.
         return res.status(202).json(genericResponse);
     }
 };
@@ -357,6 +436,6 @@ export const sendResetPasswordMail = async (token, email) => {
     await sendMail(
         email,
         "Password Reset Request",
-        `You requested a password reset. Use the following link to reset your password:\n\n${resetLink}\n\nThis token will expire in 10 minutes.`
+        `You requested a password reset. Use the following link to reset your password:\n\n${resetLink}\n\nThis token will expire in 10 minutes.`,
     );
 };

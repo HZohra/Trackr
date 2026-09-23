@@ -47,19 +47,18 @@ describe("Registration", () => {
         assert.equal(res.status, 400);
     });
 
-    test("strong password -> 201 and role is student", async () => {
-        const { res } = await registerStudent();
+    test("strong password -> 201, no token before verification", async () => {
+        const email = uniqueEmail();
+        const res = await api("POST", "/auth/register", {
+            body: { first_name: "A", last_name: "B", email, password: "Passw0rd!" },
+        });
         assert.equal(res.status, 201);
-        assert.equal(res.body.user.role, "student");
+        assert.equal(res.body.token, undefined);
     });
 
     test("client-set role:admin is ignored (admin lock)", async () => {
-        const email = uniqueEmail("adminlock");
-        const reg = await api("POST", "/auth/register", {
-            body: { first_name: "A", last_name: "B", email, password: "Passw0rd!", role: "admin" },
-        });
-        assert.equal(reg.status, 201);
-        const login = await loginStudent(email, "Passw0rd!");
+        const { email, password } = await registerStudent({ role: "admin" });
+        const login = await loginStudent(email, password);
         assert.equal(login.body.user.role, "student");
     });
 
@@ -304,5 +303,53 @@ describe("Account deletion (re-auth required)", () => {
 
         // gone — login now fails
         assert.equal((await loginStudent(email, password)).status, 401);
+    });
+});
+
+describe("Disabled OAuth endpoints", () => {
+    test("register/oauth is not exposed (404)", async () => {
+        const res = await api("POST", "/auth/register/oauth", {
+            body: { access_token: "anything" },
+        });
+        assert.equal(res.status, 404);
+    });
+
+    test("login/oauth is not exposed (404)", async () => {
+        const res = await api("POST", "/auth/login/oauth", {
+            body: { access_token: "anything" },
+        });
+        assert.equal(res.status, 404);
+    });
+});
+
+describe("Email verification (block until verified)", () => {
+    test("unverified login is blocked (403)", async () => {
+        const email = uniqueEmail("unv");
+        await api("POST", "/auth/register", {
+            body: { first_name: "A", last_name: "B", email, password: "Passw0rd!" },
+        });
+        const login = await loginStudent(email, "Passw0rd!");
+        assert.equal(login.status, 403);
+    });
+
+    test("verifying the emailed link unlocks login", async () => {
+        const email = uniqueEmail("verify");
+        testOutbox.length = 0;
+        await api("POST", "/auth/register", {
+            body: { first_name: "A", last_name: "B", email, password: "Passw0rd!" },
+        });
+        const mail = testOutbox.at(-1);
+        assert.ok(mail, "a verification email should have been queued");
+        const token = new URL(mail.text.match(/https?:\/\/\S+/)[0]).searchParams.get("token");
+        assert.ok(token);
+
+        assert.equal((await loginStudent(email, "Passw0rd!")).status, 403);
+        assert.equal((await api("POST", `/auth/verify-email/${token}`)).status, 200);
+        assert.equal((await loginStudent(email, "Passw0rd!")).status, 200);
+    });
+
+    test("a bogus verification token is rejected (400)", async () => {
+        const res = await api("POST", "/auth/verify-email/not-a-real-token");
+        assert.equal(res.status, 400);
     });
 });

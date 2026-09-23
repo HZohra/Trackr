@@ -1,11 +1,11 @@
 import express from "express";
 import {
+    resendVerification,
     userForgotPassword,
     userLogin,
-    userLoginOAuth,
     userRegister,
-    userRegisterOAuth,
     userResetPassword,
+    verifyEmail,
 } from "../controllers/authController.js";
 import { authLimiter } from "../middleware/rateLimit.js";
 
@@ -16,10 +16,14 @@ const router = express.Router();
 router.use(authLimiter);
 
 router.post("/register", userRegister);
-router.post("/register/oauth", userRegisterOAuth);
 router.post("/login", userLogin);
-router.post("/login/oauth", userLoginOAuth);
 router.post("/forgot-password", userForgotPassword);
 router.post("/reset-password/:token", userResetPassword);
+router.post("/verify-email/:token", verifyEmail);
+router.post("/resend-verification", resendVerification);
+
+// Google OAuth endpoints intentionally NOT mounted (unvalidated audience =
+// account-takeover vector). Controllers remain in authController.js for when
+// "Sign in with Google" is built properly. See the note there.
 
 export default router;

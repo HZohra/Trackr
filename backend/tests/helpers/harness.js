@@ -54,6 +54,9 @@ export async function registerStudent(overrides = {}) {
     const res = await api("POST", "/auth/register", {
         body: { first_name: "Test", last_name: "User", email, password, ...overrides },
     });
+    // Block-until-verified is on; auto-verify test users so login works. Tests
+    // that exercise the verification flow register via api() directly instead.
+    await pgPool.query("UPDATE users SET email_verified = TRUE WHERE email = $1", [email]);
     return { res, email, password };
 }
 
