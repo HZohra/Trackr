@@ -1,14 +1,23 @@
+//=============IMPORTS========================
 import { after, before, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { testOutbox } from "../src/services/mailer.js";
+
 import {
     api,
     loginStudent,
+    postUpload,
     registerStudent,
     startServer,
     stopServer,
     uniqueEmail,
 } from "./helpers/harness.js";
+
+
+
+
+//==============================
+
 
 before(startServer);
 after(stopServer);
@@ -224,5 +233,37 @@ describe("Session invalidation on password change/reset", () => {
             (await api("GET", `/user/${userId}/profile`, { token: oldToken })).status,
             401,
         );
+    });
+});
+
+
+describe("Syllabus upload validation", () => {
+    async function studentToken() {
+        const { email, password } = await registerStudent();
+        return (await loginStudent(email, password)).body.token;
+    }
+
+    test("non-PDF content is rejected even when mimetype claims PDF", async () => {
+        const token = await studentToken();
+        const res = await postUpload(token, {
+            content: Buffer.from("This is plainly not a PDF."),
+            type: "application/pdf",
+        });
+        assert.equal(res.status, 400);
+    });
+
+    test("non-PDF mimetype is rejected by the filter", async () => {
+        const token = await studentToken();
+        const res = await postUpload(token, {
+            content: Buffer.from("%PDF-1.4 pretending"),
+            type: "text/plain",
+            filename: "notes.txt",
+        });
+        assert.equal(res.status, 400);
+    });
+
+    test("upload requires authentication", async () => {
+        const res = await postUpload(null, { content: Buffer.from("%PDF-1.4") });
+        assert.equal(res.status, 401);
     });
 });

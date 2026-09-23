@@ -31,12 +31,24 @@ router.put("/activities/:activityId", userController.updateActivityById);
 router.delete("/activities/:activityId", userController.deleteActivityById);
 
 // Upload syllabus routes + add course and activity routes.
+// A real PDF begins with "%PDF-". The mimetype header is client-controlled and
+// trivially spoofed, so confirm the actual bytes before doing any work.
+const PDF_MAGIC = "%PDF-";
+
 const uploadPdf = (req, res, next) => {
     upload.single("file")(req, res, (err) => {
         if (err) {
             return res
                 .status(400)
                 .json({ message: err.message || "File upload failed" });
+        }
+        if (
+            req.file &&
+            req.file.buffer.subarray(0, 5).toString("latin1") !== PDF_MAGIC
+        ) {
+            return res
+                .status(400)
+                .json({ message: "Uploaded file is not a valid PDF" });
         }
         next();
     });

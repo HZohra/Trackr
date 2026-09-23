@@ -62,3 +62,23 @@ export function loginStudent(email, password) {
 }
 
 export const dbQuery = (sql, params = []) => pgPool.query(sql, params);
+
+export async function postUpload(token, { content, filename = "syllabus.pdf", type = "application/pdf" }) {
+    const form = new FormData();
+    form.append("file", new Blob([content], { type }), filename);
+    const res = await fetch(`${baseUrl}/user/upload-syllabus`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+    });
+    const text = await res.text();
+    let parsed = null;
+    if (text) {
+        try {
+            parsed = JSON.parse(text);
+        } catch {
+            parsed = text;
+        }
+    }
+    return { status: res.status, body: parsed };
+}
