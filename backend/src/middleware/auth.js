@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
+import { query } from "../config/db.js";
 
 const MIN_SECRET_LENGTH = 32;
 
 let JWT_SECRET = "";
-
 
 export const initJWTSecret = () => {
     const secret = process.env.JWT_SECRET;
@@ -31,12 +31,17 @@ export const initJWTSecret = () => {
 export const getJWTSecret = () => JWT_SECRET;
 
 export const createToken = (user) => {
-    const token = jwt.sign(
-        { user_id: user.user_id, role: user.role },
+    return jwt.sign(
+        {
+            user_id: user.user_id,
+            role: user.role,
+            // Stamped so a password change/reset (which bumps token_version)
+            // instantly invalidates every token minted before it.
+            token_version: user.token_version ?? 0,
+        },
         JWT_SECRET,
         { expiresIn: "1h" },
     );
-    return token;
 };
 
 export const verifyToken = (req, res, next) => {
@@ -47,14 +52,37 @@ export const verifyToken = (req, res, next) => {
         return res.status(401).json({ message: "No token provided" });
     }
 
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
         if (err) {
             return res
                 .status(401)
                 .json({ message: "Invalid or expired token" });
         }
-        req.user = decoded;
-        next();
+
+        try {
+            // Freshness check: the token's version must still match the user's.
+            // A password change/reset bumps token_version, stranding old tokens.
+            const { rows } = await query(
+                "SELECT token_version FROM users WHERE user_id = $1",
+                [decoded.user_id],
+            );
+            const user = rows[0];
+            if (!user) {
+                return res
+                    .status(401)
+                    .json({ message: "Invalid or expired token" });
+            }
+            if ((user.token_version ?? 0) !== (decoded.token_version ?? 0)) {
+                return res
+                    .status(401)
+                    .json({ message: "Session expired. Please sign in again." });
+            }
+
+            req.user = decoded;
+            next();
+        } catch {
+            return res.status(500).json({ message: "Server error" });
+        }
     });
 };
 

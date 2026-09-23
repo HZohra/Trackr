@@ -3,6 +3,8 @@ import * as activityModel from "../model/activityModel.js";
 import * as courseModel from "../model/courseModel.js";
 import * as userModel from "../model/userModel.js";
 import { extractSyllabus } from "../services/extractor.js";
+import { createToken } from "../middleware/auth.js";
+
 import {
     normalizeExtraction,
     validateActivityPayload,
@@ -17,9 +19,7 @@ export const changePassword = (req, res) => {
     const newPassword = String(req.body?.newPassword ?? "");
 
     if (!currentPassword || !newPassword) {
-        return res
-            .status(400)
-            .json({ message: "Current and new password are required" });
+        return res.status(400).json({ message: "Current and new password are required" });
     }
 
     const strong =
@@ -29,8 +29,7 @@ export const changePassword = (req, res) => {
         /\d/.test(newPassword);
     if (!strong) {
         return res.status(400).json({
-            message:
-                "New password must be at least 8 characters and include uppercase, lowercase, and a number",
+            message: "New password must be at least 8 characters and include uppercase, lowercase, and a number",
         });
     }
 
@@ -40,18 +39,20 @@ export const changePassword = (req, res) => {
 
         const match = await bcrypt.compare(currentPassword, user.password_hash);
         if (!match) {
-            return res
-                .status(401)
-                .json({ message: "Current password is incorrect" });
+            return res.status(401).json({ message: "Current password is incorrect" });
         }
 
         const newHash = await bcrypt.hash(newPassword, 10);
-        userModel.updateUserPassword(userId, newHash, (err2) => {
-            if (err2)
-                return res
-                    .status(500)
-                    .json({ message: "Failed to update password" });
-            res.status(200).json({ message: "Password updated" });
+        userModel.updateUserPassword(userId, newHash, (err2, result) => {
+            if (err2) return res.status(500).json({ message: "Failed to update password" });
+            // Bumping token_version killed the current token too — issue a fresh
+            // one so THIS session stays signed in while all others are logged out.
+            const token = createToken({
+                user_id: userId,
+                role: req.user.role,
+                token_version: result?.token_version ?? 0,
+            });
+            res.status(200).json({ message: "Password updated", token });
         });
     });
 };

@@ -166,3 +166,57 @@ describe("Change password (logged in)", () => {
         assert.equal((await loginStudent(s.email, "Newpass0!")).status, 200);
     });
 });
+
+describe("Session invalidation on password change/reset", () => {
+    test("change-password: old token dies, returned token works", async () => {
+        const { email, password } = await registerStudent();
+        const login = await loginStudent(email, password);
+        const oldToken = login.body.token;
+        const userId = login.body.user.user_id;
+
+        // old token works before the change
+        assert.equal(
+            (await api("GET", `/user/${userId}/profile`, { token: oldToken })).status,
+            200,
+        );
+
+        const change = await api("PUT", "/user/change-password", {
+            token: oldToken,
+            body: { currentPassword: password, newPassword: "Newpass0!" },
+        });
+        assert.equal(change.status, 200);
+        assert.ok(change.body.token, "change-password should return a fresh token");
+
+        // old token is now rejected
+        assert.equal(
+            (await api("GET", `/user/${userId}/profile`, { token: oldToken })).status,
+            401,
+        );
+        // the freshly returned token works
+        assert.equal(
+            (await api("GET", `/user/${userId}/profile`, { token: change.body.token })).status,
+            200,
+        );
+    });
+
+    test("reset: a session issued before the reset is invalidated", async () => {
+        const { email, password } = await registerStudent();
+        const login = await loginStudent(email, password);
+        const oldToken = login.body.token;
+        const userId = login.body.user.user_id;
+
+        testOutbox.length = 0;
+        await api("POST", "/auth/forgot-password", { body: { email } });
+        const url = testOutbox.at(-1).text.match(/https?:\/\/\S+/)[0];
+        const resetToken = new URL(url).searchParams.get("token");
+        const reset = await api("POST", `/auth/reset-password/${resetToken}`, {
+            body: { password: "Newpass0!" },
+        });
+        assert.equal(reset.status, 200);
+
+        assert.equal(
+            (await api("GET", `/user/${userId}/profile`, { token: oldToken })).status,
+            401,
+        );
+    });
+});

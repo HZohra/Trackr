@@ -97,11 +97,12 @@ export const updateUserProfile = async (userId, profileData, callback) => {
 
 export const updateUserPassword = async (userId, newPasswordHash, callback) => {
   try {
-    await query("UPDATE users SET password_hash = $1 WHERE user_id = $2", [
-      newPasswordHash,
-      userId,
-    ]);
-    callback(null, { user_id: userId });
+    // Bump token_version so every existing session for this user is invalidated.
+    const { rows } = await query(
+      "UPDATE users SET password_hash = $1, token_version = token_version + 1 WHERE user_id = $2 RETURNING token_version",
+      [newPasswordHash, userId]
+    );
+    callback(null, { user_id: userId, token_version: rows[0]?.token_version });
   } catch (err) {
     console.error("Error updating user password:", err);
     callback(err, null);
