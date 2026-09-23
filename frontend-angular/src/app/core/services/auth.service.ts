@@ -47,6 +47,20 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.api}/auth/register`, payload);
   }
 
+  // Requests a reset email. The backend always responds the same way whether or
+  // not the account exists, so the UI never learns which — no enumeration.
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.api}/auth/forgot-password`, { email });
+  }
+
+  // Completes the reset using the token from the emailed link.
+  resetPassword(token: string, password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.api}/auth/reset-password/${encodeURIComponent(token)}`,
+      { password },
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

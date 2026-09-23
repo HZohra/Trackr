@@ -16,11 +16,14 @@ import { CourseDetail } from './features/courses/course-detail/course-detail';
 import { Settings } from './features/settings/settings';
 import { AssignmentDetail } from './features/assignments/assignment-detail/assignment-detail';
 import { WhatIf } from './features/grades/what-if/what-if';
-
+import { ForgotPassword } from './features/auth/forgot-password/forgot-password';
+import { ResetPassword } from './features/auth/reset-password/reset-password';
 
 export const routes: Routes = [
   { path: 'login', component: Login },        // top-level: no shell
   { path: 'register', component: Register },  // top-level: no shell
+  { path: 'forgot-password', component: ForgotPassword },
+  { path: 'reset-password', component: ResetPassword },
   {
     path: '',
     component: MainLayout,

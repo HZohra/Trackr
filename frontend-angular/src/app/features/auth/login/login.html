@@ -43,7 +43,7 @@
         <label class="flex items-center gap-2 text-muted">
           <input type="checkbox" formControlName="remember" class="rounded border-line accent-brand" /> Remember me
         </label>
-        <a class="font-medium text-brand-ink hover:underline">Forgot password?</a>
+        <a routerLink="/forgot-password" class="font-medium text-brand-ink hover:underline">Forgot password?</a>
       </div>
 
       <button type="submit" [disabled]="loading()"
