@@ -68,4 +68,9 @@ export class ActivityService {
   getByCourse(courseId: number): Observable<Activity[]> {
     return this.http.get<Activity[]>(`${this.api}/user/courses/${courseId}/activities`);
   }
+
+    setStatus(activityId: number, status: string): Observable<Activity> {
+    return this.http.patch<Activity>(`${this.api}/user/activities/${activityId}/status`, { status });
+  }
 }
+

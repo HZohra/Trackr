@@ -517,3 +517,17 @@ export const setCourseFinalGrade = (req, res) => {
         },
     );
 };
+
+// PATCH /user/activities/:activityId/status — status-only, safe update.
+export const setActivityStatus = (req, res) => {
+  const { activityId } = req.params;
+  const status = req.body?.status;
+  if (!ACTIVITY_STATUSES.includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+  activityModel.setActivityStatus(activityId, req.user.user_id, status, (err, updated) => {
+    if (err) return res.status(500).json({ message: "Failed to update status" });
+    if (!updated) return res.status(404).json({ message: "Assignment not found" });
+    res.status(200).json(updated);
+  });
+};

@@ -11,6 +11,7 @@ const router = express.Router();
 // Dashboard page routes
 router.get("/courses", userController.getCoursesByUserId);
 router.get("/activities", userController.getActivitiesByUserId);
+router.patch("/activities/:activityId/status", userController.setActivityStatus);
 router.get("/statistics", userController.getStatisticsByUserId);
 
 // Courses page + Calendar + GPA routes

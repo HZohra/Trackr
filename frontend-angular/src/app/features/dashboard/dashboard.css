@@ -18,3 +18,8 @@
   :root:not([data-theme="light"]) .hero .panel { background: rgba(255, 255, 255, 0.04); }
   :root:not([data-theme="light"]) .hero .track { background: rgba(255, 255, 255, 0.08); }
 }
+
+.hero-wrap { perspective: 1400px; }
+.hero { transform-origin: top center; transition: transform 0.26s cubic-bezier(0.5, 0, 0.3, 1), opacity 0.26s; }
+.hero.flipping { transform: rotateX(-90deg); opacity: 0.15; }
+@media (prefers-reduced-motion: reduce) { .hero { transition: none; } }

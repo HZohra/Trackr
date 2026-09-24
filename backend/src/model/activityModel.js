@@ -144,6 +144,25 @@ export const deleteActivity = async (activityId, userId, callback) => {
   }
 };
 
+export const setActivityStatus = async (activityId, userId, status, callback) => {
+  try {
+    // Ownership-enforced, and touches ONLY status (never weight/grade/etc).
+    const { rows } = await query(
+      `UPDATE activities a
+          SET status = $1, updated_at = CURRENT_TIMESTAMP
+         FROM courses c
+        WHERE a.course_id = c.course_id
+          AND a.activity_id = $2
+          AND c.user_id = $3
+      RETURNING a.*`,
+      [status, activityId, userId],
+    );
+    callback(null, rows[0] ?? null);
+  } catch (err) {
+    console.error("Error updating activity status:", err);
+    callback(err, null);
+  }
+};
 // Aggregate counts for the dashboard tiles. ::int stops Postgres returning these
 // as strings; COALESCE turns an all-empty SUM into 0 instead of null.
 export const getStatisticsByUserId = async (userId, callback) => {

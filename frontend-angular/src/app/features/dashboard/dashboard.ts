@@ -41,6 +41,8 @@ export class Dashboard implements OnDestroy {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly now = signal(new Date());
+  protected readonly flipping = signal(false);
+  protected readonly marking = signal(false);
   private timer: ReturnType<typeof setInterval> | undefined;
 
   constructor() {
@@ -165,6 +167,24 @@ export class Dashboard implements OnDestroy {
     if (grade >= 80) return 'var(--leaf)';
     if (grade >= 60) return 'var(--amber)';
     return 'var(--danger)';
+  }
+
+    protected markDone(activityId: number): void {
+    if (this.marking()) return;
+    this.marking.set(true);
+    this.activityService.setStatus(activityId, 'submitted').subscribe({
+      next: () => {
+        const apply = () => {
+          this.allActivities.update((list) =>
+            list.map((a) => (a.activity_id === activityId ? { ...a, status: 'submitted' } : a)));
+          this.marking.set(false);
+        };
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { apply(); return; }
+        this.flipping.set(true);
+        setTimeout(() => { apply(); this.flipping.set(false); }, 260);
+      },
+      error: () => this.marking.set(false),
+    });
   }
 
   private enrich(courses: Course[], activities: Activity[]): Course[] {
