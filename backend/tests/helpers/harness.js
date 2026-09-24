@@ -66,6 +66,37 @@ export function loginStudent(email, password) {
 
 export const dbQuery = (sql, params = []) => pgPool.query(sql, params);
 
+export async function createCourse(userId, overrides = {}) {
+    const { rows } = await pgPool.query(
+        `INSERT INTO courses (user_id, course_code, course_name, term)
+         VALUES ($1, $2, $3, $4) RETURNING course_id`,
+        [
+            userId,
+            overrides.code ?? "C" + Math.random().toString(36).slice(2, 7),
+            overrides.name ?? "Test Course",
+            overrides.term ?? "Fall 2026",
+        ],
+    );
+    return rows[0].course_id;
+}
+
+export async function createActivity(courseId, overrides = {}) {
+    const due = overrides.due ?? new Date(Date.now() + 86_400_000).toISOString();
+    const { rows } = await pgPool.query(
+        `INSERT INTO activities (course_id, activity_category_id, activity_name, due_date, grading_weight, status)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING activity_id`,
+        [
+            courseId,
+            overrides.categoryId ?? 1,
+            overrides.name ?? "Task " + Math.random().toString(36).slice(2, 7),
+            due,
+            overrides.weight ?? 10,
+            overrides.status ?? "not_started",
+        ],
+    );
+    return rows[0].activity_id;
+}
+
 export async function postUpload(token, { content, filename = "syllabus.pdf", type = "application/pdf" }) {
     const form = new FormData();
     form.append("file", new Blob([content], { type }), filename);

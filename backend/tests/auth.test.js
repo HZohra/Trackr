@@ -5,6 +5,9 @@ import { testOutbox } from "../src/services/mailer.js";
 
 import {
     api,
+    createActivity,
+    createCourse,
+    dbQuery,
     loginStudent,
     postUpload,
     registerStudent,
@@ -351,5 +354,49 @@ describe("Email verification (block until verified)", () => {
     test("a bogus verification token is rejected (400)", async () => {
         const res = await api("POST", "/auth/verify-email/not-a-real-token");
         assert.equal(res.status, 400);
+    });
+});
+
+describe("Activity status update", () => {
+    async function session() {
+        const { email, password } = await registerStudent();
+        const login = await loginStudent(email, password);
+        return { token: login.body.token, userId: login.body.user.user_id };
+    }
+
+    test("owner marks an activity submitted; it persists", async () => {
+        const s = await session();
+        const courseId = await createCourse(s.userId);
+        const activityId = await createActivity(courseId, { status: "not_started" });
+        const res = await api("PATCH", `/user/activities/${activityId}/status`, {
+            token: s.token, body: { status: "submitted" },
+        });
+        assert.equal(res.status, 200);
+        assert.equal(res.body.status, "submitted");
+        const { rows } = await dbQuery("SELECT status FROM activities WHERE activity_id = $1", [activityId]);
+        assert.equal(rows[0].status, "submitted");
+    });
+
+    test("invalid status is rejected (400)", async () => {
+        const s = await session();
+        const courseId = await createCourse(s.userId);
+        const activityId = await createActivity(courseId);
+        const res = await api("PATCH", `/user/activities/${activityId}/status`, {
+            token: s.token, body: { status: "done-ish" },
+        });
+        assert.equal(res.status, 400);
+    });
+
+    test("another user cannot change my activity's status (404, unchanged)", async () => {
+        const owner = await session();
+        const courseId = await createCourse(owner.userId);
+        const activityId = await createActivity(courseId, { status: "not_started" });
+        const attacker = await session();
+        const res = await api("PATCH", `/user/activities/${activityId}/status`, {
+            token: attacker.token, body: { status: "submitted" },
+        });
+        assert.equal(res.status, 404);
+        const { rows } = await dbQuery("SELECT status FROM activities WHERE activity_id = $1", [activityId]);
+        assert.equal(rows[0].status, "not_started");
     });
 });
