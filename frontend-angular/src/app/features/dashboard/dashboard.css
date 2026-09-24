@@ -1,1 +1,20 @@
-/* No component-specific styles — everything uses the shared tokens. */
+/* Framer-style depth utilities, driven by the accent-aware tokens. */
+.float { box-shadow: var(--card-shadow); }
+.btn-glow { box-shadow: var(--btn-shadow); }
+
+/* The hero: a distinct dark card in light mode, a deep surface in dark mode. */
+.hero { background: var(--ink); color: var(--bg); box-shadow: 0 22px 55px var(--glow), 0 2px 6px rgba(0, 0, 0, 0.12); }
+.hero .soft { color: color-mix(in srgb, var(--bg) 70%, transparent); }
+.hero .panel { background: color-mix(in srgb, var(--bg) 8%, transparent); }
+.hero .track { background: color-mix(in srgb, var(--bg) 14%, transparent); }
+
+:root[data-theme="dark"] .hero { background: #17191d; color: var(--ink); border: 1px solid var(--line); }
+:root[data-theme="dark"] .hero .soft { color: var(--muted); }
+:root[data-theme="dark"] .hero .panel { background: rgba(255, 255, 255, 0.04); }
+:root[data-theme="dark"] .hero .track { background: rgba(255, 255, 255, 0.08); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hero { background: #17191d; color: var(--ink); border: 1px solid var(--line); }
+  :root:not([data-theme="light"]) .hero .soft { color: var(--muted); }
+  :root:not([data-theme="light"]) .hero .panel { background: rgba(255, 255, 255, 0.04); }
+  :root:not([data-theme="light"]) .hero .track { background: rgba(255, 255, 255, 0.08); }
+}

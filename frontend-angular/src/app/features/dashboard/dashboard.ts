@@ -1,29 +1,32 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { CourseService } from '../../core/services/course.service';
 import { ActivityService } from '../../core/services/activity.service';
+import { QuoteService, DailyQuote } from '../../core/services/quote.service';
 import { Course, COURSE_COLORS } from '../../core/models/course';
 import { Activity, CATEGORY_ID_TO_NAME } from '../../core/models/activity';
 import { weightedGrade, percentComplete } from '../../core/grade-math';
+import { rankPending } from '../../core/priority';
 import { CourseCard } from '../../shared/course-card/course-card';
 import { Skeleton } from '../../shared/skeleton/skeleton';
 
-interface FocusItem {
-  courseId: number; code: string; color: string;
+const DAY = 86_400_000;
+const EXAM_CATEGORY = 3;
+
+interface Focus {
+  activityId: number; courseId: number; code: string; color: string;
   name: string; category: string; weight: string; due: Date; overdue: boolean;
 }
-interface DueItem {
-  id: number; code: string; color: string; name: string;
-  label: string; overdue: boolean; weight: string;
-}
-
-const DAY = 86_400_000;
+interface Task { id: number; code: string; color: string; name: string; label: string; overdue: boolean; weight: string; }
+interface ExamInfo { code: string; name: string; days: number; weight: string; date: string; }
 
 @Component({
+  
   selector: 'app-dashboard',
-  imports: [RouterLink, CourseCard, Skeleton],
+  imports: [RouterLink, DatePipe, CourseCard, Skeleton],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -31,9 +34,10 @@ export class Dashboard implements OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly courseService = inject(CourseService);
   private readonly activityService = inject(ActivityService);
+  private readonly quoteService = inject(QuoteService);
 
-  protected readonly courses = signal<Course[]>([]);
-  protected readonly activities = signal<Activity[]>([]);
+  private readonly allCourses = signal<Course[]>([]);
+  private readonly allActivities = signal<Activity[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly now = signal(new Date());
@@ -45,70 +49,57 @@ export class Dashboard implements OnDestroy {
       activities: this.activityService.getAllActivities(),
     }).subscribe({
       next: ({ courses, activities }) => {
-        const active = courses.filter((c) => !c.archived);
-        const activeIds = new Set(active.map((c) => c.id));
-        const activeActivities = activities.filter((a) => activeIds.has(a.course_id));
-        this.activities.set(activeActivities);
-        this.courses.set(this.enrich(active, activeActivities));
+        this.allCourses.set(courses);
+        this.allActivities.set(activities);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Could not load your dashboard.');
-        this.loading.set(false);
-      },
+      error: () => { this.error.set('Could not load your dashboard.'); this.loading.set(false); },
     });
     this.timer = setInterval(() => this.now.set(new Date()), 60_000);
   }
-
-  ngOnDestroy(): void {
-    if (this.timer) clearInterval(this.timer);
-  }
+  ngOnDestroy(): void { if (this.timer) clearInterval(this.timer); }
 
   protected readonly firstName = computed(() => this.auth.currentUser()?.first_name ?? 'there');
+  protected readonly today = computed(() =>
+    this.now().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }));
+  protected readonly quote = computed<DailyQuote>(() => this.quoteService.quoteOfTheDay());
 
-  protected readonly greeting = computed(() => {
-    const h = this.now().getHours();
-    return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-  });
+  private readonly activeCourses = computed(() => this.allCourses().filter((c) => !c.archived));
+  protected readonly archivedCount = computed(() => this.allCourses().filter((c) => c.archived).length);
+  private readonly activeIds = computed(() => new Set(this.activeCourses().map((c) => c.id)));
+  private readonly activeActivities = computed(() =>
+    this.allActivities().filter((a) => this.activeIds().has(a.course_id)));
+  protected readonly courses = computed(() => this.enrich(this.activeCourses(), this.activeActivities()));
 
-  private readonly pending = computed(() =>
-    this.activities()
-      .filter((a) => a.grade == null && a.due_date)
-      .map((a) => ({ a, due: new Date(a.due_date as string) }))
-      .sort((x, y) => x.due.getTime() - y.due.getTime()),
-  );
+  private readonly ranked = computed(() => rankPending(this.activeActivities(), this.now().getTime()));
 
-  protected readonly overdueCount = computed(
-    () => this.pending().filter((p) => p.due.getTime() < this.now().getTime()).length,
-  );
-
+  protected readonly overdueCount = computed(() =>
+    this.ranked().filter((a) => new Date(a.due_date as string).getTime() < this.now().getTime()).length);
   protected readonly dueThisWeekCount = computed(() => {
     const now = this.now().getTime();
-    return this.pending().filter((p) => p.due.getTime() >= now && p.due.getTime() <= now + 7 * DAY).length;
+    return this.ranked().filter((a) => {
+      const t = new Date(a.due_date as string).getTime();
+      return t >= now && t <= now + 7 * DAY;
+    }).length;
   });
-
   protected readonly avgGrade = computed(() => {
     const grades = this.courses().map((c) => c.currentGrade).filter((g): g is number => g != null);
     if (!grades.length) return null;
     return Math.round(grades.reduce((s, g) => s + g, 0) / grades.length);
   });
 
-  protected readonly focus = computed<FocusItem | null>(() => {
-    const first = this.pending()[0];
-    if (!first) return null;
-    const a = first.a;
+  protected readonly focus = computed<Focus | null>(() => {
+    const a = this.ranked()[0];
+    if (!a) return null;
+    const due = new Date(a.due_date as string);
     return {
-      courseId: a.course_id,
-      code: this.codeOf(a.course_id),
-      color: this.colorOf(a.course_id),
-      name: a.activity_name,
-      category: CATEGORY_ID_TO_NAME[a.activity_category_id] ?? '',
+      activityId: a.activity_id, courseId: a.course_id,
+      code: this.codeOf(a.course_id), color: this.colorOf(a.course_id),
+      name: a.activity_name, category: CATEGORY_ID_TO_NAME[a.activity_category_id] ?? '',
       weight: a.grading_weight != null ? `${+a.grading_weight}%` : '',
-      due: first.due,
-      overdue: first.due.getTime() < this.now().getTime(),
+      due, overdue: due.getTime() < this.now().getTime(),
     };
   });
-
   protected readonly countdown = computed(() => {
     const f = this.focus();
     if (!f) return '';
@@ -119,21 +110,54 @@ export class Dashboard implements OnDestroy {
     if (h > 0) return `${h}h ${m}m`;
     return `${m}m`;
   });
+  protected readonly focusBar = computed(() => {
+    const f = this.focus();
+    if (!f) return 0;
+    const hoursLeft = (f.due.getTime() - this.now().getTime()) / 3_600_000;
+    return Math.max(4, Math.min(100, 100 - (hoursLeft / 168) * 100));
+  });
 
-  protected readonly dueSoon = computed<DueItem[]>(() => {
-    const weekEnd = this.now().getTime() + 7 * DAY;
-    return this.pending()
-      .filter((p) => p.due.getTime() <= weekEnd)
-      .slice(0, 6)
-      .map(({ a, due }) => ({
-        id: a.activity_id,
-        code: this.codeOf(a.course_id),
-        color: this.colorOf(a.course_id),
-        name: a.activity_name,
-        label: this.relativeLabel(due),
-        overdue: due.getTime() < this.now().getTime(),
-        weight: a.grading_weight != null ? `${+a.grading_weight}%` : '',
-      }));
+  protected readonly overdueTasks = computed<Task[]>(() =>
+    this.ranked()
+      .filter((a) => new Date(a.due_date as string).getTime() < this.now().getTime())
+      .slice(0, 5).map((a) => this.toTask(a)));
+  protected readonly thisWeek = computed<Task[]>(() => {
+    const now = this.now().getTime();
+    return this.ranked()
+      .filter((a) => {
+        const t = new Date(a.due_date as string).getTime();
+        return t >= now && t <= now + 7 * DAY;
+      })
+      .sort((x, y) => new Date(x.due_date as string).getTime() - new Date(y.due_date as string).getTime())
+      .slice(0, 6).map((a) => this.toTask(a));
+  });
+
+  protected readonly nextExam = computed<ExamInfo | null>(() => {
+    const now = this.now().getTime();
+    const exams = this.activeActivities()
+      .filter((a) => a.activity_category_id === EXAM_CATEGORY && a.grade == null && a.due_date)
+      .map((a) => ({ a, t: new Date(a.due_date as string).getTime() }))
+      .filter((x) => !Number.isNaN(x.t) && x.t > now)
+      .sort((x, y) => x.t - y.t);
+    if (!exams.length) return null;
+    const { a, t } = exams[0];
+    return {
+      code: this.codeOf(a.course_id), name: a.activity_name,
+      days: Math.ceil((t - now) / DAY),
+      weight: a.grading_weight != null ? `${+a.grading_weight}%` : '',
+      date: new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+    };
+  });
+
+  protected readonly semester = computed<{ cur: number; total: number } | null>(() => {
+    const dues = this.activeActivities()
+      .map((a) => a.due_date).filter(Boolean)
+      .map((d) => new Date(d as string).getTime()).filter((t) => !Number.isNaN(t));
+    if (dues.length < 2) return null;
+    const start = Math.min(...dues), end = Math.max(...dues);
+    const total = Math.max(1, Math.ceil((end - start) / (7 * DAY)));
+    const cur = Math.min(total, Math.max(1, Math.ceil((this.now().getTime() - start) / (7 * DAY))));
+    return { cur, total };
   });
 
   protected bandColor(grade: number | null): string {
@@ -150,23 +174,30 @@ export class Dashboard implements OnDestroy {
       return { ...c, currentGrade: g != null ? Math.round(g) : null, percentComplete: percentComplete(acts) };
     });
   }
-
+  private toTask(a: Activity): Task {
+    const due = new Date(a.due_date as string);
+    return {
+      id: a.activity_id, code: this.codeOf(a.course_id), color: this.colorOf(a.course_id),
+      name: a.activity_name, label: this.relativeLabel(due),
+      overdue: due.getTime() < this.now().getTime(),
+      weight: a.grading_weight != null ? `${+a.grading_weight}%` : '',
+    };
+  }
   private codeOf(courseId: number): string {
-    return this.courses().find((c) => c.id === courseId)?.code ?? '—';
+    return this.activeCourses().find((c) => c.id === courseId)?.code ?? '—';
   }
   private colorOf(courseId: number): string {
-    const c = this.courses().find((x) => x.id === courseId);
+    const c = this.activeCourses().find((x) => x.id === courseId);
     return c ? COURSE_COLORS[c.color] : 'var(--muted)';
   }
-
   private relativeLabel(due: Date): string {
     const now = this.now();
     if (due.getTime() < now.getTime()) return 'Overdue';
-    const startNow = new Date(now); startNow.setHours(0, 0, 0, 0);
-    const startDue = new Date(due); startDue.setHours(0, 0, 0, 0);
-    const days = Math.round((startDue.getTime() - startNow.getTime()) / DAY);
+    const sN = new Date(now); sN.setHours(0, 0, 0, 0);
+    const sD = new Date(due); sD.setHours(0, 0, 0, 0);
+    const days = Math.round((sD.getTime() - sN.getTime()) / DAY);
     if (days === 0) return 'Today';
     if (days === 1) return 'Tomorrow';
-    return due.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return due.toLocaleDateString(undefined, { weekday: 'short' });
   }
 }
