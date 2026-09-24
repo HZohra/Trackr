@@ -15,7 +15,7 @@ const HUE_KEY = 'trackr-accent-hue';
 
 /** Preset accents: each has hand-tuned light + dark shades. */
 export const ACCENTS: readonly Accent[] = [
-  { id: 'indigo',     label: 'Indigo',     light: { brand: '#4F46E5', ink: '#4338CA', soft: '#EEF2FF' }, dark: { brand: '#6366F1', ink: '#A5B4FC', soft: '#24224A' } },
+  {id: 'indigo',      label: 'Indigo',     light: { brand: '#4F6DF5', ink: '#3454E6', soft: '#E9EEFF' }, dark: { brand: '#4F6FFF', ink: '#7890FF', soft: '#172557' } },
   { id: 'violet',     label: 'Violet',     light: { brand: '#7C3AED', ink: '#6D28D9', soft: '#F3E8FF' }, dark: { brand: '#8B5CF6', ink: '#C4B5FD', soft: '#2A1E45' } },
   { id: 'sky',        label: 'Ocean',      light: { brand: '#0284C7', ink: '#0369A1', soft: '#E0F2FE' }, dark: { brand: '#38BDF8', ink: '#7DD3FC', soft: '#0C2A3A' } },
   { id: 'teal',       label: 'Teal',       light: { brand: '#0D9488', ink: '#0F766E', soft: '#CCFBF1' }, dark: { brand: '#2DD4BF', ink: '#5EEAD4', soft: '#0C2E2A' } },

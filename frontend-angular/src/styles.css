@@ -1,113 +1,225 @@
+@import url("https://fonts.googleapis.com/css2?family=Satisfy&display=swap");
 @import "tailwindcss";
 
-/* =========================================================================
-   Trackr design tokens — one source of truth for colour, type, radius, depth.
-   Neutrals are intentionally accent-agnostic (a clean cool grey), so any
-   accent the user picks sits well on top. Brand values here are the pre-JS
-   fallback; ThemeService writes the live accent onto <html> at runtime.
-   ========================================================================= */
+/* ==========================================================================
+   TRACKR DESIGN SYSTEM
+   --------------------------------------------------------------------------
+   Global visual language for the app shell, dashboard and all future pages.
 
-/* Light theme — the default. */
+   Rules:
+   - Brand/accent colour remains user-customizable through ThemeService.
+   - Neutral surfaces remain independent from the accent.
+   - Dark mode follows the Framer-inspired dashboard reference.
+   ========================================================================== */
+
+
+/* ==========================================================================
+   LIGHT THEME
+   ========================================================================== */
+
 :root {
   color-scheme: light;
 
-  --bg: #F7F8FA;
-  --surface: #FFFFFF;
-  --surface-2: #EFF1F4;
-  --line: #E4E7EC;
-  --ink: #1A1C1F;
-  --muted: #6B7280;
-  --faint: #9CA3AF;
+  /* App shell */
+  --bg: #f7f8fb;
+  --sidebar-bg: #ffffff;
+  --topbar-bg: #f7f8fb;
 
-  --brand: #4F46E5;
-  --brand-ink: #4338CA;
-  --brand-soft: #EEF2FF;
+  /* Surfaces */
+  --surface: #ffffff;
+  --surface-2: #f1f3f7;
+  --surface-3: #e9edf3;
+  --hero-bg: #17191d;
 
-  --leaf: #2AA96A;
-  --leaf-soft: #E4F5EC;
+  /* Borders */
+  --line: #e3e7ee;
+  --line-strong: #d7dce5;
 
-  --amber: #B4790B;
-  --amber-soft: #FBEFD6;
+  /* Text */
+  --ink: #17191d;
+  --muted: #687181;
+  --faint: #9aa2ae;
 
-  --danger: #E11D48;
-  --danger-ink: #BE123C;
-  --danger-soft: #FFE4E6;
+  /* Brand fallback.
+     ThemeService overwrites these at runtime. */
+  --brand: #4f6df5;
+  --brand-ink: #3454e6;
+  --brand-soft: #e9eeff;
 
-  --card-shadow: 0 1px 2px rgba(20,22,28,.05), 0 12px 30px color-mix(in srgb, var(--brand) 8%, transparent);
-  --glow: color-mix(in srgb, var(--brand) 9%, transparent);
-  --btn-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 22%, transparent);
+  /* Semantic */
+  --leaf: #209b63;
+  --leaf-soft: #e4f5ec;
+
+  --amber: #c78308;
+  --amber-soft: #fff3d2;
+
+  --danger: #ef4358;
+  --danger-ink: #d82f45;
+  --danger-soft: #ffe8eb;
+
+  /* Shell geometry */
+  --sidebar-expanded: 16.75rem;
+  --sidebar-collapsed: 0rem;
+
+  /* Depth */
+  --card-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 30px -20px rgba(15, 23, 42, 0.22);
+
+  --card-shadow-hover:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 18px 38px -22px rgba(15, 23, 42, 0.26);
+
+  --control-shadow:
+    0 8px 22px -12px color-mix(in srgb, var(--brand) 42%, transparent);
+
+  --glow:
+    color-mix(in srgb, var(--brand) 10%, transparent);
+
+  --btn-shadow:
+    0 8px 24px -12px color-mix(in srgb, var(--brand) 45%, transparent);
 }
 
-/* Dark theme via OS setting (unless the user explicitly chose light). */
+
+/* ==========================================================================
+   SYSTEM DARK MODE
+   Used only when the user has not explicitly selected light.
+   ========================================================================== */
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --bg: #0E1013;
-    --surface: #17191D;
-    --surface-2: #202329;
-    --line: #2A2E35;
-    --ink: #EEF0F3;
-    --muted: #9BA3AE;
-    --faint: #6B7280;
+    /* Deep Framer-style shell */
+    --bg: #090c12;
+    --sidebar-bg: #101621;
+    --topbar-bg: #090c12;
 
-    --brand: #6366F1;
-    --brand-ink: #A5B4FC;
-    --brand-soft: #24224A;
+    /* Cards */
+    --surface: #101722;
+    --surface-2: #17202d;
+    --surface-3: #1d2735;
+    --hero-bg: #0f151f;
 
-    --leaf: #3EC182;
-    --leaf-soft: #17301F;
+    /* Borders */
+    --line: #273140;
+    --line-strong: #323d4e;
 
-    --amber: #E9A93F;
-    --amber-soft: #2E2411;
+    /* Text */
+    --ink: #f5f7fb;
+    --muted: #a4adbc;
+    --faint: #737e90;
 
-    --danger: #FB7185;
-    --danger-ink: #FDA4AF;
-    --danger-soft: #3A1720;
+    /* Default dark brand fallback */
+    --brand: #4f6fff;
+    --brand-ink: #7890ff;
+    --brand-soft: #172557;
 
-    --card-shadow: 0 1px 1px rgba(0,0,0,.4), 0 16px 44px color-mix(in srgb, var(--brand) 20%, transparent);
-    --glow: color-mix(in srgb, var(--brand) 14%, transparent);
-    --btn-shadow: 0 8px 26px color-mix(in srgb, var(--brand) 42%, transparent);
+    /* Semantic */
+    --leaf: #36c97d;
+    --leaf-soft: #113322;
+
+    --amber: #ffc52f;
+    --amber-soft: #34280d;
+
+    --danger: #ff4d5e;
+    --danger-ink: #ff6675;
+    --danger-soft: #3a151d;
+
+    /* Depth */
+    --card-shadow:
+      0 1px 1px rgba(0, 0, 0, 0.42),
+      0 18px 46px -30px rgba(0, 0, 0, 0.95);
+
+    --card-shadow-hover:
+      0 1px 2px rgba(0, 0, 0, 0.5),
+      0 20px 48px -26px color-mix(in srgb, var(--brand) 18%, transparent);
+
+    --control-shadow:
+      0 8px 28px -12px color-mix(in srgb, var(--brand) 65%, transparent);
+
+    --glow:
+      color-mix(in srgb, var(--brand) 15%, transparent);
+
+    --btn-shadow:
+      0 9px 30px -12px color-mix(in srgb, var(--brand) 70%, transparent);
   }
 }
 
-/* Dark theme when the user explicitly picks it (wins over the OS setting). */
+
+/* ==========================================================================
+   EXPLICIT DARK MODE
+   ========================================================================== */
+
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0E1013;
-  --surface: #17191D;
-  --surface-2: #202329;
-  --line: #2A2E35;
-  --ink: #EEF0F3;
-  --muted: #9BA3AE;
-  --faint: #6B7280;
+  --bg: #090c12;
+  --sidebar-bg: #101621;
+  --topbar-bg: #090c12;
 
-  --brand: #6366F1;
-  --brand-ink: #A5B4FC;
-  --brand-soft: #24224A;
+  --surface: #101722;
+  --surface-2: #17202d;
+  --surface-3: #1d2735;
+  --hero-bg: #0f151f;
 
-  --leaf: #3EC182;
-  --leaf-soft: #17301F;
+  --line: #273140;
+  --line-strong: #323d4e;
 
-  --amber: #E9A93F;
-  --amber-soft: #2E2411;
+  --ink: #f5f7fb;
+  --muted: #a4adbc;
+  --faint: #737e90;
 
-  --danger: #FB7185;
-  --danger-ink: #FDA4AF;
-  --danger-soft: #3A1720;
+  --brand: #4f6fff;
+  --brand-ink: #7890ff;
+  --brand-soft: #172557;
 
-  --card-shadow: 0 1px 1px rgba(0,0,0,.4), 0 16px 44px color-mix(in srgb, var(--brand) 20%, transparent);
-  --glow: color-mix(in srgb, var(--brand) 14%, transparent);
-  --btn-shadow: 0 8px 26px color-mix(in srgb, var(--brand) 42%, transparent);
+  --leaf: #36c97d;
+  --leaf-soft: #113322;
+
+  --amber: #ffc52f;
+  --amber-soft: #34280d;
+
+  --danger: #ff4d5e;
+  --danger-ink: #ff6675;
+  --danger-soft: #3a151d;
+
+  --card-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.42),
+    0 18px 46px -30px rgba(0, 0, 0, 0.95);
+
+  --card-shadow-hover:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 20px 48px -26px color-mix(in srgb, var(--brand) 18%, transparent);
+
+  --control-shadow:
+    0 8px 28px -12px color-mix(in srgb, var(--brand) 65%, transparent);
+
+  --glow:
+    color-mix(in srgb, var(--brand) 15%, transparent);
+
+  --btn-shadow:
+    0 9px 30px -12px color-mix(in srgb, var(--brand) 70%, transparent);
 }
 
-/* Expose tokens to Tailwind so bg-surface, text-ink, text-leaf, text-danger… work. */
+
+/* ==========================================================================
+   TAILWIND TOKEN BRIDGE
+   ========================================================================== */
+
 @theme inline {
   --color-bg: var(--bg);
+
+  --color-sidebar: var(--sidebar-bg);
+  --color-topbar: var(--topbar-bg);
+
   --color-surface: var(--surface);
   --color-surface2: var(--surface-2);
+  --color-surface3: var(--surface-3);
+
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
@@ -126,23 +238,157 @@
   --color-danger-ink: var(--danger-ink);
   --color-danger-soft: var(--danger-soft);
 
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
+  --font-sans:
+    "Plus Jakarta Sans",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
 
-  --radius-xl: 14px;
-  --radius-2xl: 20px;
-  --radius-3xl: 26px;
+  --font-display:
+    "Bricolage Grotesque",
+    ui-sans-serif,
+    sans-serif;
 
-  --shadow-card: 0 1px 2px rgba(15, 17, 20, 0.04), 0 10px 26px -14px rgba(15, 17, 20, 0.18);
-  --shadow-pop: 0 16px 40px -12px rgba(15, 17, 20, 0.28);
+  --radius-lg: 10px;
+  --radius-xl: 13px;
+  --radius-2xl: 16px;
+  --radius-3xl: 22px;
+
+  --shadow-card: var(--card-shadow);
+  --shadow-pop: var(--card-shadow-hover);
+}
+
+
+/* ==========================================================================
+   GLOBAL RESET / APP BASE
+   ========================================================================== */
+
+html {
+  min-height: 100%;
+  background: var(--bg);
 }
 
 body {
-  background-color: var(--bg);
+  min-height: 100vh;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+
+  font-family:
+    "Plus Jakarta Sans",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+
+/* ==========================================================================
+   TYPOGRAPHY HELPERS
+   ========================================================================== */
+
+/*
+  Used only for the dashboard quote.
+  Example:
+      <p class="quote-script">...</p>
+*/
+.quote-script {
+  font-family: "Satisfy", cursive;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+
+/* ==========================================================================
+   SHARED SURFACES
+   ========================================================================== */
+
+.trackr-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+}
+
+.trackr-control {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.trackr-control:hover {
+  background: var(--surface-2);
   color: var(--ink);
 }
+
+
+/* ==========================================================================
+   SCROLLBAR
+   ========================================================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--faint);
+}
+
+
+/* ==========================================================================
+   INPUTS
+   ========================================================================== */
 
 input::-ms-reveal,
 input::-ms-clear {
   display: none;
+}
+
+::selection {
+  background:
+    color-mix(in srgb, var(--brand) 30%, transparent);
+}
+
+
+/* ==========================================================================
+   ACCESSIBILITY / MOTION
+   ========================================================================== */
+
+:focus-visible {
+  outline: 2px solid
+    color-mix(in srgb, var(--brand) 75%, white 10%);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
 }

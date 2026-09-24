@@ -34,6 +34,8 @@ export class MainLayout {
     return u ? `${u.first_name[0] ?? ''}${u.last_name[0] ?? ''}` : '?';
   });
 
+  protected readonly today = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', } );
+
   protected readonly isDark = computed(() => this.themeService.theme() === 'dark');
   protected toggleTheme(): void { this.themeService.toggle(); }
 
@@ -71,7 +73,8 @@ export class MainLayout {
 
   protected onSearch(value: string): void { this.searchQuery.set(value); this.searchOpen.set(true); }
   protected openSearch(): void { this.searchOpen.set(true); }
-  protected pickResult(): void { this.searchOpen.set(false); this.searchQuery.set(''); }
+  protected closeSearch(): void { this.searchOpen.set(false); this.searchQuery.set('');}
+  protected pickResult(): void { this.closeSearch(); }
   private courseCode(courseId: number): string { return this.courses().find((c) => c.id === courseId)?.code ?? ''; }
 
   // --- Assistant chat (UI only — the real assistant is coming soon) ---------

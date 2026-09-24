@@ -1,206 +1,1021 @@
-<div class="flex min-h-screen flex-col bg-bg text-ink">
+<div
+  class="app-shell"
+  [class.sidebar-collapsed]="collapsed()"
+>
 
-  <!-- ===== Topbar ===== -->
-  <header class="flex h-16 shrink-0 items-center gap-3 border-b border-line bg-surface px-4">
-    <button type="button" (click)="toggleCollapsed()" aria-label="Collapse sidebar"
-            class="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface2">
-      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>
-    </button>
-    <a class="flex items-center gap-2">
-      <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand text-sm font-bold text-white">T</span>
-      <span class="font-display text-lg font-bold tracking-tight text-ink">Trackr</span>
-    </a>
+  <!-- =========================================================
+       SIDEBAR
+       ========================================================= -->
+  <aside
+    class="sidebar-panel"
+    [attr.aria-hidden]="collapsed()"
+  >
+    <div class="sidebar-inner">
 
-    <div class="ml-auto flex items-center gap-2">
-      <!-- Search -->
-      <div class="relative hidden w-72 md:block" (click)="$event.stopPropagation()">
-        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input #si type="search" [value]="searchQuery()" (input)="onSearch(si.value)" (focus)="openSearch()"
-               placeholder="Search courses, assignments…"
-               class="w-full rounded-lg border border-line bg-surface2 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-faint focus:border-brand focus:bg-surface focus:outline-none" />
-        @if (searchOpen() && searchQuery().trim()) {
-          <div class="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border border-line bg-surface p-1 shadow-pop">
-            @if (results().length === 0) {
-              <p class="px-3 py-3 text-sm text-muted">No matches.</p>
-            } @else {
-              @for (r of results(); track r.kind + r.label) {
-                <a [routerLink]="r.link" (click)="pickResult()" class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-surface2">
-                  <span class="shrink-0 rounded bg-surface2 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">{{ r.kind }}</span>
-                  <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm text-ink">{{ r.label }}</span>
-                    <span class="block truncate text-xs text-muted">{{ r.sublabel }}</span>
-                  </span>
-                </a>
-              }
-            }
-          </div>
-        }
+      <!-- =====================================================
+           SIDEBAR HEADER
+           Logo + Search + Close Sidebar
+           ===================================================== -->
+      <div class="sidebar-header">
+
+        <!-- Temporary logo.
+             Later we replace "T" with the real Trackr logo. -->
+        <a
+          routerLink="/dashboard"
+          class="sidebar-logo"
+          aria-label="Trackr home"
+        >
+          T
+        </a>
+
+
+        <div class="sidebar-header-actions">
+
+          <!-- Search -->
+          <button
+            type="button"
+            class="sidebar-header-button"
+            aria-label="Search"
+            title="Search"
+            (click)="openSearch(); $event.stopPropagation()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7"/>
+              <path d="M21 21l-4.3-4.3"/>
+            </svg>
+          </button>
+
+
+          <!-- Close sidebar -->
+          <button
+            type="button"
+            class="sidebar-header-button"
+            aria-label="Close sidebar"
+            title="Close sidebar"
+            (click)="toggleCollapsed()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect
+                x="3"
+                y="4"
+                width="18"
+                height="16"
+                rx="2"
+              />
+
+              <path d="M9 4v16"/>
+              <path d="M14 9l-3 3 3 3"/>
+            </svg>
+          </button>
+
+        </div>
+
       </div>
 
-      <!-- Add menu -->
-      <div class="relative">
-        <button type="button" (click)="toggleAddMenu(); $event.stopPropagation()"
-                class="flex items-center gap-1 rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-ink">
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          <span class="hidden sm:inline">Add</span>
-        </button>
-        @if (addMenuOpen()) {
-          <div (click)="$event.stopPropagation()" class="absolute right-0 z-20 mt-2 w-52 rounded-xl border border-line bg-surface p-1 shadow-pop">
-            <a routerLink="/courses/new" (click)="closeMenus()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-surface2 hover:text-ink">Add course</a>
-            <a routerLink="/assignments/new" (click)="closeMenus()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-surface2 hover:text-ink">Add assignment</a>
-            <a routerLink="/courses/upload" (click)="closeMenus()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-surface2 hover:text-ink">Upload syllabus</a>
-          </div>
-        }
-      </div>
 
-      <!-- Theme toggle -->
-      <button type="button" (click)="toggleTheme()"
-              [attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
-              class="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface2">
-        @if (isDark()) {
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-        } @else {
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        }
-      </button>
+      <!-- =====================================================
+           MAIN NAVIGATION
+           ===================================================== -->
+      <nav
+        class="sidebar-nav"
+        aria-label="Main navigation"
+      >
 
-      <!-- Notifications -->
-      <div class="relative">
-        <button type="button" (click)="toggleNotif(); $event.stopPropagation()" aria-label="Notifications"
-                class="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface2">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-        </button>
-        @if (notifOpen()) {
-          <div (click)="$event.stopPropagation()" class="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-line bg-surface p-1 shadow-pop">
-            <div class="px-3 py-2"><b class="text-sm text-ink">Notifications</b></div>
-            <div class="my-1 h-px bg-line"></div>
-            <p class="px-3 py-6 text-center text-sm text-muted">No notifications yet.<br><span class="text-xs text-faint">Deadline and grade alerts will show up here.</span></p>
-          </div>
-        }
-      </div>
+        <!-- Dashboard -->
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="nav-active"
+          class="sidebar-link"
+        >
+          <svg
+            class="sidebar-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect
+              x="3"
+              y="3"
+              width="7"
+              height="9"
+              rx="1.5"
+            />
 
-      <!-- Avatar dropdown -->
-      <div class="relative">
-        <button type="button" (click)="toggleUserMenu(); $event.stopPropagation()" class="ml-1" aria-label="Account menu">
-          <span class="grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-semibold text-white">{{ initials() }}</span>
-        </button>
-        @if (userMenuOpen()) {
-          <div (click)="$event.stopPropagation()" class="absolute right-0 z-20 mt-2 w-48 rounded-xl border border-line bg-surface p-1 shadow-pop">
-            <div class="px-3 py-2">
-              <b class="block text-sm text-ink">{{ displayName() }}</b>
-              <span class="text-xs capitalize text-muted">{{ user()?.role ?? 'Student' }}</span>
-            </div>
-            <div class="my-1 h-px bg-line"></div>
-            <a routerLink="/settings" (click)="closeMenus()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-surface2 hover:text-ink">Settings</a>
-            <button (click)="logout()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-brand-ink hover:bg-brand-soft">Log out</button>
-          </div>
-        }
-      </div>
-    </div>
-  </header>
+            <rect
+              x="14"
+              y="3"
+              width="7"
+              height="5"
+              rx="1.5"
+            />
 
-  <!-- ===== Body: sidebar + content ===== -->
-  <div class="flex flex-1">
-    <aside [class.is-collapsed]="collapsed()" [class.w-60]="!collapsed()" [class.w-16]="collapsed()"
-           class="flex shrink-0 flex-col border-r border-line bg-surface transition-[width] duration-200">
-      <nav class="flex flex-col gap-1 p-2 pt-4" aria-label="Main navigation">
-        <a routerLink="/dashboard" routerLinkActive="nav-active" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface2 hover:text-ink">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-          <span class="collapsible">Dashboard</span>
+            <rect
+              x="14"
+              y="12"
+              width="7"
+              height="9"
+              rx="1.5"
+            />
+
+            <rect
+              x="3"
+              y="16"
+              width="7"
+              height="5"
+              rx="1.5"
+            />
+          </svg>
+
+          <span>
+            Dashboard
+          </span>
         </a>
-        <a routerLink="/courses" routerLinkActive="nav-active" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface2 hover:text-ink">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          <span class="collapsible">Courses</span>
+
+
+        <!-- Courses -->
+        <a
+          routerLink="/courses"
+          routerLinkActive="nav-active"
+          class="sidebar-link"
+        >
+          <svg
+            class="sidebar-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
+            />
+
+            <path
+              d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+            />
+          </svg>
+
+          <span>
+            Courses
+          </span>
         </a>
-        <a routerLink="/assignments" routerLinkActive="nav-active" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface2 hover:text-ink">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1z"/><path d="M9 13l2 2 4-4"/></svg>
-          <span class="collapsible">Assignments</span>
+
+
+        <!-- Assignments -->
+        <a
+          routerLink="/assignments"
+          routerLinkActive="nav-active"
+          class="sidebar-link"
+        >
+          <svg
+            class="sidebar-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1z"
+            />
+
+            <path
+              d="M9 13l2 2 4-4"
+            />
+          </svg>
+
+          <span>
+            Assignments
+          </span>
         </a>
-        <a routerLink="/calendar" routerLinkActive="nav-active" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface2 hover:text-ink">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          <span class="collapsible">Calendar</span>
+
+
+        <!-- Calendar -->
+        <a
+          routerLink="/calendar"
+          routerLinkActive="nav-active"
+          class="sidebar-link"
+        >
+          <svg
+            class="sidebar-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect
+              x="3"
+              y="4"
+              width="18"
+              height="18"
+              rx="2"
+            />
+
+            <path
+              d="M16 2v4M8 2v4M3 10h18"
+            />
+          </svg>
+
+          <span>
+            Calendar
+          </span>
         </a>
-        <a routerLink="/grades" routerLinkActive="nav-active" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface2 hover:text-ink">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>
-          <span class="collapsible">Grades &amp; GPA</span>
+
+
+        <!-- Grades -->
+        <a
+          routerLink="/grades"
+          routerLinkActive="nav-active"
+          class="sidebar-link"
+        >
+          <svg
+            class="sidebar-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 3v18h18"/>
+            <path d="M7 14l3-3 3 3 5-6"/>
+          </svg>
+
+          <span>
+            Grades &amp; GPA
+          </span>
         </a>
+
       </nav>
 
-      <div class="mt-auto flex flex-col gap-1 border-t border-line p-2">
-        <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface2 hover:text-ink">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
-          <span class="collapsible">Help &amp; feedback</span>
-        </a>
-      </div>
-    </aside>
 
-    <main class="flex-1 p-6">
+      <!-- =====================================================
+           PROFILE
+           ===================================================== -->
+      <div class="sidebar-profile">
+
+        <button
+          type="button"
+          class="sidebar-profile-main"
+          (click)="toggleUserMenu(); $event.stopPropagation()"
+        >
+
+          <span class="sidebar-profile-avatar">
+            {{ initials() }}
+          </span>
+
+
+          <span class="sidebar-profile-copy">
+
+            <strong>
+              {{ user()?.first_name || 'Student' }}
+            </strong>
+
+            <span>
+              {{ user()?.role || 'Student' }}
+            </span>
+
+          </span>
+
+        </button>
+
+
+        <!-- Settings -->
+        <a
+          routerLink="/settings"
+          class="sidebar-settings"
+          aria-label="Settings"
+          title="Settings"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="3"
+            />
+
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 0-.4 1.07V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8.6 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1.07-.4H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8.6a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-.6A1.65 1.65 0 0 0 10.4 2.93V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15.4 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.37.35.7.6 1 .28.26.65.4 1.07.4H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z"
+            />
+          </svg>
+        </a>
+
+      </div>
+
+    </div>
+  </aside>
+
+
+
+  <!-- =========================================================
+       MAIN APP
+       ========================================================= -->
+  <div class="main-shell">
+
+
+    <!-- =======================================================
+         TOPBAR
+         ======================================================= -->
+    <header class="topbar">
+
+      <!-- Left -->
+      <div class="topbar-left">
+
+  @if (collapsed()) {
+
+    <button
+      type="button"
+      class="topbar-sidebar-toggle"
+      aria-label="Open sidebar"
+      title="Open sidebar"
+      (click)="toggleCollapsed()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M4 6h16"/>
+        <path d="M4 12h16"/>
+        <path d="M4 18h16"/>
+      </svg>
+    </button>
+
+  }
+
+  <span class="topbar-date">
+    {{ today }}
+  </span>
+
+</div>
+
+
+      <!-- =====================================================
+           TOPBAR ACTIONS
+           ===================================================== -->
+      <div class="topbar-actions">
+
+        <!-- Add -->
+        <div class="relative">
+
+          <button
+            type="button"
+            class="topbar-button topbar-button-primary"
+            aria-label="Add"
+            (click)="toggleAddMenu(); $event.stopPropagation()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
+
+
+          @if (addMenuOpen()) {
+
+            <div
+              class="topbar-menu add-menu"
+              (click)="$event.stopPropagation()"
+            >
+
+              <a
+                routerLink="/courses/new"
+                (click)="closeMenus()"
+              >
+                Add course
+              </a>
+
+              <a
+                routerLink="/assignments/new"
+                (click)="closeMenus()"
+              >
+                Add assignment
+              </a>
+
+              <a
+                routerLink="/courses/upload"
+                (click)="closeMenus()"
+              >
+                Upload syllabus
+              </a>
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <!-- Theme -->
+        <button
+          type="button"
+          class="topbar-button"
+          (click)="toggleTheme()"
+          [attr.aria-label]="
+            isDark()
+              ? 'Switch to light mode'
+              : 'Switch to dark mode'
+          "
+        >
+
+          @if (isDark()) {
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+            </svg>
+
+          } @else {
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+
+          }
+
+        </button>
+
+
+        <!-- Notifications -->
+        <div class="relative">
+
+          <button
+            type="button"
+            class="topbar-button notification-button"
+            aria-label="Notifications"
+            (click)="toggleNotif(); $event.stopPropagation()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+            </svg>
+          </button>
+
+
+          @if (notifOpen()) {
+
+            <div
+              class="topbar-menu notification-menu"
+              (click)="$event.stopPropagation()"
+            >
+
+              <div class="menu-heading">
+                Notifications
+              </div>
+
+              <div class="menu-divider"></div>
+
+              <div class="menu-empty">
+
+                No notifications yet.
+
+                <span>
+                  Deadline and grade alerts will show here.
+                </span>
+
+              </div>
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <!-- Account -->
+        <div class="relative">
+
+          <button
+            type="button"
+            class="topbar-avatar"
+            aria-label="Account menu"
+            (click)="toggleUserMenu(); $event.stopPropagation()"
+          >
+            {{ initials() }}
+          </button>
+
+
+          @if (userMenuOpen()) {
+
+            <div
+              class="topbar-menu account-menu"
+              (click)="$event.stopPropagation()"
+            >
+
+              <div class="account-summary">
+
+                <strong>
+                  {{ displayName() }}
+                </strong>
+
+                <span>
+                  {{ user()?.role || 'Student' }}
+                </span>
+
+              </div>
+
+
+              <div class="menu-divider"></div>
+
+
+              <a
+                routerLink="/settings"
+                (click)="closeMenus()"
+              >
+                Settings
+              </a>
+
+
+              <button
+                type="button"
+                (click)="logout()"
+              >
+                Log out
+              </button>
+
+            </div>
+
+          }
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- =======================================================
+         ROUTED CONTENT
+         ======================================================= -->
+    <main class="page-content">
       <router-outlet />
     </main>
+
   </div>
 
-  <!-- ===== Assistant (bottom-right) ===== -->
-  <div class="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-3">
-    @if (chatOpen()) {
-      <div class="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-pop"
-           [style.width]="chatExpanded() ? '34rem' : '20rem'"
-           [style.height]="chatExpanded() ? '80vh' : '30rem'">
-        <div class="flex items-center justify-between bg-brand px-4 py-3 text-white">
-          <span class="flex items-center gap-2 font-semibold">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>
-            Trackr Assistant
-            <span class="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">Coming soon</span>
-          </span>
-          <div class="flex items-center gap-1">
-            <button type="button" (click)="toggleChatExpand()" aria-label="Expand" class="rounded p-1 hover:bg-white/20">
-              @if (chatExpanded()) {
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-              } @else {
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-              }
-            </button>
-            <button type="button" (click)="toggleChat()" aria-label="Close" class="rounded p-1 hover:bg-white/20">
-              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
+
+
+  <!-- =========================================================
+       SEARCH MODAL
+       ========================================================= -->
+
+  @if (searchOpen()) {
+
+    <div
+      class="search-overlay"
+      (click)="pickResult()"
+    >
+
+      <div
+        class="search-dialog"
+        (click)="$event.stopPropagation()"
+      >
+
+        <!-- Search field -->
+        <div class="search-dialog-input-wrap">
+
+          <svg
+            class="search-dialog-search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="7"/>
+            <path d="M21 21l-4.3-4.3"/>
+          </svg>
+
+
+          <input
+            #globalSearch
+            type="search"
+            [value]="searchQuery()"
+            (input)="onSearch(globalSearch.value)"
+            placeholder="Search courses, assignments..."
+            autofocus
+          />
+
+
+          <button
+            type="button"
+            class="search-dialog-close"
+            aria-label="Close search"
+            (click)="pickResult()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+
         </div>
 
-        <div class="flex-1 space-y-3 overflow-y-auto p-4">
-          @if (messages().length === 0) {
-            <div class="max-w-[85%] rounded-2xl rounded-tl-sm bg-surface2 px-3 py-2 text-sm text-muted">
-              I'm still being built. Soon I'll answer questions about your courses, deadlines, and grades — using your real Trackr data.
+
+        <!-- Search body -->
+        <div class="search-dialog-body">
+
+          @if (!searchQuery().trim()) {
+
+            <div class="search-dialog-empty">
+
+              <strong>
+                Search Trackr
+              </strong>
+
+              <span>
+                Find courses and assignments.
+              </span>
+
             </div>
-            <div class="flex flex-wrap gap-2 pt-1">
-              @for (s of starters; track s) {
-                <button type="button" (click)="send(s)" class="rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-brand-ink hover:bg-surface2">{{ s }}</button>
-              }
+
+          } @else if (results().length === 0) {
+
+            <div class="search-dialog-empty">
+
+              <strong>
+                No results found
+              </strong>
+
+              <span>
+                Try a different course code, course name, or assignment.
+              </span>
+
             </div>
+
           } @else {
-            @for (m of messages(); track $index) {
-              @if (m.role === 'user') {
-                <div class="ml-auto max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-brand px-3 py-2 text-sm text-white">{{ m.content }}</div>
-              } @else {
-                <div class="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm bg-surface2 px-3 py-2 text-sm text-ink">{{ m.content }}</div>
-              }
+
+            @for (r of results(); track r.kind + r.label) {
+
+              <a
+                [routerLink]="r.link"
+                class="search-dialog-result"
+                (click)="pickResult()"
+              >
+
+                <span class="search-dialog-result-icon">
+
+                  @if (r.kind === 'Course') {
+
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+
+                  } @else {
+
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1z"/>
+                      <path d="M9 13l2 2 4-4"/>
+                    </svg>
+
+                  }
+
+                </span>
+
+
+                <span class="search-dialog-result-copy">
+
+                  <strong>
+                    {{ r.label }}
+                  </strong>
+
+                  <small>
+                    {{ r.sublabel }}
+                  </small>
+
+                </span>
+
+
+                <svg
+                  class="search-dialog-result-arrow"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+
+              </a>
+
             }
+
           }
+
         </div>
 
-        <div class="border-t border-line p-3">
-          <div class="flex items-center gap-2">
-            <input #msg type="text" placeholder="Ask about your week…" (keydown.enter)="onSend(msg)"
-                   class="w-full rounded-lg border border-line bg-surface2 px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-            <button type="button" (click)="onSend(msg)" aria-label="Send"
-                    class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand text-white hover:bg-brand-ink disabled:opacity-60">
-              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-            </button>
-          </div>
-        </div>
       </div>
+
+    </div>
+
+  }
+
+
+
+  <!-- =========================================================
+       ASSISTANT
+       ========================================================= -->
+  <div class="assistant-shell">
+
+    @if (chatOpen()) {
+
+      <div
+        class="assistant-window"
+        [class.assistant-expanded]="chatExpanded()"
+      >
+
+        <!-- Header -->
+        <div class="assistant-header">
+
+          <span class="assistant-title">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/>
+            </svg>
+
+            Trackr Assistant
+
+            <span class="assistant-coming-soon">
+              Coming soon
+            </span>
+
+          </span>
+
+
+          <div class="assistant-header-actions">
+
+            <!-- Expand -->
+            <button
+              type="button"
+              (click)="toggleChatExpand()"
+              aria-label="Expand assistant"
+            >
+
+              @if (chatExpanded()) {
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                </svg>
+
+              } @else {
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+
+              }
+
+            </button>
+
+
+            <!-- Close -->
+            <button
+              type="button"
+              (click)="toggleChat()"
+              aria-label="Close assistant"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Messages -->
+        <div class="assistant-messages">
+
+          @if (messages().length === 0) {
+
+            <div class="assistant-message assistant-message-bot">
+              I'm still being built. Soon I'll answer questions
+              about your courses, deadlines and grades using
+              your real Trackr data.
+            </div>
+
+
+            <div class="assistant-starters">
+
+              @for (s of starters; track s) {
+
+                <button
+                  type="button"
+                  (click)="send(s)"
+                >
+                  {{ s }}
+                </button>
+
+              }
+
+            </div>
+
+          } @else {
+
+            @for (m of messages(); track $index) {
+
+              @if (m.role === 'user') {
+
+                <div class="assistant-message assistant-message-user">
+                  {{ m.content }}
+                </div>
+
+              } @else {
+
+                <div class="assistant-message assistant-message-bot">
+                  {{ m.content }}
+                </div>
+
+              }
+
+            }
+
+          }
+
+        </div>
+
+
+        <!-- Input -->
+        <div class="assistant-input-wrap">
+
+          <input
+            #msg
+            type="text"
+            placeholder="Ask about your week..."
+            (keydown.enter)="onSend(msg)"
+          />
+
+
+          <button
+            type="button"
+            (click)="onSend(msg)"
+            aria-label="Send"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+
+        </div>
+
+      </div>
+
     }
-    <button type="button" (click)="toggleChat()" aria-label="Open assistant"
-            class="grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-pop transition hover:bg-brand-ink">
-      <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>
+
+
+    <!-- Floating assistant button -->
+    <button
+      type="button"
+      class="assistant-launcher"
+      aria-label="Open Trackr Assistant"
+      (click)="toggleChat()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect
+          x="5"
+          y="8"
+          width="14"
+          height="10"
+          rx="3"
+        />
+
+        <path d="M9 12h.01M15 12h.01M9 15h6"/>
+        <path d="M12 5V3"/>
+
+        <circle
+          cx="12"
+          cy="3"
+          r="1"
+        />
+      </svg>
     </button>
+
   </div>
+
 </div>
