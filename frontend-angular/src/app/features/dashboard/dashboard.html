@@ -16,13 +16,13 @@
       <p class="mt-0.5 text-sm font-medium text-muted">{{ today() }}</p>
     </div>
 
-    <div class="mt-6 grid gap-5 lg:grid-cols-3">
-      <!-- LEFT -->
-      <div class="lg:col-span-2 space-y-5">
+    <div class="mt-6 grid gap-5 lg:grid-cols-3 lg:items-start">
+      <!-- LEFT / MAIN COLUMN -->
+      <div class="space-y-5 lg:col-span-2">
 
         <!-- Hero -->
         <div class="hero-wrap">
-        <section class="hero rounded-3xl p-6" [class.flipping]="flipping()">
+        <section class="hero rounded-2xl p-6" [class.flipping]="flipping()">
           @if (focus(); as f) {
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-widest" [style.color]="'var(--amber)'">Your next move</span>
@@ -68,13 +68,13 @@
 
         <!-- Due assignments (overdue) -->
         @if (overdueTasks().length) {
-          <section class="rounded-3xl border border-danger-soft bg-surface p-5 float">
+          <section class="rounded-2xl border border-danger-soft bg-surface p-5 float">
             <h3 class="font-display text-base font-bold text-danger-ink">Due assignments</h3>
             <ul class="mt-2 divide-y divide-line">
               @for (t of overdueTasks(); track t.id) {
                 <li><a [routerLink]="['/assignments', t.id]" class="-mx-2 flex items-center gap-3 rounded-xl px-2 py-3 hover:bg-surface2">
                   <span class="h-2.5 w-2.5 shrink-0 rounded" [style.backgroundColor]="t.color"></span>
-                  <span class="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{{ t.name }} <span class="font-normal text-faint">{{ t.code }}</span></span>
+                  <span class="min-w-0 flex-1 text-sm font-semibold text-ink">{{ t.name }} <span class="font-normal text-faint">{{ t.code }}</span></span>
                   <span class="rounded-md bg-surface2 px-2 py-0.5 text-xs font-bold text-muted">{{ t.weight }}</span>
                   <span class="w-16 text-right text-xs font-bold text-danger-ink">{{ t.label }}</span>
                 </a></li>
@@ -84,7 +84,7 @@
         }
 
         <!-- This week -->
-        <section class="rounded-3xl border border-line bg-surface p-5 float">
+        <section class="rounded-2xl border border-line bg-surface p-5 float">
           <div class="flex items-center justify-between">
             <h3 class="font-display text-base font-bold text-ink">This week</h3>
             <a routerLink="/calendar" class="text-sm font-semibold text-brand-ink hover:underline">View calendar →</a>
@@ -94,36 +94,44 @@
           } @else {
             <ul class="mt-2 divide-y divide-line">
               @for (t of thisWeek(); track t.id) {
-                <li><a [routerLink]="['/assignments', t.id]" class="-mx-2 flex items-center gap-3 rounded-xl px-2 py-3 hover:bg-surface2">
-                  <span class="h-2.5 w-2.5 shrink-0 rounded" [style.backgroundColor]="t.color"></span>
-                  <span class="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{{ t.name }} <span class="font-normal text-faint">{{ t.code }}</span></span>
-                  <span class="rounded-md bg-surface2 px-2 py-0.5 text-xs font-bold text-muted">{{ t.weight }}</span>
-                  <span class="w-16 text-right text-xs font-semibold" [class.text-amber]="!t.overdue" [class.text-danger-ink]="t.overdue">{{ t.label }}</span>
-                </a></li>
+                <li>
+                  <a [routerLink]="['/assignments', t.id]" class="-mx-2 flex items-center gap-3 rounded-xl px-2 py-3 hover:bg-surface2">
+                    <span class="mt-0.5 h-2.5 w-2.5 shrink-0 self-start rounded" [style.backgroundColor]="t.color"></span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-sm font-semibold leading-snug text-ink">{{ t.name }}</span>
+                      <span class="text-xs text-faint">{{ t.code }}</span>
+                    </span>
+                    <span class="shrink-0 rounded-md bg-surface2 px-2 py-0.5 text-xs font-bold text-muted">{{ t.weight }}</span>
+                    <span class="w-16 shrink-0 text-right text-xs font-semibold" [class.text-amber]="!t.overdue" [class.text-danger-ink]="t.overdue">{{ t.label }}</span>
+                  </a>
+                </li>
               }
             </ul>
           }
         </section>
 
-        <!-- Active classes -->
-        <section>
-          <div class="flex items-center justify-between">
-            <h3 class="font-display text-base font-bold text-ink">Active classes</h3>
+        <!-- Active classes (+ archived footer) -->
+        <section class="rounded-2xl border border-line bg-surface float">
+          <div class="flex items-center justify-between p-5 pb-3">
+            <h3 class="font-display text-base font-bold text-ink">Active classes <span class="ml-1 rounded-full bg-surface2 px-2 py-0.5 text-xs font-bold text-muted">{{ courses().length }}</span></h3>
             <a routerLink="/courses" class="text-sm font-semibold text-brand-ink hover:underline">All courses →</a>
           </div>
           @if (courses().length === 0) {
-            <div class="mt-3 rounded-2xl border border-dashed border-line bg-surface p-8 text-center">
+            <div class="mx-5 mb-5 rounded-xl border border-dashed border-line p-8 text-center">
               <p class="text-sm font-semibold text-ink">No courses yet</p>
               <p class="mt-1 text-sm text-muted">Add a course or upload a syllabus to get started.</p>
             </div>
           } @else {
-            <div class="mt-3 grid gap-4 sm:grid-cols-2">
-              @for (course of courses(); track course.id) { <app-course-card [course]="course" /> }
+            <div class="grid gap-4 px-5 pb-4 sm:grid-cols-2">
+              @for (course of courses(); track course.id) { <app-course-card [course]="course" [nextLabel]="nextLabels()[course.id] ?? null" /> }
             </div>
           }
           @if (archivedCount() > 0) {
-            <a routerLink="/courses" class="mt-3 flex items-center justify-between rounded-2xl border border-line bg-surface px-4 py-3 float hover:bg-surface2">
-              <span class="text-sm font-semibold text-muted">Archived classes</span>
+            <a routerLink="/courses" class="flex items-center justify-between border-t border-line px-5 py-4 hover:bg-surface2">
+              <span class="flex items-center gap-2 text-sm font-semibold text-muted">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="5" rx="1"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9M10 13h4"/></svg>
+                Archived classes
+              </span>
               <span class="text-sm text-faint">{{ archivedCount() }} courses →</span>
             </a>
           }

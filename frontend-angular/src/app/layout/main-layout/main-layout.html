@@ -64,11 +64,20 @@
         }
       </button>
 
-      <button type="button" aria-label="Notifications"
-              class="relative grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface2">
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-        <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand ring-2" style="--tw-ring-color:var(--surface)"></span>
-      </button>
+      <!-- Notifications -->
+      <div class="relative">
+        <button type="button" (click)="toggleNotif(); $event.stopPropagation()" aria-label="Notifications"
+                class="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-surface2">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </button>
+        @if (notifOpen()) {
+          <div (click)="$event.stopPropagation()" class="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-line bg-surface p-1 shadow-pop">
+            <div class="px-3 py-2"><b class="text-sm text-ink">Notifications</b></div>
+            <div class="my-1 h-px bg-line"></div>
+            <p class="px-3 py-6 text-center text-sm text-muted">No notifications yet.<br><span class="text-xs text-faint">Deadline and grade alerts will show up here.</span></p>
+          </div>
+        }
+      </div>
 
       <!-- Avatar dropdown -->
       <div class="relative">
@@ -82,7 +91,6 @@
               <span class="text-xs capitalize text-muted">{{ user()?.role ?? 'Student' }}</span>
             </div>
             <div class="my-1 h-px bg-line"></div>
-            <button class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-surface2 hover:text-ink">Profile</button>
             <a routerLink="/settings" (click)="closeMenus()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-surface2 hover:text-ink">Settings</a>
             <button (click)="logout()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-brand-ink hover:bg-brand-soft">Log out</button>
           </div>
@@ -141,6 +149,7 @@
           <span class="flex items-center gap-2 font-semibold">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>
             Trackr Assistant
+            <span class="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">Coming soon</span>
           </span>
           <div class="flex items-center gap-1">
             <button type="button" (click)="toggleChatExpand()" aria-label="Expand" class="rounded p-1 hover:bg-white/20">
@@ -159,7 +168,7 @@
         <div class="flex-1 space-y-3 overflow-y-auto p-4">
           @if (messages().length === 0) {
             <div class="max-w-[85%] rounded-2xl rounded-tl-sm bg-surface2 px-3 py-2 text-sm text-muted">
-              Hi! Ask me about your courses, deadlines, or grades.
+              I'm still being built. Soon I'll answer questions about your courses, deadlines, and grades — using your real Trackr data.
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
               @for (s of starters; track s) {
@@ -175,19 +184,13 @@
               }
             }
           }
-          @if (sending()) {
-            <div class="max-w-[85%] rounded-2xl rounded-tl-sm bg-surface2 px-3 py-2 text-sm text-muted">Thinking…</div>
-          }
-          @if (chatError()) {
-            <div class="rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-xs text-danger-ink">{{ chatError() }}</div>
-          }
         </div>
 
         <div class="border-t border-line p-3">
           <div class="flex items-center gap-2">
             <input #msg type="text" placeholder="Ask about your week…" (keydown.enter)="onSend(msg)"
                    class="w-full rounded-lg border border-line bg-surface2 px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-            <button type="button" (click)="onSend(msg)" [disabled]="sending()" aria-label="Send"
+            <button type="button" (click)="onSend(msg)" aria-label="Send"
                     class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand text-white hover:bg-brand-ink disabled:opacity-60">
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
             </button>

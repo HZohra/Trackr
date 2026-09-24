@@ -90,6 +90,20 @@ export class Dashboard implements OnDestroy {
     return Math.round(grades.reduce((s, g) => s + g, 0) / grades.length);
   });
 
+    // The next upcoming (open) activity name per course — for the card's "Next · …".
+  protected readonly nextLabels = computed<Record<number, string>>(() => {
+    const now = this.now().getTime();
+    const best: Record<number, { name: string; t: number }> = {};
+    for (const a of this.activeActivities()) {
+      if (a.grade != null || a.status === 'submitted' || a.status === 'graded' || !a.due_date) continue;
+      const t = new Date(a.due_date).getTime();
+      if (Number.isNaN(t) || t < now) continue;
+      if (!best[a.course_id] || t < best[a.course_id].t) best[a.course_id] = { name: a.activity_name, t };
+    }
+    const out: Record<number, string> = {};
+    for (const id of Object.keys(best)) out[+id] = best[+id].name;
+    return out;
+  });
   protected readonly focus = computed<Focus | null>(() => {
     const a = this.ranked()[0];
     if (!a) return null;
@@ -220,4 +234,6 @@ export class Dashboard implements OnDestroy {
     if (days === 1) return 'Tomorrow';
     return due.toLocaleDateString(undefined, { weekday: 'short' });
   }
+
+
 }

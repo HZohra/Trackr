@@ -1,24 +1,27 @@
 <a [routerLink]="['/courses', course().id]"
-   class="block rounded-2xl border border-line bg-surface p-5 shadow-card"
+   class="block overflow-hidden rounded-2xl border border-line bg-surface p-5 shadow-card transition hover:border-line"
    [class.opacity-75]="course().archived">
+  <!-- colour bar on top -->
+  <div class="mb-3 h-1 w-8 rounded-full" [style.backgroundColor]="hex()"></div>
+
   <div class="flex items-start justify-between gap-2">
-    <div class="flex items-center gap-2">
-      <span class="rounded-md px-2 py-0.5 text-xs font-bold text-white" [style.backgroundColor]="hex()">{{ course().code }}</span>
-      @if (course().archived) { <span class="rounded bg-surface2 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted">Archived</span> }
+    <div class="min-w-0">
+      <p class="font-display text-base font-bold leading-tight text-ink">{{ course().code }}</p>
+      <p class="mt-0.5 truncate text-sm text-muted">{{ course().name }}</p>
     </div>
-    <span class="tabular-nums text-sm font-bold" [style.color]="gradeColor()">
-      {{ course().currentGrade === null ? '—' : course().currentGrade + '%' }}
-    </span>
+    @if (course().archived) {
+      <span class="shrink-0 rounded bg-surface2 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted">Archived</span>
+    }
   </div>
 
-  <h4 class="mt-3 font-display text-base font-bold leading-snug text-ink">{{ course().name }}</h4>
-  <p class="mt-0.5 text-sm text-muted">{{ course().professor || 'No instructor' }}</p>
-
-  <div class="mt-5">
-    <div class="h-2 w-full overflow-hidden rounded-full bg-surface2">
-      <div class="h-full rounded-full transition-[width] duration-700"
-           [style.width.%]="course().percentComplete" [style.backgroundColor]="hex()"></div>
-    </div>
-    <span class="mt-2 block text-xs tabular-nums text-faint">{{ course().percentComplete }}% complete</span>
+  <div class="mt-4 flex items-baseline justify-between">
+    <span class="font-display text-2xl font-extrabold tabular-nums" [style.color]="gradeColor()">
+      {{ course().currentGrade === null ? '—' : course().currentGrade + '%' }}
+    </span>
+    @if (nextLabel()) {
+      <span class="truncate text-xs font-medium text-faint">Next · {{ nextLabel() }}</span>
+    } @else {
+      <span class="text-xs text-faint">{{ course().percentComplete }}% complete</span>
+    }
   </div>
 </a>

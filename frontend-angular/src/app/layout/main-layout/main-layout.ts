@@ -4,16 +4,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { CourseService } from '../../core/services/course.service';
 import { ActivityService } from '../../core/services/activity.service';
-import { AssistantService, ChatMessage } from '../../core/services/assistant.service';
+import { ChatMessage } from '../../core/services/assistant.service';
 import { Course } from '../../core/models/course';
 import { Activity } from '../../core/models/activity';
 
-interface SearchResult {
-  kind: string;
-  label: string;
-  sublabel: string;
-  link: (string | number)[];
-}
+interface SearchResult { kind: string; label: string; sublabel: string; link: (string | number)[]; }
 
 @Component({
   selector: 'app-main-layout',
@@ -28,7 +23,6 @@ export class MainLayout {
   private readonly themeService = inject(ThemeService);
   private readonly courseService = inject(CourseService);
   private readonly activityService = inject(ActivityService);
-  private readonly assistant = inject(AssistantService);
 
   protected readonly user = this.auth.currentUser;
   protected readonly displayName = computed(() => {
@@ -46,6 +40,7 @@ export class MainLayout {
   protected readonly collapsed = signal(false);
   protected readonly addMenuOpen = signal(false);
   protected readonly userMenuOpen = signal(false);
+  protected readonly notifOpen = signal(false);
   protected readonly chatOpen = signal(false);
   protected readonly chatExpanded = signal(false);
 
@@ -74,58 +69,44 @@ export class MainLayout {
     return [...courseHits, ...activityHits];
   });
 
-  protected onSearch(value: string): void {
-    this.searchQuery.set(value);
-    this.searchOpen.set(true);
-  }
+  protected onSearch(value: string): void { this.searchQuery.set(value); this.searchOpen.set(true); }
   protected openSearch(): void { this.searchOpen.set(true); }
   protected pickResult(): void { this.searchOpen.set(false); this.searchQuery.set(''); }
+  private courseCode(courseId: number): string { return this.courses().find((c) => c.id === courseId)?.code ?? ''; }
 
-  private courseCode(courseId: number): string {
-    return this.courses().find((c) => c.id === courseId)?.code ?? '';
-  }
-
-  // --- Assistant chat ------------------------------------------------------
+  // --- Assistant chat (UI only — the real assistant is coming soon) ---------
   protected readonly messages = signal<ChatMessage[]>([]);
   protected readonly sending = signal(false);
-  protected readonly chatError = signal<string | null>(null);
   protected readonly starters = ["What's due this week?", 'How am I doing?', 'What should I focus on?'];
 
   protected onSend(input: HTMLInputElement): void {
-    if (!input.value.trim() || this.sending()) return;
+    if (!input.value.trim()) return;
     this.send(input.value);
     input.value = '';
   }
 
   protected send(content: string): void {
     const text = content.trim();
-    if (!text || this.sending()) return;
-    const next: ChatMessage[] = [...this.messages(), { role: 'user', content: text }];
-    this.messages.set(next);
-    this.sending.set(true);
-    this.chatError.set(null);
-    this.assistant.ask(next).subscribe({
-      next: (r) => {
-        this.messages.set([...this.messages(), { role: 'assistant', content: r.reply }]);
-        this.sending.set(false);
+    if (!text) return;
+    this.messages.set([
+      ...this.messages(),
+      { role: 'user', content: text },
+      {
+        role: 'assistant',
+        content:
+          "I'm not available yet — this is coming soon. Soon I'll answer questions about your courses, deadlines, and grades using your real Trackr data.",
       },
-      error: () => {
-        this.sending.set(false);
-        this.chatError.set("Sorry, I couldn't reach the assistant. Try again.");
-      },
-    });
+    ]);
   }
 
   // --- menus / misc --------------------------------------------------------
   protected toggleCollapsed(): void { this.collapsed.update((v) => !v); }
-  protected toggleAddMenu(): void { this.userMenuOpen.set(false); this.addMenuOpen.update((v) => !v); }
-  protected toggleUserMenu(): void { this.addMenuOpen.set(false); this.userMenuOpen.update((v) => !v); }
+  protected toggleAddMenu(): void { this.userMenuOpen.set(false); this.notifOpen.set(false); this.addMenuOpen.update((v) => !v); }
+  protected toggleUserMenu(): void { this.addMenuOpen.set(false); this.notifOpen.set(false); this.userMenuOpen.update((v) => !v); }
+  protected toggleNotif(): void { this.addMenuOpen.set(false); this.userMenuOpen.set(false); this.notifOpen.update((v) => !v); }
   protected toggleChat(): void { this.chatOpen.update((v) => !v); }
   protected toggleChatExpand(): void { this.chatExpanded.update((v) => !v); }
-  protected closeMenus(): void { this.addMenuOpen.set(false); this.userMenuOpen.set(false); this.searchOpen.set(false); }
+  protected closeMenus(): void { this.addMenuOpen.set(false); this.userMenuOpen.set(false); this.notifOpen.set(false); this.searchOpen.set(false); }
 
-  protected logout(): void {
-    this.auth.logout();
-    this.router.navigateByUrl('/login');
-  }
+  protected logout(): void { this.auth.logout(); this.router.navigateByUrl('/login'); }
 }

@@ -10,8 +10,10 @@ import { Course, COURSE_COLORS } from '../../core/models/course';
 })
 export class CourseCard {
   readonly course = input.required<Course>();
+  /** Optional "Next · …" hint (e.g. the next upcoming assignment). */
+  readonly nextLabel = input<string | null>(null);
 
-  /** The course's own colour (the 8-colour palette) — used for the pill + progress. */
+  /** The course's own colour (the 8-colour palette) — used for the top bar. */
   protected readonly hex = computed(() => COURSE_COLORS[this.course().color]);
 
   /** Grade-band colour: green (strong) / amber (watch) / red (at risk) / muted (none yet). */
