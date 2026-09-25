@@ -1,42 +1,397 @@
-<div class="mx-auto max-w-xl">
-  <a routerLink="/courses" class="text-sm text-brand-ink hover:underline">← Back to courses</a>
-  <h1 class="mt-2 font-display text-3xl font-bold text-ink">Add a course</h1>
-  <p class="mt-1 text-sm text-muted">Enter the course details manually.</p>
+<div class="add-course-page">
+
+  <a
+    routerLink="/courses"
+    class="back-link"
+  >
+    ← Back to courses
+  </a>
+
+
+  <header class="page-header">
+    <span class="eyebrow">
+      Academics
+    </span>
+
+    <h1>
+      Add a course
+    </h1>
+
+    <p>
+      Enter the course details manually and
+      choose how it will appear throughout Trackr.
+    </p>
+  </header>
+
 
   @if (error()) {
-    <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+    <div class="error-message">
+      {{ error() }}
+    </div>
   }
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-4 rounded-2xl border border-line bg-surface p-6 shadow-card">
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Course code *</label>
-      <input type="text" formControlName="courseCode" placeholder="CP476" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-      @if (form.controls.courseCode.touched && form.controls.courseCode.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
-    </div>
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Course name *</label>
-      <input type="text" formControlName="courseName" placeholder="Internet Computing" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-      @if (form.controls.courseName.touched && form.controls.courseName.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
-    </div>
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Term *</label>
-      <input type="text" formControlName="term" placeholder="Fall 2026" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-      @if (form.controls.term.touched && form.controls.term.invalid) { <p class="mt-1 text-xs text-danger-ink">Required.</p> }
-    </div>
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Professor</label>
-      <input type="text" formControlName="professor" placeholder="Dr. Raed Karim" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none" />
-    </div>
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Term end date <span class="text-faint">(optional — used for auto-archiving)</span></label>
-      <input type="date" formControlName="termEnd" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
-    </div>
 
-    <div class="flex items-center gap-3 pt-2">
-      <button type="submit" [disabled]="loading()" class="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-ink disabled:opacity-60">
-        {{ loading() ? 'Saving…' : 'Create course' }}
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="course-form"
+  >
+
+    <!-- =====================================================
+         COURSE INFORMATION
+         ===================================================== -->
+
+    <section class="form-section">
+
+      <div class="section-heading">
+        <span class="section-number">
+          01
+        </span>
+
+        <div>
+          <h2>
+            Course information
+          </h2>
+
+          <p>
+            Add the basic details for this class.
+          </p>
+        </div>
+      </div>
+
+
+      <div class="section-fields">
+
+        <!-- COURSE CODE -->
+        <div class="field">
+          <label for="courseCode">
+            Course code
+            <span class="required">
+              *
+            </span>
+          </label>
+
+          <input
+            id="courseCode"
+            type="text"
+            formControlName="courseCode"
+            placeholder="CP476"
+          />
+
+          @if (
+            form.controls.courseCode.touched &&
+            form.controls.courseCode.invalid
+          ) {
+            <p class="field-error">
+              Course code is required.
+            </p>
+          }
+        </div>
+
+
+        <!-- COURSE NAME -->
+        <div class="field">
+          <label for="courseName">
+            Course name
+            <span class="required">
+              *
+            </span>
+          </label>
+
+          <input
+            id="courseName"
+            type="text"
+            formControlName="courseName"
+            placeholder="Internet Computing"
+          />
+
+          @if (
+            form.controls.courseName.touched &&
+            form.controls.courseName.invalid
+          ) {
+            <p class="field-error">
+              Course name is required.
+            </p>
+          }
+        </div>
+
+
+        <!-- TERM -->
+        <div class="field">
+          <label for="term">
+            Term
+            <span class="required">
+              *
+            </span>
+          </label>
+
+          <input
+            id="term"
+            type="text"
+            formControlName="term"
+            placeholder="Fall 2026"
+          />
+
+          @if (
+            form.controls.term.touched &&
+            form.controls.term.invalid
+          ) {
+            <p class="field-error">
+              Term is required.
+            </p>
+          }
+        </div>
+
+
+        <!-- PROFESSOR -->
+        <div class="field">
+          <label for="professor">
+            Professor
+          </label>
+
+          <input
+            id="professor"
+            type="text"
+            formControlName="professor"
+            placeholder="Dr. Raed Karim"
+          />
+        </div>
+
+
+        <!-- TERM END -->
+        <div class="field field-full">
+          <label for="termEnd">
+            Term end date
+
+            <span class="optional">
+              Optional
+            </span>
+          </label>
+
+          <input
+            id="termEnd"
+            type="date"
+            formControlName="termEnd"
+          />
+
+          <p class="field-help">
+            Trackr can automatically archive the
+            course after this date.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         COURSE APPEARANCE
+         ===================================================== -->
+
+    <section class="form-section">
+
+      <div class="section-heading">
+        <span class="section-number">
+          02
+        </span>
+
+        <div>
+          <h2>
+            Course appearance
+          </h2>
+
+          <p>
+            Choose a color to quickly recognize
+            this course throughout Trackr.
+          </p>
+        </div>
+      </div>
+
+
+      <div class="appearance-content">
+
+        <div class="color-picker-heading">
+          <label>
+            Course color
+          </label>
+
+          <span>
+            Select one
+          </span>
+        </div>
+
+
+        <div class="course-color-grid">
+
+          @for (
+            theme of courseThemes;
+            track theme.key
+          ) {
+
+            <button
+              type="button"
+              class="course-color-option"
+              [class.selected]="
+                form.controls.colorTheme.value ===
+                theme.key
+              "
+              [attr.aria-label]="
+                'Choose ' + theme.label
+              "
+              [attr.aria-pressed]="
+                form.controls.colorTheme.value ===
+                theme.key
+              "
+              (click)="
+                form.controls.colorTheme.setValue(
+                  theme.key
+                )
+              "
+            >
+
+              <span
+                class="color-swatch"
+                [style.background]="theme.gradient"
+              >
+
+                @if (
+                  form.controls.colorTheme.value ===
+                  theme.key
+                ) {
+                  <span class="selected-check">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m5 12 4 4L19 6"/>
+                    </svg>
+                  </span>
+                }
+
+              </span>
+
+              <span class="color-label">
+                {{ theme.label }}
+              </span>
+
+            </button>
+
+          }
+
+        </div>
+
+
+        <!-- LIVE PREVIEW -->
+
+        <div class="preview-wrapper">
+
+          <span class="preview-label">
+            Preview
+          </span>
+
+
+          <div class="course-preview">
+
+            <span
+              class="preview-accent"
+              [style.background]="
+                selectedTheme().gradient
+              "
+            ></span>
+
+
+            <div class="preview-course-content">
+
+              <span
+                class="preview-course-code"
+                [style.background]="
+                  selectedTheme().gradient
+                "
+              >
+                {{
+                  form.controls.courseCode.value ||
+                  'COURSE'
+                }}
+              </span>
+
+
+              <div class="preview-course-text">
+
+                <strong>
+                  {{
+                    form.controls.courseName.value ||
+                    'Course name'
+                  }}
+                </strong>
+
+                <span>
+                  {{
+                    form.controls.term.value ||
+                    'Term'
+                  }}
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ACTIONS
+         ===================================================== -->
+
+    <footer class="form-actions">
+
+      <a
+        routerLink="/courses"
+        class="cancel-button"
+      >
+        Cancel
+      </a>
+
+
+      <button
+        type="submit"
+        class="submit-button"
+        [disabled]="loading()"
+      >
+
+        @if (loading()) {
+          <span class="button-spinner"></span>
+          Creating…
+        } @else {
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+          </svg>
+
+          Create course
+        }
+
       </button>
-      <a routerLink="/courses" class="text-sm font-medium text-muted hover:underline">Cancel</a>
-    </div>
+
+    </footer>
+
   </form>
+
 </div>

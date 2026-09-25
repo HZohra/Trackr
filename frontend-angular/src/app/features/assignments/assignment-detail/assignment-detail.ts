@@ -379,6 +379,13 @@ export class AssignmentDetail {
         this.populateForm(
           activity,
         );
+        
+        const shouldEdit =
+        this.route.snapshot.queryParamMap.get('edit') === 'true';
+
+        if (shouldEdit) {
+          this.editing.set(true);
+        }
 
         this.loading.set(
           false,

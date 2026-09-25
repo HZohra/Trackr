@@ -1,0 +1,716 @@
+:host {
+  display: block;
+}
+
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+
+.add-assignment-page {
+  width: min(100%, 960px);
+
+  margin: 0 auto;
+
+  padding:
+    10px
+    0
+    52px;
+}
+
+
+/* ============================================================
+   BACK
+   ============================================================ */
+
+.add-back {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-bottom: 17px;
+
+  color:
+    var(--brand-ink);
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+.add-back:hover {
+  text-decoration: underline;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.add-header {
+  margin-bottom: 24px;
+}
+
+
+.add-eyebrow {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color:
+    var(--brand-ink);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+}
+
+
+.add-header h1 {
+  margin: 0;
+
+  color:
+    var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size:
+    clamp(
+      28px,
+      3vw,
+      38px
+    );
+
+  font-weight: 820;
+
+  line-height: 1;
+
+  letter-spacing:
+    -0.04em;
+}
+
+
+.add-header p {
+  margin:
+    9px
+    0
+    0;
+
+  color:
+    var(--muted);
+
+  font-size: 11px;
+
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+
+.add-error {
+  margin-bottom: 16px;
+
+  padding:
+    11px
+    13px;
+
+  border:
+    1px solid
+    var(--danger-soft);
+
+  border-radius: 10px;
+
+  background:
+    var(--danger-soft);
+
+  color:
+    var(--danger-ink);
+
+  font-size: 10px;
+}
+
+
+/* ============================================================
+   FORM
+   ============================================================ */
+
+.add-form {
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 16px;
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    var(--card-shadow);
+}
+
+
+/* ============================================================
+   SECTION
+   ============================================================ */
+
+.form-section {
+  display: grid;
+
+  grid-template-columns:
+    210px
+    minmax(0, 1fr);
+
+  gap: 32px;
+
+  padding:
+    26px
+    24px;
+
+  border-bottom:
+    1px solid
+    var(--line);
+}
+
+
+.form-section-heading {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+}
+
+
+.section-number {
+  display: grid;
+  place-items: center;
+
+  width: 29px;
+  height: 29px;
+
+  flex: 0 0 auto;
+
+  border-radius: 8px;
+
+  background:
+    var(--brand-soft);
+
+  color:
+    var(--brand-ink);
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+
+.form-section-heading h2 {
+  margin:
+    1px
+    0
+    0;
+
+  color:
+    var(--ink);
+
+  font-size: 11px;
+  font-weight: 760;
+}
+
+
+.form-section-heading p {
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    var(--muted);
+
+  font-size: 8px;
+
+  line-height: 1.55;
+}
+
+
+/* ============================================================
+   FIELDS
+   ============================================================ */
+
+.form-fields {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 17px;
+}
+
+
+.form-field {
+  min-width: 0;
+}
+
+
+.form-field-wide {
+  grid-column:
+    1 / -1;
+}
+
+
+.form-field label {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-bottom: 7px;
+
+  color:
+    var(--ink);
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+
+.form-field label span {
+  color:
+    var(--faint);
+
+  font-size: 8px;
+  font-weight: 500;
+}
+
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  height: 42px;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 9px;
+
+  background:
+    var(--surface);
+
+  color:
+    var(--ink);
+
+  font-family: inherit;
+
+  font-size: 10px;
+
+  outline: none;
+
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+
+.form-field input {
+  padding:
+    0
+    11px;
+}
+
+
+.form-field input::placeholder {
+  color:
+    var(--faint);
+}
+
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color:
+    var(--brand);
+
+  box-shadow:
+    0 0 0 3px
+    var(--brand-soft);
+}
+
+
+/* ============================================================
+   SELECT
+   ============================================================ */
+
+.select-wrap {
+  position: relative;
+}
+
+
+.select-wrap select {
+  padding:
+    0
+    36px
+    0
+    11px;
+
+  appearance: none;
+}
+
+
+.select-wrap svg {
+  position: absolute;
+
+  top: 50%;
+  right: 12px;
+
+  width: 14px;
+  height: 14px;
+
+  color:
+    var(--muted);
+
+  transform:
+    translateY(-50%);
+
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   NUMBER
+   ============================================================ */
+
+.number-field {
+  position: relative;
+}
+
+
+.number-field input {
+  padding-right: 36px;
+}
+
+
+.number-field > span {
+  position: absolute;
+
+  top: 50%;
+  right: 12px;
+
+  color:
+    var(--muted);
+
+  font-size: 9px;
+
+  transform:
+    translateY(-50%);
+
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   FIELD META
+   ============================================================ */
+
+.field-help {
+  display: block;
+
+  margin-top: 6px;
+
+  color:
+    var(--faint);
+
+  font-size: 8px;
+
+  line-height: 1.45;
+}
+
+
+.field-error {
+  display: block;
+
+  margin-top: 6px;
+
+  color:
+    var(--danger-ink);
+
+  font-size: 8px;
+}
+
+
+/* ============================================================
+   NEXT STEP
+   ============================================================ */
+
+.next-step-card {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  margin:
+    20px
+    24px;
+
+  padding:
+    14px;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 11px;
+
+  background:
+    var(--surface-2);
+}
+
+
+.next-step-icon {
+  display: grid;
+  place-items: center;
+
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 auto;
+
+  border-radius: 9px;
+
+  background:
+    var(--brand-soft);
+
+  color:
+    var(--brand-ink);
+}
+
+
+.next-step-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+
+.next-step-card strong {
+  display: block;
+
+  color:
+    var(--ink);
+
+  font-size: 9px;
+  font-weight: 750;
+}
+
+
+.next-step-card p {
+  max-width: 540px;
+
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    var(--muted);
+
+  font-size: 8px;
+
+  line-height: 1.55;
+}
+
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  padding:
+    16px
+    24px;
+
+  border-top:
+    1px solid
+    var(--line);
+
+  background:
+    var(--surface-2);
+}
+
+
+.cancel-button,
+.submit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 40px;
+
+  padding:
+    0
+    14px;
+
+  border-radius: 9px;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+.cancel-button {
+  border:
+    1px solid
+    var(--line);
+
+  background:
+    var(--surface);
+
+  color:
+    var(--muted);
+}
+
+
+.cancel-button:hover {
+  color:
+    var(--ink);
+}
+
+
+.submit-button {
+  gap: 6px;
+
+  background:
+    var(--brand);
+
+  color: white;
+
+  box-shadow:
+    var(--btn-shadow);
+}
+
+
+.submit-button:hover {
+  background:
+    var(--brand-ink);
+}
+
+
+.submit-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+.cancel-button:disabled,
+.submit-button:disabled {
+  cursor:
+    not-allowed;
+
+  opacity: 0.55;
+}
+
+
+/* ============================================================
+   LOADING
+   ============================================================ */
+
+.button-spinner {
+  width: 12px;
+  height: 12px;
+
+  border:
+    2px solid
+    rgba(255, 255, 255, 0.35);
+
+  border-top-color:
+    white;
+
+  border-radius: 999px;
+
+  animation:
+    button-spin 700ms linear infinite;
+}
+
+
+@keyframes button-spin {
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 720px) {
+
+  .form-section {
+    grid-template-columns:
+      1fr;
+
+    gap: 18px;
+
+    padding:
+      20px;
+  }
+
+
+  .form-fields {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .form-field-wide {
+    grid-column: auto;
+  }
+
+
+  .next-step-card {
+    margin:
+      16px
+      20px;
+  }
+
+
+  .form-actions {
+    padding:
+      15px
+      20px;
+  }
+
+}
+
+
+@media (max-width: 500px) {
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+
+  .cancel-button,
+  .submit-button {
+    width: 100%;
+  }
+
+}

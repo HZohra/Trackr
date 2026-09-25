@@ -1,68 +1,576 @@
-<div class="mx-auto max-w-5xl">
-  <div class="flex items-center justify-between">
-    <h1 class="font-display text-3xl font-bold text-ink">Assignments</h1>
-    <a routerLink="/assignments/new" class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition hover:bg-brand-ink">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      Add assignment
-    </a>
-  </div>
+<div class="assignments-page">
 
-  @if (loading()) {
-    <p class="mt-6 text-sm text-muted">Loading…</p>
-  } @else if (error()) {
-    <div class="mt-6 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
-  } @else {
-    <div class="mt-6 inline-flex gap-1 rounded-xl border border-line bg-surface2 p-1 text-sm">
-      @for (f of filters; track f) {
-        <button type="button" (click)="setFilter(f)"
-                class="rounded-lg px-3 py-1.5 font-medium capitalize transition"
-                [class.bg-surface]="filter() === f" [class.text-ink]="filter() === f"
-                [class.shadow-card]="filter() === f" [class.text-muted]="filter() !== f">
-          {{ f }}
-        </button>
-      }
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
+  <header class="assignments-header">
+
+    <div>
+
+      <span class="assignments-eyebrow">
+        Academics
+      </span>
+
+      <h1>
+        Assignments
+      </h1>
+
+      <p>
+        Manage assignments, quizzes,
+        exams, projects and labs.
+      </p>
+
     </div>
 
-    @if (visible().length === 0) {
-      <div class="mt-6 rounded-2xl border border-dashed border-line bg-surface p-10 text-center">
-        <p class="text-sm font-semibold text-ink">No assignments here</p>
-        <p class="mt-1 text-sm text-muted">Add one, or upload a syllabus to fill them in automatically.</p>
-      </div>
-    } @else {
-      <div class="mt-4 overflow-x-auto rounded-2xl border border-line bg-surface shadow-card">
-        <table class="w-full text-left text-sm">
-          <thead class="border-b border-line text-xs uppercase tracking-wide text-muted">
-            <tr>
-              <th class="px-4 py-3 font-semibold">Assignment</th>
-              <th class="px-4 py-3 font-semibold">Course</th>
-              <th class="px-4 py-3 font-semibold">Type</th>
-              <th class="px-4 py-3 font-semibold">Due</th>
-              <th class="px-4 py-3 font-semibold">Weight</th>
-              <th class="px-4 py-3 font-semibold">Grade</th>
-              <th class="px-4 py-3 font-semibold">Status</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-line">
-            @for (a of visible(); track a.activity_id) {
-              <tr [routerLink]="['/assignments', a.activity_id]" class="cursor-pointer transition hover:bg-surface2">
-                <td class="px-4 py-3 font-medium text-ink">{{ a.activity_name }}</td>
-                <td class="px-4 py-3 text-muted">{{ courseCode(a.course_id) }}</td>
-                <td class="px-4 py-3 text-muted">{{ categoryName[a.activity_category_id] }}</td>
-                <td class="px-4 py-3 text-muted">{{ a.due_date ? (a.due_date | date:'MMM d, y') : '—' }}</td>
-                <td class="px-4 py-3 tabular-nums text-muted">{{ a.grading_weight != null ? +a.grading_weight + '%' : '—' }}</td>
-                <td class="px-4 py-3 tabular-nums text-ink">{{ a.grade != null ? +a.grade + '%' : '—' }}</td>
-                <td class="px-4 py-3">
-                  <span class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                        [class.bg-leaf-soft]="a.grade != null" [class.text-leaf]="a.grade != null"
-                        [class.bg-surface2]="a.grade == null" [class.text-muted]="a.grade == null">
-                    {{ a.status.replaceAll('_', ' ') }}
-                  </span>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
+
+    <a
+      routerLink="/assignments/new"
+      class="add-assignment-button"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        <path d="M12 5v14"/>
+        <path d="M5 12h14"/>
+      </svg>
+
+      Add assignment
+    </a>
+
+  </header>
+
+
+  @if (error()) {
+
+    <div class="assignments-error">
+      {{ error() }}
+    </div>
+
   }
+
+
+  <!-- =====================================================
+       TOOLBAR
+       ===================================================== -->
+
+  @if (!loading() && !error()) {
+
+    <section class="assignments-toolbar">
+
+      <!-- Search -->
+      <div class="assignment-search">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle
+            cx="11"
+            cy="11"
+            r="7"
+          />
+
+          <path
+            d="M21 21l-4.3-4.3"
+          />
+        </svg>
+
+
+        <input
+          #searchInput
+          type="search"
+          placeholder="Search by assignment, course or type..."
+          [value]="searchQuery()"
+          (input)="setSearch(searchInput.value)"
+        />
+
+
+        @if (searchQuery()) {
+
+          <button
+            type="button"
+            class="assignment-search-clear"
+            aria-label="Clear search"
+            (click)="clearSearch()"
+          >
+            ×
+          </button>
+
+        }
+
+      </div>
+
+
+      <div class="assignments-toolbar-bottom">
+
+        <!-- Filters -->
+        <div class="assignment-filters">
+
+          <button
+            type="button"
+            [class.filter-active]="filter() === 'all'"
+            (click)="setFilter('all')"
+          >
+            All
+            <span>
+              {{ allCount() }}
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            [class.filter-active]="filter() === 'upcoming'"
+            (click)="setFilter('upcoming')"
+          >
+            Upcoming
+            <span>
+              {{ upcomingCount() }}
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            [class.filter-active]="filter() === 'overdue'"
+            (click)="setFilter('overdue')"
+          >
+            Overdue
+            <span>
+              {{ overdueCount() }}
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            [class.filter-active]="filter() === 'completed'"
+            (click)="setFilter('completed')"
+          >
+            Completed
+            <span>
+              {{ completedCount() }}
+            </span>
+          </button>
+
+        </div>
+
+
+        <!-- Sort -->
+        <label class="assignment-sort">
+
+          <span>
+            Sort
+          </span>
+
+
+          <select
+            #sortSelect
+            [value]="sortBy()"
+            (change)="setSort(sortSelect.value)"
+          >
+            <option value="due">
+              Due date
+            </option>
+
+            <option value="name">
+              Name
+            </option>
+
+            <option value="course">
+              Course
+            </option>
+
+            <option value="weight">
+              Weight
+            </option>
+
+            <option value="grade">
+              Grade
+            </option>
+          </select>
+
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="m6 9 6 6 6-6"
+            />
+          </svg>
+
+        </label>
+
+      </div>
+
+    </section>
+
+  }
+
+
+  <!-- =====================================================
+       LOADING
+       ===================================================== -->
+
+  @if (loading()) {
+
+    <div class="assignments-loading">
+
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       CONTENT
+       ===================================================== -->
+
+  @if (!loading() && !error()) {
+
+    <section class="assignments-content">
+
+      <div class="assignments-section-heading">
+
+        <div>
+
+          <h2>
+
+            @switch (filter()) {
+
+              @case ('upcoming') {
+                Upcoming assignments
+              }
+
+              @case ('overdue') {
+                Overdue assignments
+              }
+
+              @case ('completed') {
+                Completed assignments
+              }
+
+              @default {
+                All assignments
+              }
+
+            }
+
+          </h2>
+
+
+          <p>
+
+            @if (searchQuery()) {
+
+              {{ visible().length }}
+              {{
+                visible().length === 1
+                  ? 'result'
+                  : 'results'
+              }}
+
+              for
+              “{{ searchQuery() }}”
+
+            } @else {
+
+              {{ visible().length }}
+
+              {{
+                visible().length === 1
+                  ? 'activity'
+                  : 'activities'
+              }}
+
+            }
+
+          </p>
+
+        </div>
+
+      </div>
+
+
+      @if (
+        visible().length === 0
+      ) {
+
+        <div class="assignments-empty">
+
+          <span class="assignments-empty-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M9 11l3 3L22 4"
+              />
+
+              <path
+                d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+              />
+            </svg>
+
+          </span>
+
+
+          @if (searchQuery()) {
+
+            <h3>
+              No assignments found
+            </h3>
+
+            <p>
+              Nothing matches
+              “{{ searchQuery() }}”.
+            </p>
+
+            <button
+              type="button"
+              (click)="clearSearch()"
+            >
+              Clear search
+            </button>
+
+          } @else {
+
+            <h3>
+              No assignments here
+            </h3>
+
+            <p>
+              There are no assignments
+              in this category right now.
+            </p>
+
+          }
+
+        </div>
+
+      } @else {
+
+        <!-- =================================================
+             DESKTOP TABLE
+             ================================================= -->
+
+        <div class="assignments-table">
+
+          <div class="assignments-table-header">
+
+            <span>Assignment</span>
+            <span>Course</span>
+            <span>Type</span>
+            <span>Due</span>
+            <span>Weight</span>
+            <span>Grade</span>
+            <span>Status</span>
+            <span></span>
+
+          </div>
+
+
+          @for (
+            a of visible();
+            track a.activity_id
+          ) {
+
+            <div
+              class="assignment-row"
+              [class.assignment-row-overdue]="isOverdue(a)"
+            >
+
+              <!-- Main clickable area -->
+              <a
+                [routerLink]="[
+                  '/assignments',
+                  a.activity_id
+                ]"
+                [queryParams]="{
+                  edit: 'true'
+                }"
+                class="assignment-edit"
+                aria-label="Edit assignment"
+                title="Edit assignment"
+              ></a>
+
+
+              <!-- Name -->
+              <div class="assignment-name">
+
+                <span
+                  class="assignment-type-dot"
+                  [class.dot-assignment]="a.activity_category_id === 1"
+                  [class.dot-quiz]="a.activity_category_id === 2"
+                  [class.dot-exam]="a.activity_category_id === 3"
+                  [class.dot-project]="a.activity_category_id === 4"
+                  [class.dot-lab]="a.activity_category_id === 5"
+                ></span>
+
+
+                <div>
+
+                  <strong>
+                    {{ a.activity_name }}
+                  </strong>
+
+                  <small>
+                    {{
+                      categoryName[
+                        a.activity_category_id
+                      ]
+                    }}
+                  </small>
+
+                </div>
+
+              </div>
+
+
+              <!-- Course -->
+              <div class="assignment-cell">
+                {{ courseCode(a.course_id) }}
+              </div>
+
+
+              <!-- Type -->
+              <div class="assignment-cell">
+                {{
+                  categoryName[
+                    a.activity_category_id
+                  ]
+                }}
+              </div>
+
+
+              <!-- Due -->
+              <div class="assignment-due">
+
+                <strong
+                  [class.overdue-text]="isOverdue(a)"
+                >
+                  {{
+                    a.due_date
+                      ? (
+                          a.due_date
+                            | date:'MMM d, y'
+                        )
+                      : 'No date'
+                  }}
+                </strong>
+
+                <small
+                  [class.overdue-text]="isOverdue(a)"
+                >
+                  {{ dueMeta(a) }}
+                </small>
+
+              </div>
+
+
+              <!-- Weight -->
+              <div class="assignment-cell assignment-number">
+
+                {{
+                  a.grading_weight != null
+                    ? +a.grading_weight + '%'
+                    : '—'
+                }}
+
+              </div>
+
+
+              <!-- Grade -->
+              <div class="assignment-cell assignment-grade">
+
+                {{
+                  a.grade != null
+                    ? +a.grade + '%'
+                    : '—'
+                }}
+
+              </div>
+
+
+              <!-- Status -->
+              <div class="assignment-status-cell">
+
+                <span
+                  class="assignment-status"
+                  [class.status-overdue]="isOverdue(a)"
+                  [class.status-progress]="a.status === 'in_progress' && !isOverdue(a)"
+                  [class.status-submitted]="a.status === 'submitted'"
+                  [class.status-graded]="a.status === 'graded'"
+                >
+                  {{ statusLabel(a) }}
+                </span>
+
+              </div>
+
+
+              <!-- Edit -->
+              <a
+                [routerLink]="[
+                  '/assignments',
+                  a.activity_id
+                ]"
+                class="assignment-edit"
+                aria-label="Edit assignment"
+                title="Edit assignment"
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M12 20h9"
+                  />
+
+                  <path
+                    d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"
+                  />
+                </svg>
+
+              </a>
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+  }
+
 </div>

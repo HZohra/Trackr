@@ -20,6 +20,17 @@ export const CATEGORY_NAME_TO_ID = {
     Other: 6,
 };
 
+export const VALID_COURSE_COLORS = new Set([
+    "sky",
+    "violet",
+    "amber",
+    "coral",
+    "teal",
+    "lime",
+    "rose",
+    "slate",
+]);
+
 const VALID_CATEGORY_IDS = new Set([1, 2, 3, 4, 5, 6]);
 const VALID_REMINDER_METHODS = new Set(["email", "whatsapp"]);
 const VALID_PRIORITY_LEVELS = new Set(["low", "medium", "high"]);
@@ -116,6 +127,16 @@ export function validateCoursePayload(payload) {
     const course_code = clampStr(c.course_code, COURSE_LIMITS.course_code);
     const course_name = clampStr(c.course_name, COURSE_LIMITS.course_name);
     const term = clampStr(c.term, 30);
+    const color_theme = clampStr(c.color_theme, 20);
+
+    if (
+        color_theme &&
+        !VALID_COURSE_COLORS.has(color_theme)
+    ) {
+        errors.push(
+            "course.color_theme is invalid"
+        );
+    }
 
     if (!course_code) errors.push("course.course_code is required");
     if (!course_name) errors.push("course.course_name is required");
@@ -132,6 +153,7 @@ export function validateCoursePayload(payload) {
         textbook_link: clampStr(c.textbook_link, COURSE_LIMITS.textbook_link),
         gpa_goal: toNumberOrNull(c.gpa_goal),
         term_end: toDateOnly(c.term_end),
+        color_theme,
     };
 
     const rawActivities = Array.isArray(payload?.activities) ? payload.activities : [];

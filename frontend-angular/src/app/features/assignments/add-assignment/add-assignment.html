@@ -1,5 +1,461 @@
-    <div>
-      <label class="mb-1 block text-sm font-medium text-ink">Due date <span class="text-faint">(optional)</span></label>
-      <input type="datetime-local" formControlName="dueDate" class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none" />
-      <p class="mt-1 text-xs text-faint">Leave blank if there's no date yet.</p>
+<div class="add-assignment-page">
+
+  <!-- =====================================================
+       BACK
+       ===================================================== -->
+
+  <button
+    type="button"
+    class="add-back"
+    (click)="cancel()"
+  >
+    <span>←</span>
+    Back
+  </button>
+
+
+  <!-- =====================================================
+       PAGE HEADER
+       ===================================================== -->
+
+  <header class="add-header">
+
+    <span class="add-eyebrow">
+      Academics
+    </span>
+
+    <h1>
+      Add assignment
+    </h1>
+
+    <p>
+      Add an assignment, quiz, exam,
+      project or lab to one of your courses.
+    </p>
+
+  </header>
+
+
+  @if (error()) {
+
+    <div class="add-error">
+      {{ error() }}
     </div>
+
+  }
+
+
+  <!-- =====================================================
+       FORM
+       ===================================================== -->
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="add-form"
+  >
+
+    <!-- ===================================================
+         BASIC INFORMATION
+         =================================================== -->
+
+    <section class="form-section">
+
+      <div class="form-section-heading">
+
+        <span class="section-number">
+          01
+        </span>
+
+        <div>
+
+          <h2>
+            Basic information
+          </h2>
+
+          <p>
+            Choose the course and
+            describe what the activity is.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="form-fields">
+
+        <!-- Name -->
+        <div class="form-field form-field-wide">
+
+          <label for="assignment-name">
+            Name
+          </label>
+
+          <input
+            id="assignment-name"
+            type="text"
+            formControlName="name"
+            placeholder="e.g. Assignment 2 — Release 1"
+          />
+
+
+          @if (
+            form.controls.name.touched &&
+            form.controls.name.invalid
+          ) {
+
+            <span class="field-error">
+              Assignment name is required.
+            </span>
+
+          }
+
+        </div>
+
+
+        <!-- Course -->
+        <div class="form-field">
+
+          <label for="assignment-course">
+            Course
+          </label>
+
+
+          <div class="select-wrap">
+
+            <select
+              id="assignment-course"
+              formControlName="courseId"
+            >
+
+              <option
+                [ngValue]="0"
+                disabled
+              >
+                Select a course
+              </option>
+
+
+              @for (
+                course of courses();
+                track course.id
+              ) {
+
+                <option
+                  [ngValue]="course.id"
+                >
+                  {{ course.code }}
+                  —
+                  {{ course.name }}
+                </option>
+
+              }
+
+            </select>
+
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+
+          </div>
+
+
+          @if (
+            form.controls.courseId.touched &&
+            form.controls.courseId.invalid
+          ) {
+
+            <span class="field-error">
+              Please select a course.
+            </span>
+
+          }
+
+        </div>
+
+
+        <!-- Type -->
+        <div class="form-field">
+
+          <label for="assignment-type">
+            Type
+          </label>
+
+
+          <div class="select-wrap">
+
+            <select
+              id="assignment-type"
+              formControlName="categoryId"
+            >
+
+              @for (
+                category of categories;
+                track category.id
+              ) {
+
+                <option
+                  [ngValue]="category.id"
+                >
+                  {{ category.name }}
+                </option>
+
+              }
+
+            </select>
+
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         SCHEDULE & GRADING
+         =================================================== -->
+
+    <section class="form-section">
+
+      <div class="form-section-heading">
+
+        <span class="section-number">
+          02
+        </span>
+
+        <div>
+
+          <h2>
+            Schedule & grading
+          </h2>
+
+          <p>
+            Add the due date and how much
+            this activity is worth.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="form-fields">
+
+        <!-- Due -->
+        <div class="form-field">
+
+          <label for="assignment-due">
+
+            Due date & time
+
+            <span>
+              Optional
+            </span>
+
+          </label>
+
+
+          <input
+            id="assignment-due"
+            type="datetime-local"
+            formControlName="dueDate"
+          />
+
+
+          <small class="field-help">
+            Leave blank if your professor
+            has not announced the date yet.
+          </small>
+
+        </div>
+
+
+        <!-- Weight -->
+        <div class="form-field">
+
+          <label for="assignment-weight">
+
+            Weight
+
+            <span>
+              %
+            </span>
+
+          </label>
+
+
+          <div class="number-field">
+
+            <input
+              id="assignment-weight"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              formControlName="weight"
+            />
+
+            <span>
+              %
+            </span>
+
+          </div>
+
+
+          <small class="field-help">
+            Use 0 if the activity does not
+            contribute to your final grade.
+          </small>
+
+
+          @if (
+            form.controls.weight.touched &&
+            form.controls.weight.invalid
+          ) {
+
+            <span class="field-error">
+              Weight must be between
+              0 and 100%.
+            </span>
+
+          }
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         WHAT HAPPENS NEXT
+         =================================================== -->
+
+    <section class="next-step-card">
+
+      <span class="next-step-icon">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          />
+
+          <path
+            d="M14 2v6h6"
+          />
+
+          <path
+            d="M12 18v-6"
+          />
+
+          <path
+            d="m9 15 3 3 3-3"
+          />
+        </svg>
+
+      </span>
+
+
+      <div>
+
+        <strong>
+          Add more details afterward
+        </strong>
+
+        <p>
+          After creating this activity,
+          Trackr will open its workspace where
+          you can add instructions, notes,
+          grades and update its status.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         ACTIONS
+         =================================================== -->
+
+    <div class="form-actions">
+
+      <button
+        type="button"
+        class="cancel-button"
+        [disabled]="loading()"
+        (click)="cancel()"
+      >
+        Cancel
+      </button>
+
+
+      <button
+        type="submit"
+        class="submit-button"
+        [disabled]="
+          loading() ||
+          loadingCourses()
+        "
+      >
+
+        @if (loading()) {
+
+          <span class="button-spinner"></span>
+
+          Adding…
+
+        } @else {
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+          </svg>
+
+          Add assignment
+
+        }
+
+      </button>
+
+    </div>
+
+  </form>
+
+</div>

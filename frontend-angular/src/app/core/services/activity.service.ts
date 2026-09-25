@@ -8,7 +8,7 @@ export interface NewActivityInput {
   courseId: number;
   categoryId: number;
   name: string;
-  dueDate: string;
+  dueDate: string | null;
   weight: number;
 }
 
@@ -33,8 +33,8 @@ export class ActivityService {
     return this.http.get<Activity[]>(`${this.api}/user/activities`);
   }
 
-  addActivity(input: NewActivityInput): Observable<unknown> {
-    return this.http.post(`${this.api}/user/activities`, {
+  addActivity(input: NewActivityInput): Observable<Activity> {
+    return this.http.post<Activity>(`${this.api}/user/activities`, {
       activity: {
         course_id: input.courseId,
         activity_category_id: input.categoryId,
