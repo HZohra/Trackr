@@ -1,43 +1,567 @@
-<div class="mx-auto max-w-6xl">
-  <h1 class="font-display text-3xl font-bold text-ink">Your courses</h1>
+<div class="courses-page">
 
-  @if (loading()) {
-    <p class="mt-4 text-sm text-muted">Loading your courses…</p>
-  } @else if (error()) {
-    <div class="mt-4 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
-  } @else {
-    <p class="mt-1 text-sm text-muted">
-      {{ visibleCourses().length }} {{ visibleCourses().length === 1 ? 'course' : 'courses' }}
-      @if (archivedCount() > 0 && !showArchived()) { <span class="text-faint">· {{ archivedCount() }} archived hidden</span> }
-    </p>
+  <!-- =========================================================
+       PAGE HEADER
+       ========================================================= -->
+  <header class="courses-header">
 
-    <div class="mt-6 flex flex-wrap gap-3">
-      <a routerLink="/courses/new" class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white shadow-card transition hover:bg-brand-ink">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-        Add course
-      </a>
-      <a routerLink="/courses/upload" class="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-3 text-sm font-semibold text-ink shadow-card transition hover:bg-surface2">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3"/></svg>
-        Upload syllabus
-      </a>
+    <div class="courses-heading">
+
+      <span class="courses-eyebrow">
+        Academics
+      </span>
+
+      <h1>
+        Courses
+      </h1>
+
+      <p>
+        Manage your classes, grades and course progress.
+      </p>
+
     </div>
 
-    @if (visibleCourses().length === 0) {
-      <div class="mt-6 rounded-2xl border border-dashed border-line bg-surface p-10 text-center">
-        @if (archivedCount() > 0 && !showArchived()) {
-          <p class="text-sm font-semibold text-ink">All your courses are archived</p>
-          <p class="mt-1 text-sm text-muted">Turn on “Show archived courses” in Settings to see them.</p>
-        } @else {
-          <p class="text-sm font-semibold text-ink">No courses yet</p>
-          <p class="mt-1 text-sm text-muted">Add a course or upload a syllabus to get started.</p>
-        }
-      </div>
-    } @else {
-      <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        @for (course of visibleCourses(); track course.id) {
-          <app-course-card [course]="course" />
-        }
-      </div>
-    }
+
+    <div class="courses-header-actions">
+
+      <!-- Upload syllabus -->
+      <a
+        routerLink="/courses/upload"
+        class="courses-button courses-button-secondary"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 16V4"/>
+          <path d="M7 9l5-5 5 5"/>
+          <path d="M20 16v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3"/>
+        </svg>
+
+        Upload syllabus
+      </a>
+
+
+      <!-- Add course -->
+      <a
+        routerLink="/courses/new"
+        class="courses-button courses-button-primary"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M12 5v14"/>
+          <path d="M5 12h14"/>
+        </svg>
+
+        Add course
+      </a>
+
+    </div>
+
+  </header>
+
+
+
+  <!-- =========================================================
+       ERROR
+       ========================================================= -->
+
+  @if (error()) {
+
+    <div class="courses-error">
+      {{ error() }}
+    </div>
+
   }
+
+
+
+  <!-- =========================================================
+       TOOLBAR
+       ========================================================= -->
+
+  @if (!loading() && !error()) {
+
+    <section class="courses-toolbar">
+
+      <!-- Search -->
+      <div class="courses-search">
+
+        <svg
+          class="courses-search-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="7"/>
+          <path d="M21 21l-4.3-4.3"/>
+        </svg>
+
+
+        <input
+          #courseSearch
+          type="search"
+          placeholder="Search by course, name or professor..."
+          [value]="searchQuery()"
+          (input)="setSearch(courseSearch.value)"
+        />
+
+
+        @if (searchQuery()) {
+
+          <button
+            type="button"
+            class="courses-search-clear"
+            aria-label="Clear search"
+            (click)="clearSearch()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+
+        }
+
+      </div>
+
+
+      <div class="courses-toolbar-right">
+
+        <!-- ===================================================
+             ALL / ACTIVE / ARCHIVED
+             =================================================== -->
+        <div
+          class="courses-tabs"
+          aria-label="Course status"
+        >
+
+          <!-- All -->
+          <button
+            type="button"
+            [class.courses-tab-active]="selectedTab() === 'all'"
+            [attr.aria-pressed]="selectedTab() === 'all'"
+            (click)="setTab('all')"
+          >
+            All
+
+            <span>
+              {{ allCount() }}
+            </span>
+          </button>
+
+
+          <!-- Active -->
+          <button
+            type="button"
+            [class.courses-tab-active]="selectedTab() === 'active'"
+            [attr.aria-pressed]="selectedTab() === 'active'"
+            (click)="setTab('active')"
+          >
+            Active
+
+            <span>
+              {{ activeCount() }}
+            </span>
+          </button>
+
+
+          <!-- Archived -->
+          <button
+            type="button"
+            [class.courses-tab-active]="selectedTab() === 'archived'"
+            [attr.aria-pressed]="selectedTab() === 'archived'"
+            (click)="setTab('archived')"
+          >
+            Archived
+
+            <span>
+              {{ archivedCount() }}
+            </span>
+          </button>
+
+        </div>
+
+
+        <!-- ===================================================
+             SORT
+             =================================================== -->
+        <label class="courses-sort">
+
+          <span class="courses-sort-label">
+            Sort
+          </span>
+
+          <select
+            #sortSelect
+            [value]="sortBy()"
+            (change)="setSort(sortSelect.value)"
+          >
+
+            <option value="code">
+              Course code
+            </option>
+
+            <option value="name">
+              Course name
+            </option>
+
+            <option value="grade">
+              Grade
+            </option>
+
+          </select>
+
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+
+        </label>
+
+      </div>
+
+    </section>
+
+  }
+
+
+
+  <!-- =========================================================
+       LOADING
+       ========================================================= -->
+
+  @if (loading()) {
+
+    <div class="courses-loading">
+
+      <div class="course-loading-card"></div>
+      <div class="course-loading-card"></div>
+      <div class="course-loading-card"></div>
+      <div class="course-loading-card"></div>
+
+    </div>
+
+  }
+
+
+
+  <!-- =========================================================
+       COURSES
+       ========================================================= -->
+
+  @if (!loading() && !error()) {
+
+    <section class="courses-content">
+
+      <!-- =====================================================
+           SECTION HEADING
+           ===================================================== -->
+      <div class="courses-section-heading">
+
+        <div>
+
+          <h2>
+
+            @switch (selectedTab()) {
+
+              @case ('all') {
+                All courses
+              }
+
+              @case ('active') {
+                Active courses
+              }
+
+              @case ('archived') {
+                Archived courses
+              }
+
+            }
+
+          </h2>
+
+
+          <p>
+
+            @if (searchQuery()) {
+
+              {{ filteredCourses().length }}
+
+              {{
+                filteredCourses().length === 1
+                  ? 'result'
+                  : 'results'
+              }}
+
+              for “{{ searchQuery() }}”
+
+            } @else {
+
+              {{ filteredCourses().length }}
+
+              {{
+                filteredCourses().length === 1
+                  ? 'course'
+                  : 'courses'
+              }}
+
+            }
+
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =====================================================
+           EMPTY STATES
+           ===================================================== -->
+
+      @if (filteredCourses().length === 0) {
+
+        <div class="courses-empty">
+
+          <!-- Search has no results -->
+          @if (searchQuery()) {
+
+            <span class="courses-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="7"/>
+                <path d="M21 21l-4.3-4.3"/>
+              </svg>
+
+            </span>
+
+
+            <h3>
+              No courses found
+            </h3>
+
+            <p>
+              We couldn't find anything matching
+              “{{ searchQuery() }}”.
+            </p>
+
+
+            <button
+              type="button"
+              class="courses-empty-link"
+              (click)="clearSearch()"
+            >
+              Clear search
+            </button>
+
+
+          } @else if (selectedTab() === 'archived') {
+
+            <!-- No archived courses -->
+            <span class="courses-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect
+                  x="3"
+                  y="4"
+                  width="18"
+                  height="5"
+                  rx="1"
+                />
+
+                <path
+                  d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"
+                />
+
+                <path d="M10 13h4"/>
+              </svg>
+
+            </span>
+
+
+            <h3>
+              No archived courses
+            </h3>
+
+            <p>
+              Courses you archive will appear here.
+            </p>
+
+
+            <button
+              type="button"
+              class="courses-empty-link"
+              (click)="setTab('active')"
+            >
+              View active courses
+            </button>
+
+
+          } @else if (selectedTab() === 'active') {
+
+            <!-- No active courses -->
+            <span class="courses-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
+                />
+
+                <path
+                  d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+                />
+              </svg>
+
+            </span>
+
+
+            <h3>
+              No active courses
+            </h3>
+
+            <p>
+              You currently don't have any active courses.
+            </p>
+
+
+            <a
+              routerLink="/courses/new"
+              class="courses-button courses-button-primary courses-empty-single-button"
+            >
+              Add course
+            </a>
+
+
+          } @else {
+
+            <!-- No courses at all -->
+            <span class="courses-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
+                />
+
+                <path
+                  d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+                />
+              </svg>
+
+            </span>
+
+
+            <h3>
+              No courses yet
+            </h3>
+
+            <p>
+              Add your first course manually or let Trackr
+              create one from your syllabus.
+            </p>
+
+
+            <div class="courses-empty-actions">
+
+              <a
+                routerLink="/courses/new"
+                class="courses-button courses-button-primary"
+              >
+                Add course
+              </a>
+
+
+              <a
+                routerLink="/courses/upload"
+                class="courses-button courses-button-secondary"
+              >
+                Upload syllabus
+              </a>
+
+            </div>
+
+          }
+
+        </div>
+
+
+      } @else {
+
+        <!-- ===================================================
+             COURSE GRID
+             =================================================== -->
+        <div class="courses-grid">
+
+          @for (
+            course of filteredCourses();
+            track course.id
+          ) {
+
+            <app-course-card
+              [course]="course"
+              variant="detailed"
+            />
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+  }
+
 </div>

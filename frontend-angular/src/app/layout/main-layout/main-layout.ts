@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { CourseService } from '../../core/services/course.service';
@@ -10,12 +12,21 @@ import { Activity } from '../../core/models/activity';
 
 interface SearchResult { kind: string; label: string; sublabel: string; link: (string | number)[]; }
 
+/**
+ * At or below this width the sidebar is an overlay drawer instead of a column.
+ * MUST match the `@media (max-width: 900px)` block in main-layout.css.
+ */
+const DRAWER_QUERY = '(max-width: 900px)';
+
 @Component({
   selector: 'app-main-layout',
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
-  host: { '(document:click)': 'closeMenus()' },
+  host: {
+    '(document:click)': 'closeMenus()',
+    '(document:keydown.escape)': 'closeDrawer()',
+  },
 })
 export class MainLayout {
   private readonly auth = inject(AuthService);
@@ -39,7 +50,16 @@ export class MainLayout {
   protected readonly isDark = computed(() => this.themeService.theme() === 'dark');
   protected toggleTheme(): void { this.themeService.toggle(); }
 
-  protected readonly collapsed = signal(false);
+  // --- Sidebar / drawer ------------------------------------------------------
+  private readonly drawerQuery: MediaQueryList | null =
+    typeof window !== 'undefined' ? window.matchMedia(DRAWER_QUERY) : null;
+
+  /** True while the sidebar is acting as an overlay drawer (small screens). */
+  protected readonly isNarrow = signal(this.drawerQuery?.matches ?? false);
+
+  /** On small screens the drawer starts closed so it doesn't cover the page. */
+  protected readonly collapsed = signal(this.isNarrow());
+
   protected readonly addMenuOpen = signal(false);
   protected readonly userMenuOpen = signal(false);
   protected readonly notifOpen = signal(false);
@@ -55,6 +75,18 @@ export class MainLayout {
   constructor() {
     this.courseService.getCourses().subscribe({ next: (c) => this.courses.set(c), error: () => {} });
     this.activityService.getAllActivities().subscribe({ next: (a) => this.activities.set(a), error: () => {} });
+
+    // Resizing across the breakpoint: shrinking closes the drawer,
+    // growing brings the normal sidebar back.
+    this.drawerQuery?.addEventListener('change', (e) => {
+      this.isNarrow.set(e.matches);
+      this.collapsed.set(e.matches);
+    });
+
+    // Close the drawer after picking a page on small screens.
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed())
+      .subscribe(() => this.closeDrawer());
   }
 
   protected readonly results = computed<SearchResult[]>(() => {
@@ -104,6 +136,8 @@ export class MainLayout {
 
   // --- menus / misc --------------------------------------------------------
   protected toggleCollapsed(): void { this.collapsed.update((v) => !v); }
+  /** Closes the sidebar only when it's an overlay drawer (never on desktop). */
+  protected closeDrawer(): void { if (this.isNarrow()) this.collapsed.set(true); }
   protected toggleAddMenu(): void { this.userMenuOpen.set(false); this.notifOpen.set(false); this.addMenuOpen.update((v) => !v); }
   protected toggleUserMenu(): void { this.addMenuOpen.set(false); this.notifOpen.set(false); this.userMenuOpen.update((v) => !v); }
   protected toggleNotif(): void { this.addMenuOpen.set(false); this.userMenuOpen.set(false); this.notifOpen.update((v) => !v); }

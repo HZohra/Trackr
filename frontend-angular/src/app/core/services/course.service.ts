@@ -98,6 +98,20 @@ export class CourseService {
     });
   }
 
+  setGpaGoal(
+    id: number,
+    goal: number | null,
+  ): Observable<unknown> {
+    return this.http.patch(
+      `${this.api}/user/courses/${id}`,
+      {
+        course: {
+          gpa_goal: goal,
+        },
+      },
+    );
+  }
+
   deleteCourse(id: number): Observable<void> {
     return this.http.delete<void>(`${this.api}/user/courses/${id}`);
   }

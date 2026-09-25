@@ -1,0 +1,36 @@
+<div class="strip" role="list" aria-label="Grade weight due each day this week">
+  @for (col of columns(); track col.date.getTime()) {
+    <div class="day" role="listitem" [attr.aria-label]="col.label + ': ' + (col.total ? col.total + '% due' : 'nothing due')">
+      <div class="bars">
+        @for (seg of col.segments; track seg.id) {
+          <a class="seg" [routerLink]="['/assignments', seg.id]"
+             [style.height.%]="seg.height" [style.backgroundColor]="seg.color"
+             [attr.title]="segmentLabel(seg)" [attr.aria-label]="segmentLabel(seg)"></a>
+        } @empty {
+          <span class="seg seg-empty"></span>
+        }
+      </div>
+      <span class="label" [class.today]="col.isToday">
+        <b>{{ col.label }}</b>
+        {{ col.total ? col.total + '%' : '—' }}
+      </span>
+    </div>
+  }
+</div>
+
+@if (warning(); as w) {
+  <p class="warn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/>
+    </svg>
+    {{ w }}
+  </p>
+}
+
+@if (legend().length) {
+  <div class="legend">
+    @for (l of legend(); track l.code) {
+      <span><i [style.backgroundColor]="l.color"></i>{{ l.code }}</span>
+    }
+  </div>
+}

@@ -334,6 +334,10 @@
 
     </div>
   </aside>
+    <!-- Tap-outside-to-close layer for the small-screen drawer -->
+  @if (isNarrow() && !collapsed()) {
+    <div class="sidebar-backdrop" (click)="closeDrawer()" aria-hidden="true"></div>
+  }
 
 
 

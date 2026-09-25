@@ -1,27 +1,233 @@
-<a [routerLink]="['/courses', course().id]"
-   class="block overflow-hidden rounded-2xl border border-line bg-surface p-5 shadow-card transition hover:border-line"
-   [class.opacity-75]="course().archived">
-  <!-- colour bar on top -->
-  <div class="mb-3 h-1 w-8 rounded-full" [style.backgroundColor]="hex()"></div>
+@if (variant() === 'detailed') {
 
-  <div class="flex items-start justify-between gap-2">
-    <div class="min-w-0">
-      <p class="font-display text-base font-bold leading-tight text-ink">{{ course().code }}</p>
-      <p class="mt-0.5 truncate text-sm text-muted">{{ course().name }}</p>
+  <!-- =========================================================
+       DETAILED COURSE CARD
+       Used on /courses
+       ========================================================= -->
+  <a
+    [routerLink]="['/courses', course().id]"
+    class="course-card-detailed"
+    [class.course-card-archived]="course().archived"
+  >
+
+    <!-- Course color -->
+    <span
+      class="course-card-accent"
+      [style.backgroundColor]="hex()"
+    ></span>
+
+
+    <!-- Top -->
+    <div class="course-card-top">
+
+      <div class="course-card-code">
+
+        <span
+          class="course-card-dot"
+          [style.backgroundColor]="hex()"
+        ></span>
+
+        <span>
+          {{ course().code }}
+        </span>
+
+      </div>
+
+
+      @if (course().archived) {
+
+        <span class="course-card-status">
+          Archived
+        </span>
+
+      } @else {
+
+        <span
+          class="course-card-status course-card-status-active"
+        >
+          Active
+        </span>
+
+      }
+
     </div>
-    @if (course().archived) {
-      <span class="shrink-0 rounded bg-surface2 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted">Archived</span>
-    }
-  </div>
 
-  <div class="mt-4 flex items-baseline justify-between">
-    <span class="font-display text-2xl font-extrabold tabular-nums" [style.color]="gradeColor()">
-      {{ course().currentGrade === null ? '—' : course().currentGrade + '%' }}
-    </span>
-    @if (nextLabel()) {
-      <span class="truncate text-xs font-medium text-faint">Next · {{ nextLabel() }}</span>
-    } @else {
-      <span class="text-xs text-faint">{{ course().percentComplete }}% complete</span>
-    }
-  </div>
-</a>
+
+    <!-- Course name -->
+    <h2 class="course-card-title">
+      {{ course().name }}
+    </h2>
+
+
+    <!-- Professor -->
+    <p class="course-card-professor">
+
+      @if (course().professor) {
+
+        {{ course().professor }}
+
+      } @else {
+
+        Instructor not added
+
+      }
+
+    </p>
+
+
+    <!-- Stats -->
+    <div class="course-card-stats">
+
+      <div class="course-card-stat">
+
+        <span>
+          Current grade
+        </span>
+
+        <strong
+          [style.color]="gradeColor()"
+        >
+          {{
+            course().currentGrade === null
+              ? '—'
+              : course().currentGrade + '%'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="course-card-stat">
+
+        @if (nextLabel()) {
+
+          <span>
+            Up next
+          </span>
+
+          <strong class="course-card-stat-small">
+            {{ nextLabel() }}
+          </strong>
+
+        } @else {
+
+          <span>
+            Status
+          </span>
+
+          <strong class="course-card-stat-small">
+            {{
+              course().archived
+                ? 'Archived'
+                : 'In progress'
+            }}
+          </strong>
+
+        }
+
+      </div>
+
+    </div>
+
+
+    <!-- Footer -->
+    <div class="course-card-footer">
+
+      <span>
+        Open course
+      </span>
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M5 12h14"/>
+        <path d="m13 6 6 6-6 6"/>
+      </svg>
+
+    </div>
+
+  </a>
+
+
+} @else {
+
+  <!-- =========================================================
+       COMPACT CARD
+       Used on Dashboard
+       ========================================================= -->
+  <a
+    [routerLink]="['/courses', course().id]"
+    class="course-card-compact"
+    [class.course-card-archived]="course().archived"
+  >
+
+    <span
+      class="compact-accent"
+      [style.backgroundColor]="hex()"
+    ></span>
+
+
+    <div class="compact-top">
+
+      <div class="compact-course-info">
+
+        <strong>
+          {{ course().code }}
+        </strong>
+
+        <span>
+          {{ course().name }}
+        </span>
+
+      </div>
+
+
+      @if (course().archived) {
+
+        <span class="compact-archived">
+          Archived
+        </span>
+
+      }
+
+    </div>
+
+
+    <div class="compact-bottom">
+
+      <strong
+        class="compact-grade"
+        [style.color]="gradeColor()"
+      >
+        {{
+          course().currentGrade === null
+            ? '—'
+            : course().currentGrade + '%'
+        }}
+      </strong>
+
+
+      @if (nextLabel()) {
+
+        <span class="compact-next">
+          Next · {{ nextLabel() }}
+        </span>
+
+      } @else {
+
+        <span class="compact-next">
+          {{ course().percentComplete }}% complete
+        </span>
+
+      }
+
+    </div>
+
+  </a>
+
+}

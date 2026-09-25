@@ -75,7 +75,6 @@
 }
 
 
-
 /* ==========================================================================
    SHARED CARDS
    ========================================================================== */
@@ -115,9 +114,7 @@
   font-weight: 750;
 }
 
-.card-heading a,
-.assessment-heading a,
-.overdue-heading a {
+.card-heading a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -130,9 +127,7 @@
   transition: color 140ms ease;
 }
 
-.card-heading a:hover,
-.assessment-heading a:hover,
-.overdue-heading a:hover {
+.card-heading a:hover {
   color: var(--brand);
 }
 
@@ -338,11 +333,9 @@
 }
 
 .hero-actions {
-  display: grid;
-
-  grid-template-columns:
-    minmax(0, 1fr)
-    auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
 
   gap: 10px;
 
@@ -455,39 +448,6 @@
   margin-top: 16px;
 }
 
-.task-list {
-  border-top: 1px solid var(--line);
-}
-
-.task-row {
-  display: grid;
-
-  grid-template-columns:
-    auto
-    minmax(0, 1fr)
-    auto
-    74px;
-
-  align-items: center;
-
-  gap: 11px;
-
-  min-height: 44px;
-
-  padding: 0 17px;
-
-  border-bottom: 1px solid var(--line);
-
-  transition: background 130ms ease;
-}
-
-.task-row:last-child {
-  border-bottom: 0;
-}
-
-.task-row:hover {
-  background: var(--surface-2);
-}
 
 .task-dot {
   width: 9px;
@@ -498,55 +458,6 @@
   border-radius: 999px;
 }
 
-.task-name {
-  min-width: 0;
-
-  overflow: hidden;
-
-  color: var(--ink);
-
-  font-size: 12px;
-  font-weight: 650;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.task-name small {
-  margin-left: 8px;
-
-  color: var(--faint);
-
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.task-weight {
-  padding: 4px 8px;
-
-  border-radius: 7px;
-
-  background: var(--surface-2);
-
-  color: var(--muted);
-
-  font-size: 10px;
-  font-weight: 750;
-}
-
-.task-date {
-  color: var(--muted);
-
-  font-size: 10px;
-  font-weight: 600;
-
-  text-align: right;
-}
-
-.task-date-urgent {
-  color: var(--amber);
-  font-weight: 750;
-}
 
 .empty-row {
   padding: 16px 18px;
@@ -738,10 +649,6 @@
   font-weight: 600;
 }
 
-.stats-danger {
-  color: var(--danger) !important;
-}
-
 
 /* ==========================================================================
    NEXT ASSESSMENT
@@ -751,137 +658,11 @@
   padding: 18px;
 }
 
-.assessment-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 14px;
-}
-
-.assessment-title {
-  display: inline-flex;
-  align-items: center;
-
-  gap: 8px;
-
-  color: var(--danger);
-
-  font-size: 10px;
-  font-weight: 800;
-
-  text-transform: uppercase;
-  letter-spacing: 0.035em;
-}
-
-.assessment-title svg {
-  width: 16px;
-  height: 16px;
-}
-
-.assessment-main {
-  margin-top: 10px;
-}
-
-.assessment-days {
-  display: block;
-
-  color: var(--ink);
-
-  font-family: "Bricolage Grotesque", sans-serif;
-  font-size: 38px;
-  font-weight: 850;
-  line-height: 1;
-}
-
-.assessment-days span {
-  margin-left: 3px;
-
-  color: var(--muted);
-
-  font-family: "Plus Jakarta Sans", sans-serif;
-  font-size: 17px;
-  font-weight: 650;
-}
-
-.assessment-main p {
-  margin: 8px 0 0;
-
-  color: var(--muted);
-
-  font-size: 12px;
-}
-
-.countdown-grid {
-  display: grid;
-
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
-
-  gap: 8px;
-
-  margin-top: 15px;
-}
-
-.countdown-grid > div {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-
-  padding: 10px 4px;
-
-  border: 1px solid var(--line);
-  border-radius: 9px;
-
-  background: var(--surface-2);
-}
-
-.countdown-grid strong {
-  color: var(--ink);
-
-  font-family: "Bricolage Grotesque", sans-serif;
-  font-size: 17px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.countdown-grid span {
-  margin-top: 5px;
-
-  color: var(--muted);
-
-  font-size: 9px;
-}
-
 
 /* ==========================================================================
    DUE / OVERDUE
    ========================================================================== */
 
-.overdue-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  min-height: 50px;
-
-  padding: 0 17px;
-}
-
-.overdue-heading h2 {
-  display: flex;
-  align-items: center;
-
-  gap: 8px;
-
-  margin: 0;
-
-  color: var(--danger);
-
-  font-family: "Bricolage Grotesque", sans-serif;
-  font-size: 14px;
-  font-weight: 800;
-}
 
 .overdue-list {
   border-top: 1px solid var(--line);
@@ -1010,17 +791,229 @@
 }
 
 
-.overdue-empty-quote {
-  display: block;
+/* ==========================================================================
+   NEXT-MOVE STACK
+   ========================================================================== */
 
-  margin-top: 8px;
+.hero-wrap {
+  position: relative;
+}
+
+.hero-wrap.has-stack {
+  padding-top: 16px;
+}
+
+.hero-peek {
+  position: absolute;
+  top: 0;
+  height: 40px;
+
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+
+  background: color-mix(in srgb, var(--hero-bg) 82%, var(--bg));
+
+  transition: opacity 0.26s;
+}
+
+.hero-peek-1 {
+  top: 8px;
+  left: 12px;
+  right: 12px;
+}
+
+.hero-peek-2 {
+  left: 26px;
+  right: 26px;
+
+  background: color-mix(in srgb, var(--hero-bg) 64%, var(--bg));
+}
+
+.hero-complete {
+  padding: 0 18px;
+}
+
+.hero-view {
+  gap: 7px;
+}
+
+.hero-view svg {
+  width: 15px;
+  height: 15px;
+}
+
+.hero-priority-danger {
+  color: var(--danger) !important;
+}
+
+.hero-stack-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-left: auto;
+
+  color: rgba(244, 247, 251, 0.6);
+
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.hero-next {
+  display: grid;
+  place-items: center;
+
+  width: 32px;
+  height: 32px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+
+  color: #f7f8fb;
+
+  transition: background 140ms ease;
+}
+
+.hero-next:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-next svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+/* ==========================================================================
+   THIS WEEK / RAIL ADDITIONS
+   ========================================================================== */
+
+.week-card app-workload-strip {
+  padding: 6px 18px 18px;
+}
+
+.stats-card .card-heading,
+.assessment-card .card-heading {
+  min-height: 0;
+
+  padding: 0;
+}
+
+.stats-card .card-heading {
+  padding: 12px 0 4px;
+}
+
+.assessment-card .card-heading {
+  margin-bottom: 14px;
+}
+
+.assessment-main {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  border-radius: 12px;
+
+  transition: background 130ms ease;
+}
+
+.assessment-days {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 64px;
+
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  background: var(--brand-soft);
 
   color: var(--brand-ink);
+}
+
+.assessment-days strong {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+.assessment-days span {
+  margin-top: 2px;
 
   font-size: 11px;
-  font-style: italic;
+  font-weight: 700;
+}
 
-  line-height: 1.45;
+.assessment-copy {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.assessment-copy strong {
+  color: var(--ink);
+
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.assessment-copy small {
+  margin-top: 2px;
+
+  color: var(--muted);
+
+  font-size: 12px;
+}
+
+.overdue-stale {
+  opacity: 0.6;
+}
+
+.overdue-stale:hover {
+  opacity: 1;
+}
+
+.overdue-dismiss {
+  padding: 4px 9px;
+
+  border: 1px solid var(--line);
+  border-radius: 8px;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  font-weight: 650;
+
+  transition: background 130ms ease, color 130ms ease;
+}
+
+.overdue-dismiss:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.dashboard-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.error-retry {
+  padding: 7px 12px;
+
+  border: 1px solid currentColor;
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-weight: 700;
 }
 
 
@@ -1080,29 +1073,18 @@
     grid-template-columns: 1fr;
   }
 
-  .hero-actions {
-    grid-template-columns: 1fr;
+  .hero-complete {
+    flex: 1 1 100%;
+  }
+
+  .hero-stack-nav {
+    margin-left: 0;
   }
 
   .hero-view {
     min-height: 42px;
   }
 
-  .task-row {
-    grid-template-columns:
-      auto
-      minmax(0, 1fr)
-      auto;
-
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-
-  .task-date {
-    grid-column: 2 / -1;
-
-    text-align: left;
-  }
 
   .course-grid {
     grid-template-columns: 1fr;
@@ -1121,7 +1103,8 @@
     transition: none;
   }
 
-  .hero-complete {
+  .hero-complete,
+  .hero-peek {
     transition: none;
   }
 

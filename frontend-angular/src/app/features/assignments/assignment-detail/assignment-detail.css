@@ -1,1 +1,1197 @@
-/* No component-specific styles — everything uses the shared tokens. */
+:host {
+  display: block;
+}
+
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+
+.assignment-page {
+  width: min(100%, 1120px);
+
+  margin: 0 auto;
+
+  padding:
+    8px
+    0
+    56px;
+}
+
+
+.assignment-loading {
+  padding: 20px 0;
+
+  color: var(--muted);
+
+  font-size: 12px;
+}
+
+
+.assignment-error {
+  margin-bottom: 16px;
+
+  padding:
+    11px
+    13px;
+
+  border:
+    1px solid
+    var(--danger-soft);
+
+  border-radius: 10px;
+
+  background:
+    var(--danger-soft);
+
+  color:
+    var(--danger-ink);
+
+  font-size: 11px;
+}
+
+
+/* ============================================================
+   BREADCRUMB
+   ============================================================ */
+
+.assignment-breadcrumb {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-bottom: 16px;
+
+  color: var(--faint);
+
+  font-size: 10px;
+  font-weight: 650;
+}
+
+
+.assignment-breadcrumb a {
+  color: var(--brand-ink);
+}
+
+
+.assignment-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.assignment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  margin-bottom: 24px;
+}
+
+
+.assignment-heading {
+  min-width: 0;
+}
+
+
+.assignment-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+  margin-bottom: 9px;
+}
+
+
+.assignment-course-badge,
+.assignment-type-badge,
+.assignment-status-badge {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 22px;
+
+  padding:
+    0
+    8px;
+
+  border-radius: 999px;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.02em;
+}
+
+
+.assignment-course-badge {
+  background:
+    var(--brand);
+
+  color: white;
+}
+
+
+.assignment-type-badge {
+  background:
+    var(--brand-soft);
+
+  color:
+    var(--brand-ink);
+}
+
+
+.assignment-status-badge {
+  background:
+    var(--surface-2);
+
+  color:
+    var(--muted);
+}
+
+
+.assignment-status-complete {
+  background:
+    var(--leaf-soft);
+
+  color:
+    var(--leaf);
+}
+
+
+.assignment-status-overdue {
+  background:
+    var(--danger-soft);
+
+  color:
+    var(--danger-ink);
+}
+
+
+.assignment-heading h1 {
+  margin: 0;
+
+  color:
+    var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size:
+    clamp(
+      27px,
+      3vw,
+      38px
+    );
+
+  font-weight: 820;
+
+  line-height: 1.06;
+
+  letter-spacing:
+    -0.04em;
+}
+
+
+.assignment-heading p {
+  margin:
+    8px
+    0
+    0;
+
+  color:
+    var(--muted);
+
+  font-size: 11px;
+}
+
+
+.assignment-heading p span {
+  margin:
+    0
+    5px;
+}
+
+
+.assignment-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  flex: 0 0 auto;
+}
+
+
+.assignment-edit-button,
+.assignment-more-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 40px;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 10px;
+
+  background:
+    var(--surface);
+
+  color:
+    var(--ink);
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+.assignment-edit-button {
+  gap: 7px;
+
+  padding:
+    0
+    14px;
+}
+
+
+.assignment-edit-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+.assignment-more-button {
+  width: 40px;
+}
+
+
+.assignment-more-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+
+.assignment-edit-button:hover,
+.assignment-more-button:hover {
+  background:
+    var(--surface-2);
+}
+
+
+/* ============================================================
+   ACTION MENU
+   ============================================================ */
+
+.assignment-menu-wrap {
+  position: relative;
+}
+
+
+.assignment-menu {
+  position: absolute;
+
+  top: calc(100% + 7px);
+  right: 0;
+
+  z-index: 30;
+
+  width: 170px;
+
+  padding: 5px;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 11px;
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    0 14px 35px
+    rgba(15, 23, 42, 0.12);
+}
+
+
+.assignment-menu button {
+  width: 100%;
+
+  padding:
+    9px
+    10px;
+
+  border-radius: 8px;
+
+  font-size: 10px;
+
+  text-align: left;
+}
+
+
+.assignment-menu button:hover {
+  background:
+    var(--surface-2);
+}
+
+
+.assignment-delete-action {
+  color:
+    var(--danger-ink);
+}
+
+
+/* ============================================================
+   VIEW
+   ============================================================ */
+
+.assignment-view {
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+
+/* ============================================================
+   SUMMARY
+   ============================================================ */
+
+.assignment-summary-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 12px;
+}
+
+
+.assignment-summary-card {
+  display: flex;
+  flex-direction: column;
+
+  min-height: 132px;
+
+  padding: 17px;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 15px;
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    var(--card-shadow);
+}
+
+
+.summary-label {
+  color:
+    var(--muted);
+
+  font-size: 9px;
+  font-weight: 650;
+}
+
+
+.assignment-summary-card strong {
+  margin-top: 11px;
+
+  color:
+    var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size: 25px;
+  font-weight: 820;
+
+  line-height: 1;
+}
+
+
+.assignment-summary-card small {
+  margin-top: auto;
+
+  padding-top: 10px;
+
+  color:
+    var(--faint);
+
+  font-size: 9px;
+}
+
+
+.assignment-summary-card
+.summary-status {
+  font-size: 18px;
+
+  text-transform: capitalize;
+}
+
+
+.summary-danger {
+  color:
+    var(--danger-ink) !important;
+}
+
+
+/* ============================================================
+   CONTENT GRID
+   ============================================================ */
+
+.assignment-content-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 14px;
+}
+
+
+.assignment-content-card,
+.assignment-info-card,
+.assignment-edit-form {
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 15px;
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    var(--card-shadow);
+}
+
+
+.assignment-content-card {
+  min-height: 270px;
+
+  overflow: hidden;
+}
+
+
+.assignment-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding:
+    16px
+    18px;
+
+  border-bottom:
+    1px solid
+    var(--line);
+}
+
+
+.card-eyebrow {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color:
+    var(--brand-ink);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing:
+    0.07em;
+}
+
+
+.assignment-card-heading h2,
+.edit-form-header h2 {
+  margin: 0;
+
+  color:
+    var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size: 15px;
+  font-weight: 780;
+}
+
+
+.assignment-card-heading button {
+  color:
+    var(--brand-ink);
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+
+.assignment-card-heading button:hover {
+  text-decoration: underline;
+}
+
+
+/* ============================================================
+   INSTRUCTIONS / NOTES
+   ============================================================ */
+
+.assignment-text-content {
+  padding: 20px;
+
+  color:
+    var(--ink);
+
+  font-size: 11px;
+
+  line-height: 1.75;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+}
+
+
+.assignment-empty-content {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+  padding:
+    36px
+    28px;
+
+  text-align: center;
+}
+
+
+.assignment-empty-icon {
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  margin-bottom: 12px;
+
+  border-radius: 12px;
+
+  background:
+    var(--surface-2);
+
+  color:
+    var(--muted);
+}
+
+
+.assignment-empty-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+
+.assignment-empty-content strong {
+  color:
+    var(--ink);
+
+  font-size: 11px;
+}
+
+
+.assignment-empty-content p {
+  max-width: 300px;
+
+  margin:
+    7px
+    0
+    0;
+
+  color:
+    var(--muted);
+
+  font-size: 9px;
+
+  line-height: 1.6;
+}
+
+
+.assignment-empty-content button {
+  margin-top: 14px;
+
+  padding:
+    7px
+    10px;
+
+  border-radius: 8px;
+
+  background:
+    var(--brand-soft);
+
+  color:
+    var(--brand-ink);
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+
+/* ============================================================
+   INFORMATION
+   ============================================================ */
+
+.assignment-info-card {
+  overflow: hidden;
+}
+
+
+.assignment-info-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+}
+
+
+.assignment-info-item {
+  min-width: 0;
+
+  padding: 17px;
+
+  border-right:
+    1px solid
+    var(--line);
+
+  border-bottom:
+    1px solid
+    var(--line);
+}
+
+
+.assignment-info-item:nth-child(3n) {
+  border-right: 0;
+}
+
+
+.assignment-info-item:nth-last-child(-n + 3) {
+  border-bottom: 0;
+}
+
+
+.assignment-info-item span {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color:
+    var(--muted);
+
+  font-size: 8px;
+  font-weight: 650;
+}
+
+
+.assignment-info-item strong {
+  display: block;
+
+  overflow: hidden;
+
+  color:
+    var(--ink);
+
+  font-size: 10px;
+  font-weight: 650;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   EDIT FORM
+   ============================================================ */
+
+.assignment-edit-form {
+  overflow: hidden;
+}
+
+
+.edit-form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  padding:
+    20px;
+
+  border-bottom:
+    1px solid
+    var(--line);
+}
+
+
+.edit-form-header p {
+  max-width: 520px;
+
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    var(--muted);
+
+  font-size: 10px;
+}
+
+
+.edit-form-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  flex: 0 0 auto;
+}
+
+
+.edit-cancel-button,
+.edit-save-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 38px;
+
+  padding:
+    0
+    13px;
+
+  border-radius: 9px;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+.edit-cancel-button {
+  border:
+    1px solid
+    var(--line);
+
+  background:
+    var(--surface);
+
+  color:
+    var(--muted);
+}
+
+
+.edit-cancel-button:hover {
+  background:
+    var(--surface-2);
+
+  color:
+    var(--ink);
+}
+
+
+.edit-save-button {
+  background:
+    var(--brand);
+
+  color: white;
+
+  box-shadow:
+    var(--btn-shadow);
+}
+
+
+.edit-save-button:hover {
+  background:
+    var(--brand-ink);
+}
+
+
+.edit-cancel-button:disabled,
+.edit-save-button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.55;
+}
+
+
+/* ============================================================
+   EDIT SECTIONS
+   ============================================================ */
+
+.edit-section {
+  display: grid;
+
+  grid-template-columns:
+    210px
+    minmax(0, 1fr);
+
+  gap: 30px;
+
+  padding:
+    24px
+    20px;
+
+  border-bottom:
+    1px solid
+    var(--line);
+}
+
+
+.edit-section-heading h3 {
+  margin: 0;
+
+  color:
+    var(--ink);
+
+  font-size: 11px;
+  font-weight: 750;
+}
+
+
+.edit-section-heading p {
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    var(--muted);
+
+  font-size: 9px;
+
+  line-height: 1.5;
+}
+
+
+.edit-fields {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 14px;
+}
+
+
+.edit-field {
+  min-width: 0;
+}
+
+
+.edit-field-wide {
+  grid-column:
+    1 / -1;
+}
+
+
+.edit-field label {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-bottom: 6px;
+
+  color:
+    var(--ink);
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+
+.edit-field label span {
+  color:
+    var(--faint);
+
+  font-size: 8px;
+  font-weight: 500;
+}
+
+
+.edit-field input,
+.edit-field select,
+.edit-field textarea {
+  width: 100%;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 9px;
+
+  background:
+    var(--surface);
+
+  color:
+    var(--ink);
+
+  font: inherit;
+
+  font-size: 10px;
+
+  outline: none;
+
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+
+.edit-field input,
+.edit-field select {
+  height: 40px;
+
+  padding:
+    0
+    11px;
+}
+
+
+.edit-field textarea {
+  min-height: 150px;
+
+  padding:
+    11px;
+
+  line-height: 1.6;
+
+  resize: vertical;
+}
+
+
+.edit-field input::placeholder,
+.edit-field textarea::placeholder {
+  color:
+    var(--faint);
+}
+
+
+.edit-field input:focus,
+.edit-field select:focus,
+.edit-field textarea:focus {
+  border-color:
+    var(--brand);
+
+  box-shadow:
+    0 0 0 3px
+    var(--brand-soft);
+}
+
+
+.field-error {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    var(--danger-ink);
+
+  font-size: 8px;
+}
+
+
+/* ============================================================
+   EDIT FOOTER
+   ============================================================ */
+
+.edit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  padding:
+    16px
+    20px;
+
+  background:
+    var(--surface-2);
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+  .assignment-summary-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+
+  .assignment-info-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+
+  .assignment-info-item,
+  .assignment-info-item:nth-child(3n) {
+    border-right:
+      1px solid
+      var(--line);
+
+    border-bottom:
+      1px solid
+      var(--line);
+  }
+
+
+  .assignment-info-item:nth-child(2n) {
+    border-right: 0;
+  }
+
+
+  .edit-section {
+    grid-template-columns:
+      170px
+      minmax(0, 1fr);
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .assignment-header {
+    flex-direction: column;
+
+    gap: 16px;
+  }
+
+
+  .assignment-actions {
+    width: 100%;
+  }
+
+
+  .assignment-edit-button {
+    flex: 1;
+  }
+
+
+  .assignment-content-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .edit-form-header {
+    flex-direction: column;
+  }
+
+
+  .edit-form-actions {
+    width: 100%;
+  }
+
+
+  .edit-form-actions
+  .edit-cancel-button,
+  .edit-form-actions
+  .edit-save-button {
+    flex: 1;
+  }
+
+
+  .edit-section {
+    grid-template-columns:
+      1fr;
+
+    gap: 16px;
+  }
+
+}
+
+
+@media (max-width: 520px) {
+
+  .assignment-summary-grid,
+  .assignment-info-grid,
+  .edit-fields {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .assignment-info-item,
+  .assignment-info-item:nth-child(2n),
+  .assignment-info-item:nth-child(3n) {
+    border-right: 0;
+
+    border-bottom:
+      1px solid
+      var(--line);
+  }
+
+
+  .assignment-info-item:last-child {
+    border-bottom: 0;
+  }
+
+
+  .edit-field-wide {
+    grid-column: auto;
+  }
+
+
+  .assignment-heading h1 {
+    font-size: 27px;
+  }
+
+}

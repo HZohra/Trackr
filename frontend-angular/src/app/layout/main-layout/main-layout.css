@@ -1,6 +1,5 @@
 :host {
   display: block;
-
   min-height: 100vh;
 }
 
@@ -72,6 +71,12 @@
     14px
     14px
     16px;
+}
+
+
+/* Only used in drawer mode (see RESPONSIVE — DRAWER). */
+.sidebar-backdrop {
+  display: none;
 }
 
 
@@ -902,7 +907,6 @@
 }
 
 
-
 .search-dialog-input-wrap input::placeholder {
   color: var(--faint);
 }
@@ -1396,10 +1400,80 @@
 
 
 /* ==========================================================================
-   RESPONSIVE — TABLET
+   RESPONSIVE — DRAWER (≤ 900px)
+   --------------------------------------------------------------------------
+   The sidebar stops taking up layout width and slides OVER the page.
+   Breakpoint MUST match DRAWER_QUERY in main-layout.ts.
+
+   Stacking order (low → high):
+     topbar 60  →  backdrop 80  →  drawer 90  →  chat launcher 120
    ========================================================================== */
 
-@media (max-width: 1000px) {
+@media (max-width: 900px) {
+
+  .sidebar-panel,
+  .sidebar-collapsed .sidebar-panel {
+    position: fixed;
+
+    top: 0;
+    bottom: 0;
+    left: 0;
+
+    z-index: 90;
+
+    width: min(260px, 86vw);
+    min-width: 0;
+
+    height: 100vh;
+    height: 100dvh;
+
+    opacity: 1;
+
+    box-shadow:
+      18px 0 48px
+      rgba(15, 23, 42, 0.16);
+
+    transform: translateX(0);
+
+    transition:
+      transform 240ms cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 240ms ease;
+  }
+
+
+  /* Closed: slid fully off-screen (no fade, so it never "ghosts" over the page). */
+  .sidebar-collapsed .sidebar-panel {
+    transform: translateX(-100%);
+
+    box-shadow: none;
+
+    pointer-events: none;
+  }
+
+
+  .sidebar-inner {
+    width: 100%;
+    height: 100%;
+
+    overflow-y: auto;
+  }
+
+
+  /* Dimmed layer behind the open drawer — tap it to close. */
+  .sidebar-backdrop {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 80;
+
+    display: block;
+
+    background: rgba(15, 23, 42, 0.36);
+
+    animation: sidebar-backdrop-in 200ms ease;
+  }
+
 
   .topbar {
     padding-left: 22px;
@@ -1407,16 +1481,20 @@
   }
 
 
+  /* Leave room at the bottom so the chat launcher never covers page buttons. */
   .page-content {
-    padding-left: 22px;
-    padding-right: 22px;
+    padding:
+      4px
+      22px
+      104px;
   }
 
+}
 
-  .search-overlay {
-    padding-top: 90px;
-  }
 
+@keyframes sidebar-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 
@@ -1425,17 +1503,6 @@
    ========================================================================== */
 
 @media (max-width: 820px) {
-
-  .sidebar-panel {
-    width: 220px;
-    min-width: 220px;
-  }
-
-
-  .sidebar-inner {
-    width: 220px;
-  }
-
 
   .sidebar-link {
     gap: 11px;
@@ -1491,7 +1558,7 @@
     padding:
       2px
       14px
-      32px;
+      96px;
   }
 
 
@@ -1540,6 +1607,11 @@
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
+
+  .sidebar-backdrop {
+    animation: none;
+  }
+
 
   .sidebar-panel,
   .sidebar-logo,

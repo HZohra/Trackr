@@ -1,6 +1,14 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Course, COURSE_COLORS } from '../../core/models/course';
+
+import {
+  Course,
+  COURSE_COLORS,
+} from '../../core/models/course';
+
+export type CourseCardVariant =
+  | 'compact'
+  | 'detailed';
 
 @Component({
   selector: 'app-course-card',
@@ -9,19 +17,41 @@ import { Course, COURSE_COLORS } from '../../core/models/course';
   styleUrl: './course-card.css',
 })
 export class CourseCard {
-  readonly course = input.required<Course>();
-  /** Optional "Next · …" hint (e.g. the next upcoming assignment). */
-  readonly nextLabel = input<string | null>(null);
+  readonly course =
+    input.required<Course>();
 
-  /** The course's own colour (the 8-colour palette) — used for the top bar. */
-  protected readonly hex = computed(() => COURSE_COLORS[this.course().color]);
+  readonly variant =
+    input<CourseCardVariant>('compact');
 
-  /** Grade-band colour: green (strong) / amber (watch) / red (at risk) / muted (none yet). */
+  readonly nextLabel =
+    input<string | null>(null);
+
+  /*
+   * Required because Dashboard currently passes
+   * [health]="health()[course.id] ?? null"
+   */
+  readonly health =
+    input<unknown | null>(null);
+
+  protected readonly hex = computed(() =>
+    COURSE_COLORS[this.course().color],
+  );
+
   protected readonly gradeColor = computed(() => {
-    const g = this.course().currentGrade;
-    if (g === null) return 'var(--muted)';
-    if (g >= 80) return 'var(--leaf)';
-    if (g >= 60) return 'var(--amber)';
+    const grade = this.course().currentGrade;
+
+    if (grade === null) {
+      return 'var(--muted)';
+    }
+
+    if (grade >= 80) {
+      return 'var(--leaf)';
+    }
+
+    if (grade >= 60) {
+      return 'var(--amber)';
+    }
+
     return 'var(--danger)';
   });
 }

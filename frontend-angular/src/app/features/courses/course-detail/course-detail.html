@@ -1,169 +1,1458 @@
-<div class="mx-auto max-w-4xl">
-  <a routerLink="/courses" class="text-sm font-medium text-brand-ink hover:underline">← Back to courses</a>
+<div class="course-page">
 
   @if (loading()) {
-    <p class="mt-6 text-sm text-muted">Loading…</p>
-  } @else if (error()) {
-    <div class="mt-6 rounded-xl border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink">{{ error() }}</div>
+
+    <div class="course-loading">
+      Loading course…
+    </div>
+
+  } @else if (error() && !course()) {
+
+    <div class="course-error">
+      {{ error() }}
+    </div>
+
   } @else if (course(); as c) {
 
-    <!-- Header -->
-    <div class="mt-4 flex items-start justify-between gap-4">
-      <div class="flex items-start gap-3">
-        <span class="mt-1 h-10 w-1.5 rounded-full" [style.backgroundColor]="hex"></span>
+    <!-- =====================================================
+         BACK
+         ===================================================== -->
+
+    <a
+      routerLink="/courses"
+      class="course-back"
+    >
+      <span>←</span>
+      Courses
+    </a>
+
+
+    <!-- =====================================================
+         COURSE HEADER
+         ===================================================== -->
+
+    <header class="course-header">
+
+      <div class="course-identity">
+
+        <span
+          class="course-accent"
+          [style.backgroundColor]="hex"
+        ></span>
+
         <div>
-          <div class="flex items-center gap-2">
-            <span class="rounded-md px-2 py-0.5 text-xs font-semibold text-white" [style.backgroundColor]="hex">{{ c.course_code }}</span>
-            @if (c.archived) { <span class="rounded-md bg-surface2 px-2 py-0.5 text-xs font-medium text-muted">Archived</span> }
+
+          <div class="course-meta-row">
+
+            <span
+              class="course-code"
+              [style.backgroundColor]="hex"
+            >
+              {{ c.course_code }}
+            </span>
+
+
+            <span
+              class="course-status"
+              [class.course-status-archived]="c.archived"
+            >
+              {{
+                c.archived
+                  ? 'Archived'
+                  : 'Active'
+              }}
+            </span>
+
           </div>
-          <h1 class="mt-1 font-display text-2xl font-bold text-ink">{{ c.course_name }}</h1>
-          <p class="text-sm text-muted">{{ c.professor_name || 'No instructor' }} · {{ c.term }}</p>
-        </div>
-      </div>
-      <div class="flex shrink-0 gap-2">
-        <a [routerLink]="['/courses', courseId, 'edit']" class="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink hover:bg-surface2">Edit</a>
-        <button type="button" (click)="toggleArchive()" [disabled]="busy()" class="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink hover:bg-surface2 disabled:opacity-60">
-          {{ c.archived ? 'Restore' : 'Archive' }}
-        </button>
-        <button type="button" (click)="deleteCourse()" [disabled]="busy()" class="rounded-lg border border-danger-soft bg-surface px-3 py-2 text-sm font-medium text-danger-ink hover:bg-danger-soft disabled:opacity-60">Delete</button>
-      </div>
-    </div>
 
-    <!-- Grade + progress -->
-    <div class="mt-6 grid gap-4 sm:grid-cols-3">
-      <div class="rounded-2xl border border-line bg-surface p-5 shadow-card">
-        <p class="text-xs font-semibold text-muted">Current grade</p>
-        <p class="mt-1 font-display text-3xl font-bold tabular-nums text-ink">{{ currentGrade() != null ? currentGrade() + '%' : '—' }}</p>
-        @if (c.final_grade != null) { <p class="mt-1 text-xs text-faint">Manual final grade</p> }
-      </div>
-      <div class="rounded-2xl border border-line bg-surface p-5 shadow-card sm:col-span-2">
-        <div class="flex items-center justify-between">
-          <p class="text-xs font-semibold text-muted">Progress</p>
-          <p class="text-sm font-semibold tabular-nums text-ink">{{ progress() }}%</p>
-        </div>
-        <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface2">
-          <div class="h-full rounded-full transition-[width] duration-700" [style.width.%]="progress()" [style.backgroundColor]="hex"></div>
-        </div>
-        @if (activities().length > 0 && weightSum() !== 100) {
-          <p class="mt-3 rounded-lg bg-amber-soft px-3 py-2 text-xs text-amber">
-            ⚠ Your assignment weights add up to {{ weightSum() }}% (should be 100%). Some graded components may be missing.
+
+          <h1>
+            {{ c.course_name }}
+          </h1>
+
+
+          <p>
+            {{
+              c.professor_name ||
+              'Instructor not added'
+            }}
+
+            <span>·</span>
+
+            {{ c.term }}
           </p>
-        }
-      </div>
-    </div>
 
-    <!-- Grade projector -->
-    <div class="mt-4 rounded-2xl border border-line bg-surface p-5 shadow-card">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 class="font-display text-base font-bold text-ink">Grade projector</h2>
-          <p class="mt-0.5 text-sm text-muted">What you need on your remaining work to hit a target.</p>
         </div>
-        <label class="flex items-center gap-2 text-sm text-muted">
-          Target
-          <input #t type="number" min="0" max="100" [value]="target()" (input)="setTarget(+t.value)"
-                 class="w-20 rounded-lg border border-line bg-surface px-2 py-1.5 text-right text-sm text-ink focus:border-brand focus:outline-none" />
-          %
-        </label>
+
       </div>
 
-      <div class="mt-4 flex flex-wrap gap-1.5">
-        @for (p of presets; track p) {
-          <button type="button" (click)="setTarget(p)"
-                  class="rounded-lg px-2.5 py-1 text-xs font-semibold transition"
-                  [class.bg-brand-soft]="target() === p" [class.text-brand-ink]="target() === p"
-                  [class.bg-surface2]="target() !== p" [class.text-muted]="target() !== p">{{ p }}%</button>
-        }
+
+      <!-- Actions -->
+      <div class="course-header-actions">
+
+        <a
+          [routerLink]="[
+            '/courses',
+            courseId,
+            'edit'
+          ]"
+          class="course-edit-button"
+        >
+          Edit
+        </a>
+
+
+        <div class="course-action-menu-wrap">
+
+          <button
+            type="button"
+            class="course-more-button"
+            aria-label="Course actions"
+            (click)="toggleActionMenu()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <circle
+                cx="5"
+                cy="12"
+                r="1.7"
+              />
+
+              <circle
+                cx="12"
+                cy="12"
+                r="1.7"
+              />
+
+              <circle
+                cx="19"
+                cy="12"
+                r="1.7"
+              />
+            </svg>
+          </button>
+
+
+          @if (actionMenuOpen()) {
+
+            <div class="course-action-menu">
+
+              <button
+                type="button"
+                (click)="toggleArchive()"
+                [disabled]="busy()"
+              >
+                {{
+                  c.archived
+                    ? 'Restore course'
+                    : 'Archive course'
+                }}
+              </button>
+
+
+              <button
+                type="button"
+                class="course-delete-action"
+                (click)="deleteCourse()"
+                [disabled]="busy()"
+              >
+                Delete course
+              </button>
+
+            </div>
+
+          }
+
+        </div>
+
       </div>
 
-      @switch (projection().kind) {
-        @case ('need') {
-          <p class="mt-4 text-sm text-muted">You need an average of</p>
-          <p class="font-display text-3xl font-bold tabular-nums" [style.color]="neededColor(projection().needed)">{{ projection().needed }}%</p>
-          <p class="text-sm text-muted">on your remaining {{ projection().remainingWeight }}% of the grade.</p>
-        }
-        @case ('secured') {
-          <p class="mt-4 font-display text-lg font-bold" style="color:var(--leaf)">You've already secured it.</p>
-          <p class="text-sm text-muted">Even 0% on the remaining {{ projection().remainingWeight }}% keeps you around {{ projection().minGuaranteed }}%.</p>
-        }
-        @case ('impossible') {
-          <p class="mt-4 font-display text-lg font-bold" style="color:var(--danger-ink)">Not reachable this term.</p>
-          <p class="text-sm text-muted">Even 100% on the remaining {{ projection().remainingWeight }}% caps you at about {{ projection().maxReachable }}%.</p>
-        }
-        @case ('final') {
-          <p class="mt-4 text-sm text-muted">All graded work is in — your final grade is</p>
-          <p class="font-display text-3xl font-bold tabular-nums text-ink">{{ projection().finalPct }}%</p>
-        }
-        @default {
-          <p class="mt-4 text-sm text-muted">Add weights to your assignments to project your grade.</p>
-        }
-      }
-    </div>
+    </header>
 
-    <!-- Course info -->
-    @if (c.meeting_times || c.room || c.office_hours || c.textbook_link) {
-      <div class="mt-4 rounded-2xl border border-line bg-surface p-5 text-sm shadow-card">
-        <p class="text-xs font-semibold text-muted">Course info</p>
-        <dl class="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
-          @if (c.meeting_times) { <div><dt class="inline text-muted">Meets:</dt> <dd class="inline text-ink">{{ c.meeting_times }}</dd></div> }
-          @if (c.room) { <div><dt class="inline text-muted">Room:</dt> <dd class="inline text-ink">{{ c.room }}</dd></div> }
-          @if (c.office_hours) { <div><dt class="inline text-muted">Office hours:</dt> <dd class="inline text-ink">{{ c.office_hours }}</dd></div> }
-          @if (c.textbook_link) { <div><dt class="inline text-muted">Textbook:</dt> <dd class="inline"><a [href]="c.textbook_link" target="_blank" class="text-brand-ink hover:underline">link</a></dd></div> }
-        </dl>
+
+    @if (error()) {
+
+      <div class="course-error">
+        {{ error() }}
       </div>
+
     }
 
-    <!-- Assignments -->
-    <div class="mt-6 flex items-center justify-between">
-      <h2 class="font-display text-lg font-bold text-ink">Assignments</h2>
-      <a [routerLink]="['/assignments/new']" [queryParams]="{ course: courseId }" class="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-ink">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-        Add
-      </a>
-    </div>
 
-    @if (activities().length === 0) {
-      <div class="mt-3 rounded-2xl border border-dashed border-line bg-surface p-8 text-center">
-        <p class="text-sm font-semibold text-ink">No assignments yet</p>
-        <p class="mt-1 text-sm text-muted">Add one to start tracking your grade.</p>
-      </div>
-    } @else {
-      @if (upcoming().length > 0) {
-        <p class="mt-4 text-xs font-semibold text-muted">Upcoming</p>
-        <ul class="mt-2 space-y-2">
-          @for (a of upcoming(); track a.activity_id) {
-            <li class="flex items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 text-sm">
-              <div>
-                <span class="font-medium text-ink">{{ a.activity_name }}</span>
-                <span class="ml-2 text-xs text-faint">{{ categoryName[a.activity_category_id] }}</span>
+    <!-- =====================================================
+         COURSE NAVIGATION
+         ===================================================== -->
+
+    <nav class="course-tabs">
+
+      <button
+        type="button"
+        [class.course-tab-active]="selectedTab() === 'overview'"
+        (click)="setTab('overview')"
+      >
+        Overview
+      </button>
+
+
+      <button
+        type="button"
+        [class.course-tab-active]="selectedTab() === 'assignments'"
+        (click)="setTab('assignments')"
+      >
+        Assignments
+
+        <span>
+          {{ activities().length }}
+        </span>
+      </button>
+
+
+      <button
+        type="button"
+        [class.course-tab-active]="selectedTab() === 'grades'"
+        (click)="setTab('grades')"
+      >
+        Grades
+      </button>
+
+
+      <button
+        type="button"
+        [class.course-tab-active]="selectedTab() === 'info'"
+        (click)="setTab('info')"
+      >
+        Course info
+      </button>
+
+    </nav>
+
+
+    <!-- =====================================================
+         OVERVIEW
+         ===================================================== -->
+
+    @if (selectedTab() === 'overview') {
+
+      <section class="course-tab-panel">
+
+        <!-- Grade + progress -->
+        <div class="overview-stats">
+
+          <article class="overview-grade-card">
+
+            <span>
+              Current grade
+            </span>
+
+            @if (currentGrade() != null) {
+
+              <strong>
+                {{ currentGrade() }}%
+              </strong>
+
+              <small>
+                Current course grade
+              </small>
+
+            } @else {
+
+              <strong>
+                —
+              </strong>
+
+              <small>
+                No grades yet
+              </small>
+
+            }
+
+          </article>
+
+
+          <article class="overview-progress-card">
+
+            <div class="overview-progress-heading">
+
+              <span>
+                Course progress
+              </span>
+
+              <strong>
+                {{ progress() }}%
+              </strong>
+
+            </div>
+
+
+            <div class="overview-progress-track">
+
+              <span
+                [style.width.%]="progress()"
+                [style.backgroundColor]="hex"
+              ></span>
+
+            </div>
+
+
+            <small>
+              {{ completedCount() }}
+              of
+              {{ activities().length }}
+              items completed
+            </small>
+
+          </article>
+
+        </div>
+
+
+        <!-- Next up -->
+        <section class="course-section">
+
+          <div class="course-section-heading">
+
+            <div>
+
+              <span class="section-eyebrow">
+                Next up
+              </span>
+
+              <h2>
+                What needs your attention
+              </h2>
+
+            </div>
+
+
+            <button
+              type="button"
+              (click)="setTab('assignments')"
+            >
+              View assignments
+              <span>→</span>
+            </button>
+
+          </div>
+
+
+          @if (nextActivity(); as a) {
+
+            <a
+              [routerLink]="[
+                '/assignments',
+                a.activity_id
+              ]"
+              class="next-activity-card"
+            >
+
+              <div class="next-activity-main">
+
+                <span
+                  class="next-activity-dot"
+                  [style.backgroundColor]="hex"
+                ></span>
+
+                <div>
+
+                  <strong>
+                    {{ a.activity_name }}
+                  </strong>
+
+                  <p>
+                    {{
+                      categoryName[
+                        a.activity_category_id
+                      ]
+                    }}
+
+                    @if (a.grading_weight != null) {
+                      <span>·</span>
+                      {{ +a.grading_weight }}%
+                    }
+                  </p>
+
+                </div>
+
               </div>
-              <div class="flex items-center gap-4">
-                <span [class.text-danger-ink]="isOverdue(a)" [class.text-muted]="!isOverdue(a)">
-                  {{ a.due_date ? (a.due_date | date:'MMM d') : 'No date' }}{{ isOverdue(a) ? ' · overdue' : '' }}
+
+
+              <div class="next-activity-side">
+
+                <strong
+                  [class.activity-overdue]="isOverdue(a)"
+                >
+                  {{ dueLabel(a) }}
+                </strong>
+
+                @if (a.due_date) {
+                  <small>
+                    {{
+                      a.due_date
+                        | date:'MMM d, h:mm a'
+                    }}
+                  </small>
+                }
+
+              </div>
+
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+
+            </a>
+
+          } @else {
+
+            <div class="course-empty-card">
+
+              <strong>
+                Nothing coming up
+              </strong>
+
+              <p>
+                You're caught up in this course.
+              </p>
+
+            </div>
+
+          }
+
+        </section>
+
+
+        <!-- Goal + info -->
+        <div class="overview-grid">
+
+          <article class="overview-summary-card">
+
+            <div class="summary-card-heading">
+
+              <span>
+                Grade goal
+              </span>
+
+              <button
+                type="button"
+                (click)="setTab('grades')"
+              >
+                View grades →
+              </button>
+
+            </div>
+
+
+            <div class="summary-row">
+              <span>Target</span>
+
+              <strong>
+                {{ target() }}%
+              </strong>
+            </div>
+
+
+            @switch (projection().kind) {
+
+              @case ('need') {
+
+                <div class="summary-row">
+                  <span>Need</span>
+
+                  <strong
+                    [style.color]="neededColor(projection().needed)"
+                  >
+                    {{ projection().needed }}%
+                  </strong>
+                </div>
+
+
+                <div class="summary-row">
+                  <span>Remaining</span>
+
+                  <strong>
+                    {{ projection().remainingWeight }}%
+                  </strong>
+                </div>
+
+              }
+
+
+              @case ('secured') {
+
+                <div class="summary-message summary-success">
+                  Target already secured.
+                </div>
+
+              }
+
+
+              @case ('impossible') {
+
+                <div class="summary-message summary-danger">
+                  Target currently unreachable.
+                </div>
+
+              }
+
+
+              @case ('final') {
+
+                <div class="summary-row">
+                  <span>Final grade</span>
+
+                  <strong>
+                    {{ projection().finalPct }}%
+                  </strong>
+                </div>
+
+              }
+
+
+              @default {
+
+                <div class="summary-message">
+                  Add assignment weights to calculate your target.
+                </div>
+
+              }
+
+            }
+
+          </article>
+
+
+          <article class="overview-summary-card">
+
+            <div class="summary-card-heading">
+
+              <span>
+                Course info
+              </span>
+
+              <button
+                type="button"
+                (click)="setTab('info')"
+              >
+                View details →
+              </button>
+
+            </div>
+
+
+            <div class="summary-row">
+              <span>Room</span>
+
+              <strong>
+                {{ c.room || 'Not added' }}
+              </strong>
+            </div>
+
+
+            <div class="summary-row">
+              <span>Office hours</span>
+
+              <strong>
+                {{
+                  c.office_hours ||
+                  'Not added'
+                }}
+              </strong>
+            </div>
+
+
+            <div class="summary-row">
+              <span>Professor</span>
+
+              <strong>
+                {{
+                  c.professor_name ||
+                  'Not added'
+                }}
+              </strong>
+            </div>
+
+          </article>
+
+        </div>
+
+
+        <!-- Upcoming preview -->
+        <section class="course-section">
+
+          <div class="course-section-heading">
+
+            <div>
+              <h2>
+                Upcoming assignments
+              </h2>
+
+              <p>
+                Your next course activities.
+              </p>
+            </div>
+
+
+            <button
+              type="button"
+              (click)="setTab('assignments')"
+            >
+              View all
+              <span>→</span>
+            </button>
+
+          </div>
+
+
+          @if (overviewUpcoming().length === 0) {
+
+            <div class="course-empty-card">
+              No upcoming assignments.
+            </div>
+
+          } @else {
+
+            <div class="activity-list">
+
+              @for (
+                a of overviewUpcoming();
+                track a.activity_id
+              ) {
+
+                <a
+                  [routerLink]="[
+                    '/assignments',
+                    a.activity_id
+                  ]"
+                  class="activity-row"
+                >
+
+                  <div class="activity-row-main">
+
+                    <span
+                      class="activity-dot"
+                      [style.backgroundColor]="hex"
+                    ></span>
+
+                    <div>
+
+                      <strong>
+                        {{ a.activity_name }}
+                      </strong>
+
+                      <span>
+                        {{
+                          categoryName[
+                            a.activity_category_id
+                          ]
+                        }}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+
+                  <span
+                    class="activity-date"
+                    [class.activity-overdue]="isOverdue(a)"
+                  >
+                    {{
+                      a.due_date
+                        ? (
+                            a.due_date
+                            | date:'MMM d'
+                          )
+                        : 'No date'
+                    }}
+                  </span>
+
+
+                  <span class="activity-weight">
+                    {{
+                      a.grading_weight != null
+                        ? +a.grading_weight + '%'
+                        : '—'
+                    }}
+                  </span>
+
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+
+                </a>
+
+              }
+
+            </div>
+
+          }
+
+        </section>
+
+      </section>
+
+    }
+
+
+    <!-- =====================================================
+         ASSIGNMENTS TAB
+         ===================================================== -->
+
+    @if (selectedTab() === 'assignments') {
+
+      <section class="course-tab-panel">
+
+        <div class="assignment-tab-heading">
+
+          <div>
+
+            <h2>
+              Assignments
+            </h2>
+
+            <p>
+              Manage assignments, quizzes, exams, projects and labs.
+            </p>
+
+          </div>
+
+
+          <a
+            routerLink="/assignments/new"
+            [queryParams]="{
+              course: courseId
+            }"
+            class="course-primary-button"
+          >
+            <span>+</span>
+            Add assignment
+          </a>
+
+        </div>
+
+
+        <!-- Filters -->
+        <div class="assignment-toolbar">
+
+          <div class="assignment-search">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+              />
+
+              <path
+                d="M21 21l-4.3-4.3"
+              />
+            </svg>
+
+
+            <input
+              #assignmentSearchInput
+              type="search"
+              placeholder="Search assignments..."
+              [value]="assignmentSearch()"
+              (input)="setAssignmentSearch(assignmentSearchInput.value)"
+            />
+
+          </div>
+
+
+          <div class="assignment-filters">
+
+            <button
+              type="button"
+              [class.assignment-filter-active]="assignmentFilter() === 'all'"
+              (click)="setAssignmentFilter('all')"
+            >
+              All
+
+              <span>
+                {{ activities().length }}
+              </span>
+            </button>
+
+
+            <button
+              type="button"
+              [class.assignment-filter-active]="assignmentFilter() === 'upcoming'"
+              (click)="setAssignmentFilter('upcoming')"
+            >
+              Upcoming
+
+              <span>
+                {{ upcomingCount() }}
+              </span>
+            </button>
+
+
+            <button
+              type="button"
+              [class.assignment-filter-active]="assignmentFilter() === 'completed'"
+              (click)="setAssignmentFilter('completed')"
+            >
+              Completed
+
+              <span>
+                {{ completedCount() }}
+              </span>
+            </button>
+
+
+            <button
+              type="button"
+              [class.assignment-filter-active]="assignmentFilter() === 'overdue'"
+              (click)="setAssignmentFilter('overdue')"
+            >
+              Overdue
+
+              <span>
+                {{ overdueCount() }}
+              </span>
+            </button>
+
+          </div>
+
+        </div>
+
+
+        @if (filteredActivities().length === 0) {
+
+          <div class="course-empty-card assignment-empty">
+
+            <strong>
+              No assignments here
+            </strong>
+
+            <p>
+              Try another filter or add a new assignment.
+            </p>
+
+          </div>
+
+        } @else {
+
+          <div class="assignment-table">
+
+            <div class="assignment-table-header">
+
+              <span>Assignment</span>
+              <span>Due</span>
+              <span>Weight</span>
+              <span>Grade</span>
+              <span>Status</span>
+              <span></span>
+
+            </div>
+
+
+            @for (
+              a of filteredActivities();
+              track a.activity_id
+            ) {
+
+              <div class="assignment-table-row">
+
+                <a
+                  [routerLink]="[
+                    '/assignments',
+                    a.activity_id
+                  ]"
+                  class="assignment-name-cell"
+                >
+                  <span
+                    class="activity-dot"
+                    [style.backgroundColor]="hex"
+                  ></span>
+
+                  <span>
+
+                    <strong>
+                      {{ a.activity_name }}
+                    </strong>
+
+                    <small>
+                      {{
+                        categoryName[
+                          a.activity_category_id
+                        ]
+                      }}
+                    </small>
+
+                  </span>
+                </a>
+
+
+                <a
+                  [routerLink]="[
+                    '/assignments',
+                    a.activity_id
+                  ]"
+                  class="assignment-value-cell"
+                  [class.activity-overdue]="isOverdue(a)"
+                >
+                  {{
+                    a.due_date
+                      ? (
+                          a.due_date
+                          | date:'MMM d'
+                        )
+                      : 'No date'
+                  }}
+                </a>
+
+
+                <a
+                  [routerLink]="[
+                    '/assignments',
+                    a.activity_id
+                  ]"
+                  class="assignment-value-cell"
+                >
+                  {{
+                    a.grading_weight != null
+                      ? +a.grading_weight + '%'
+                      : '—'
+                  }}
+                </a>
+
+
+                <a
+                  [routerLink]="[
+                    '/assignments',
+                    a.activity_id
+                  ]"
+                  class="assignment-value-cell assignment-grade"
+                >
+                  {{
+                    a.grade != null
+                      ? +a.grade + '%'
+                      : '—'
+                  }}
+                </a>
+
+
+                <a
+                  [routerLink]="[
+                    '/assignments',
+                    a.activity_id
+                  ]"
+                  class="assignment-value-cell"
+                >
+                  <span
+                    class="assignment-status"
+                    [class.assignment-status-overdue]="isOverdue(a)"
+                    [class.assignment-status-complete]="isCompleted(a)"
+                  >
+                    {{
+                      activityStatusLabel(a)
+                    }}
+                  </span>
+                </a>
+
+
+                <a
+                  [routerLink]="[
+                    '/assignments',
+                    a.activity_id
+                  ]"
+                  class="assignment-edit-button"
+                  aria-label="Edit assignment"
+                  title="Edit assignment"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M12 20h9"
+                    />
+
+                    <path
+                      d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"
+                    />
+                  </svg>
+                </a>
+
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+      </section>
+
+    }
+
+
+    <!-- =====================================================
+         GRADES TAB
+         ===================================================== -->
+
+    @if (selectedTab() === 'grades') {
+
+      <section class="course-tab-panel">
+
+        <div class="grades-summary-grid">
+
+          <article class="grade-summary-card">
+
+            <span>
+              Current grade
+            </span>
+
+            <strong>
+              {{
+                currentGrade() != null
+                  ? currentGrade() + '%'
+                  : '—'
+              }}
+            </strong>
+
+            <small>
+              {{
+                currentGrade() != null
+                  ? 'Based on graded work'
+                  : 'No graded work yet'
+              }}
+            </small>
+
+          </article>
+
+
+          <article class="grade-summary-card">
+
+            <span>
+              Course progress
+            </span>
+
+            <strong>
+              {{ progress() }}%
+            </strong>
+
+            <small>
+              {{ completedCount() }}
+              items completed
+            </small>
+
+          </article>
+
+
+          <article class="grade-summary-card">
+
+            <span>
+              Weight entered
+            </span>
+
+            <strong>
+              {{ weightSum() }}%
+            </strong>
+
+            <small>
+              {{
+                weightSum() === 100
+                  ? 'Course weights complete'
+                  : 'Check missing weights'
+              }}
+            </small>
+
+          </article>
+
+        </div>
+
+
+        <!-- Grade projector -->
+        <section class="grade-projector">
+
+          <div class="grade-projector-heading">
+
+            <div>
+              <span class="section-eyebrow">
+                Grade goal
+              </span>
+
+              <h2>
+                Grade projector
+              </h2>
+
+              <p>
+                What you need on your remaining work to hit your target.
+              </p>
+            </div>
+
+
+            <div class="grade-target-area">
+                <div
+                  class="goal-save-status"
+                  aria-live="polite"
+                >
+
+                  @if (
+                    goalSaveStatus() ===
+                    'saving'
+                  ) {
+
+                    <span class="goal-saving">
+                      Saving…
+                    </span>
+
+                  } @else if (
+                    goalSaveStatus() ===
+                    'saved'
+                  ) {
+
+                    <span class="goal-saved">
+                      ✓ Saved
+                    </span>
+
+                  } @else if (
+                    goalSaveStatus() ===
+                    'error'
+                  ) {
+
+                    <span class="goal-error">
+                      Couldn't save
+                    </span>
+
+                    <button
+                      type="button"
+                      (click)="retryGoalSave()"
+                    >
+                      Retry
+                    </button>
+
+                  }
+
+                </div>
+
+
+                <label class="grade-target">
+
+                  <span>
+                    Target
+                  </span>
+
+                  <input
+                    #targetInput
+                    type="number"
+                    min="0"
+                    max="100"
+                    [value]="target()"
+                    (input)="onTargetInput(targetInput.value)"
+                  />
+
+                  <span>%</span>
+
+                </label>
+
+              </div>
+
+          </div>
+
+
+          <div class="grade-presets">
+
+            @for (
+              preset of presets;
+              track preset
+            ) {
+
+              <button
+                type="button"
+                [class.grade-preset-active]="target() === preset"
+                (click)="setTarget(preset)"
+              >
+                {{ preset }}%
+              </button>
+
+            }
+
+          </div>
+
+
+          <div class="projection-result">
+
+            @switch (projection().kind) {
+
+              @case ('need') {
+
+                <span>
+                  You need an average of
                 </span>
-                <span class="tabular-nums text-faint">{{ a.grading_weight != null ? +a.grading_weight + '%' : '' }}</span>
-              </div>
-            </li>
-          }
-        </ul>
-      }
-      @if (completed().length > 0) {
-        <p class="mt-5 text-xs font-semibold text-muted">Completed</p>
-        <ul class="mt-2 space-y-2">
-          @for (a of completed(); track a.activity_id) {
-            <li class="flex items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 text-sm">
-              <div>
-                <span class="font-medium text-ink">{{ a.activity_name }}</span>
-                <span class="ml-2 text-xs text-faint">{{ categoryName[a.activity_category_id] }}</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <span class="tabular-nums text-faint">{{ a.grading_weight != null ? +a.grading_weight + '%' : '' }}</span>
-                <span class="font-semibold tabular-nums text-leaf">{{ +a.grade! }}%</span>
-              </div>
-            </li>
-          }
-        </ul>
-      }
+
+                <strong
+                  [style.color]="neededColor(projection().needed)"
+                >
+                  {{ projection().needed }}%
+                </strong>
+
+                <p>
+                  on your remaining
+                  {{ projection().remainingWeight }}%
+                  of the course.
+                </p>
+
+              }
+
+
+              @case ('secured') {
+
+                <strong class="projection-success">
+                  Target secured
+                </strong>
+
+                <p>
+                  You've already earned enough points to reach this target.
+                </p>
+
+              }
+
+
+              @case ('impossible') {
+
+                <strong class="projection-danger">
+                  Target not currently reachable
+                </strong>
+
+                <p>
+                  Even 100% on the remaining work would put you around
+                  {{ projection().maxReachable }}%.
+                </p>
+
+              }
+
+
+              @case ('final') {
+
+                <span>
+                  All graded work is in.
+                </span>
+
+                <strong>
+                  {{ projection().finalPct }}%
+                </strong>
+
+                <p>
+                  Final calculated grade.
+                </p>
+
+              }
+
+
+              @default {
+
+                <strong>
+                  Add assignment weights
+                </strong>
+
+                <p>
+                  Trackr needs grading weights before it can calculate your target.
+                </p>
+
+              }
+
+            }
+
+          </div>
+
+        </section>
+
+      </section>
+
     }
+
+
+    <!-- =====================================================
+         COURSE INFO TAB
+         ===================================================== -->
+
+    @if (selectedTab() === 'info') {
+
+      <section class="course-tab-panel">
+
+        <div class="info-heading">
+
+          <div>
+            <h2>
+              Course information
+            </h2>
+
+            <p>
+              Details and resources for this class.
+            </p>
+          </div>
+
+
+          <a
+            [routerLink]="[
+              '/courses',
+              courseId,
+              'edit'
+            ]"
+            class="course-edit-button"
+          >
+            Edit information
+          </a>
+
+        </div>
+
+
+        <div class="course-info-card">
+
+          <div class="course-info-item">
+
+            <span>
+              Professor
+            </span>
+
+            <strong>
+              {{
+                c.professor_name ||
+                'Not added'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="course-info-item">
+
+            <span>
+              Term
+            </span>
+
+            <strong>
+              {{ c.term }}
+            </strong>
+
+          </div>
+
+
+          <div class="course-info-item">
+
+            <span>
+              Room
+            </span>
+
+            <strong>
+              {{ c.room || 'Not added' }}
+            </strong>
+
+          </div>
+
+
+          <div class="course-info-item">
+
+            <span>
+              Meeting times
+            </span>
+
+            <strong>
+              {{
+                c.meeting_times ||
+                'Not added'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="course-info-item">
+
+            <span>
+              Office hours
+            </span>
+
+            <strong>
+              {{
+                c.office_hours ||
+                'Not added'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="course-info-item">
+
+            <span>
+              Term end
+            </span>
+
+            <strong>
+              {{
+                c.term_end
+                  ? (
+                      c.term_end
+                      | date:'MMMM d, y'
+                    )
+                  : 'Not added'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="course-info-item course-info-wide">
+
+            <span>
+              Textbook / resource
+            </span>
+
+            @if (c.textbook_link) {
+
+              <a
+                [href]="c.textbook_link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open resource ↗
+              </a>
+
+            } @else {
+
+              <strong>
+                Not added
+              </strong>
+
+            }
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
   }
+
 </div>

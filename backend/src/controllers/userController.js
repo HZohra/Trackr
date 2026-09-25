@@ -259,23 +259,99 @@ export const addCourse = (req, res) => {
 
 // PATCH /user/courses/:courseId — edit a course's details (owner only).
 export const updateCourseById = (req, res) => {
-  const { courseId } = req.params;
-  const { course } = req.body;
-  if (!course || typeof course !== "object") {
-    return res.status(400).json({ message: "Missing course data" });
-  }
-  courseModel.updateCourse(Number(courseId), req.user.user_id, course, (err, result) => {
-    if (err) {
-      if (err.code === "23505") {
-        return res.status(409).json({ message: "You already have a course with that code and term." });
-      }
-      return res.status(500).json({ message: "Failed to update course" });
+    const { courseId } = req.params;
+    const { course } = req.body;
+
+    if (!course || typeof course !== "object") {
+        return res.status(400).json({
+            message: "Missing course data",
+        });
     }
-    if (!result.affectedRows) {
-      return res.status(404).json({ message: "Course not found" });
+
+    const courseIdNumber = Number(courseId);
+
+    if (
+        !Number.isInteger(courseIdNumber) ||
+        courseIdNumber <= 0
+    ) {
+        return res.status(400).json({
+            message: "Invalid course ID",
+        });
     }
-    res.json({ message: "Course updated" });
-  });
+
+    const safeCourse = {
+        ...course,
+    };
+
+    /*
+     * Validate grade goal if it is being updated.
+     * Null clears the goal.
+     * Otherwise it must be between 0 and 100.
+     */
+    if (
+        Object.prototype.hasOwnProperty.call(
+            safeCourse,
+            "gpa_goal",
+        )
+    ) {
+        const rawGoal = safeCourse.gpa_goal;
+
+        if (
+            rawGoal === null ||
+            rawGoal === "" ||
+            rawGoal === undefined
+        ) {
+            safeCourse.gpa_goal = null;
+        } else {
+            const goal = Number(rawGoal);
+
+            if (
+                !Number.isFinite(goal) ||
+                goal < 0 ||
+                goal > 100
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Grade goal must be between 0 and 100.",
+                });
+            }
+
+            safeCourse.gpa_goal = goal;
+        }
+    }
+
+    courseModel.updateCourse(
+        courseIdNumber,
+        req.user.user_id,
+        safeCourse,
+        (err, result) => {
+            if (err) {
+                if (err.code === "23505") {
+                    return res.status(409).json({
+                        message:
+                            "You already have a course with that code and term.",
+                    });
+                }
+
+                return res.status(500).json({
+                    message:
+                        "Failed to update course",
+                });
+            }
+
+            if (!result.affectedRows) {
+                return res.status(404).json({
+                    message:
+                        "Course not found",
+                });
+            }
+
+            res.json({
+                message:
+                    "Course updated",
+            });
+        },
+    );
 };
 
 // POST /user/activities

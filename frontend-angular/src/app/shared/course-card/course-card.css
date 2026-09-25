@@ -1,15 +1,500 @@
-:host { display: block; }
+:host {
+  display: block;
 
-/* Small, action-adjacent lift on hover. */
-a {
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  min-width: 0;
 }
-a:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-pop);
+
+
+/* ==========================================================================
+   DETAILED COURSE CARD
+   ========================================================================== */
+
+.course-card-detailed {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 250px;
+
+  overflow: hidden;
+
+  padding: 21px;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 16px;
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    var(--card-shadow);
+
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
+
+
+.course-card-detailed:hover {
+  transform:
+    translateY(-2px);
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--line) 70%,
+      var(--ink) 15%
+    );
+
+  box-shadow:
+    0 14px 32px
+    rgba(15, 23, 42, 0.08);
+}
+
+
+.course-card-archived {
+  opacity: 0.82;
+}
+
+
+/* ==========================================================================
+   ACCENT
+   ========================================================================== */
+
+.course-card-accent {
+  display: block;
+
+  width: 38px;
+  height: 4px;
+
+  margin-bottom: 17px;
+
+  border-radius: 999px;
+}
+
+
+/* ==========================================================================
+   TOP
+   ========================================================================== */
+
+.course-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+
+.course-card-code {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  letter-spacing: 0.01em;
+}
+
+
+.course-card-dot {
+  width: 8px;
+  height: 8px;
+
+  flex: 0 0 auto;
+
+  border-radius: 999px;
+}
+
+
+.course-card-status {
+  padding:
+    4px
+    7px;
+
+  border-radius: 999px;
+
+  background:
+    var(--surface-2);
+
+  color:
+    var(--muted);
+
+  font-size: 9px;
+  font-weight: 750;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.035em;
+}
+
+
+.course-card-status-active {
+  background:
+    var(--leaf-soft);
+
+  color:
+    var(--leaf);
+}
+
+
+/* ==========================================================================
+   TITLE
+   ========================================================================== */
+
+.course-card-title {
+  margin:
+    14px
+    0
+    0;
+
+  color: var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size: 19px;
+  font-weight: 790;
+
+  line-height: 1.18;
+
+  letter-spacing: -0.022em;
+}
+
+
+.course-card-professor {
+  margin:
+    6px
+    0
+    0;
+
+  color: var(--muted);
+
+  font-size: 11px;
+
+  line-height: 1.4;
+}
+
+
+/* ==========================================================================
+   STATS
+   ========================================================================== */
+
+.course-card-stats {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+
+.course-card-stat {
+  min-width: 0;
+
+  padding:
+    11px
+    12px;
+
+  border-radius: 10px;
+
+  background:
+    var(--surface-2);
+}
+
+
+.course-card-stat > span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+
+.course-card-stat > strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size: 19px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.course-card-stat
+.course-card-stat-small {
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+
+.course-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-top: auto;
+
+  padding-top: 18px;
+
+  color:
+    var(--brand-ink);
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+.course-card-footer svg {
+  width: 16px;
+  height: 16px;
+
+  transition:
+    transform 140ms ease;
+}
+
+
+.course-card-detailed:hover
+.course-card-footer svg {
+  transform:
+    translateX(3px);
+}
+
+
+/* ==========================================================================
+   COMPACT DASHBOARD CARD
+   ========================================================================== */
+
+.course-card-compact {
+  display: block;
+
+  overflow: hidden;
+
+  padding: 18px;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius: 14px;
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    var(--card-shadow);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.course-card-compact:hover {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 12px 26px
+    rgba(15, 23, 42, 0.07);
+}
+
+
+.compact-accent {
+  display: block;
+
+  width: 32px;
+  height: 4px;
+
+  margin-bottom: 14px;
+
+  border-radius: 999px;
+}
+
+
+.compact-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+
+.compact-course-info {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+
+.compact-course-info strong {
+  color: var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+
+.compact-course-info span {
+  overflow: hidden;
+
+  margin-top: 4px;
+
+  color: var(--muted);
+
+  font-size: 11px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.compact-archived {
+  padding:
+    3px
+    6px;
+
+  border-radius: 6px;
+
+  background:
+    var(--surface-2);
+
+  color:
+    var(--muted);
+
+  font-size: 8px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+}
+
+
+.compact-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-top: 18px;
+}
+
+
+.compact-grade {
+  color: var(--ink);
+
+  font-family:
+    "Bricolage Grotesque",
+    sans-serif;
+
+  font-size: 23px;
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+
+.compact-next {
+  overflow: hidden;
+
+  color: var(--faint);
+
+  font-size: 10px;
+  font-weight: 550;
+
+  text-align: right;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 520px) {
+
+  .course-card-detailed {
+    min-height: 235px;
+
+    padding: 18px;
+  }
+
+
+  .course-card-stats {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  a { transition: none; }
-  a:hover { transform: none; }
+
+  .course-card-detailed,
+  .course-card-compact,
+  .course-card-footer svg {
+    transition: none;
+  }
+
+
+  .course-card-detailed:hover,
+  .course-card-compact:hover {
+    transform: none;
+  }
+
 }

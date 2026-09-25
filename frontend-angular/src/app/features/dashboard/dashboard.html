@@ -4,7 +4,6 @@
 
     <div class="dashboard-loading">
       <app-skeleton class="h-10 w-96" />
-
       <div class="dashboard-loading-grid">
         <app-skeleton class="h-80" />
         <app-skeleton class="h-72" />
@@ -14,726 +13,258 @@
   } @else if (error()) {
 
     <div class="dashboard-error">
-      {{ error() }}
+      <span>{{ error() }}</span>
+      <button type="button" class="error-retry" (click)="load()">Try again</button>
     </div>
 
   } @else {
-<div class="dashboard-grid">
 
-  <div class="dashboard-main">
-
+    <div class="dashboard-grid">
+      <div class="dashboard-main">
 
         <!-- ===================================================
-             YOUR NEXT MOVE
+             YOUR NEXT MOVE — a stack you can flip through
              =================================================== -->
-        <div class="hero-wrap">
+        <div class="hero-wrap" [class.has-stack]="stackCount() > 1">
 
-          <section
-            class="hero"
-            [class.flipping]="flipping()"
-          >
+          @if (stackCount() > 2) { <span class="hero-peek hero-peek-2" aria-hidden="true"></span> }
+          @if (stackCount() > 1) { <span class="hero-peek hero-peek-1" aria-hidden="true"></span> }
+
+          <section class="hero" [class.flipping]="flipping()" aria-live="polite">
 
             @if (focus(); as f) {
 
               <div class="hero-heading-row">
-
-                <span class="hero-eyebrow">
-                  Your next move
+                <span class="hero-eyebrow">Your next move</span>
+                <span class="hero-priority" [class.hero-priority-danger]="f.overdue">
+                  {{ f.reason }}{{ f.weight ? ' · ' + f.weight + ' of grade' : '' }}
                 </span>
-
-                <span class="hero-priority">
-                  Highest priority ·
-                  {{ f.weight ? f.weight + ', due soonest' : 'due soonest' }}
-                </span>
-
               </div>
 
-
-              <h1 class="hero-title">
-                {{ f.name }}
-              </h1>
-
+              <h1 class="hero-title">{{ f.name }}</h1>
 
               <div class="hero-course">
-                <span
-                  class="course-dot"
-                  [style.backgroundColor]="f.color"
-                ></span>
-
-                <span>
-                  {{ f.code }} · {{ f.category }}
-                </span>
+                <span class="course-dot" [style.backgroundColor]="f.color"></span>
+                <span>{{ f.code }}{{ f.category ? ' · ' + f.category : '' }}</span>
               </div>
-
 
               <div class="hero-metrics">
-
                 <div class="hero-metric">
-                  <span>
-                    {{ f.overdue ? 'Status' : 'Time remaining' }}
-                  </span>
-
-                  <strong
-                    [class.hero-danger]="f.overdue"
-                    [class.hero-amber]="!f.overdue"
-                  >
-                    {{ countdown() }}
-                  </strong>
+                  <span>{{ f.overdue ? 'Status' : 'Time remaining' }}</span>
+                  <strong [class.hero-danger]="f.overdue" [class.hero-amber]="!f.overdue">{{ countdown() }}</strong>
                 </div>
-
-
                 <div class="hero-metric">
                   <span>Weight</span>
-
-                  <strong>
-                    {{ f.weight || '—' }}
-                  </strong>
+                  <strong>{{ f.weight || '—' }}</strong>
                 </div>
-
-
                 <div class="hero-metric">
                   <span>Deadline</span>
-
-                  <strong class="hero-deadline">
-                    {{ deadlineLabel(f.due) }}
-                  </strong>
+                  <strong class="hero-deadline">{{ deadlineLabel(f.due) }}</strong>
                 </div>
-
               </div>
 
-
-              <div class="hero-progress">
-                <span
-                  [style.width.%]="focusBar()"
-                ></span>
+              <div
+                class="hero-progress"
+                role="progressbar"
+                aria-label="Time elapsed in the final week before the deadline"
+                [attr.aria-valuenow]="focusBar()"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <span [style.width.%]="focusBar()"></span>
               </div>
-
 
               <div class="hero-actions">
-
-                <button
-                  type="button"
-                  class="hero-complete"
-                  (click)="markDone(f.activityId)"
-                  [disabled]="marking()"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-
+                <button type="button" class="hero-complete" (click)="markDone(f.activityId)" [disabled]="marking()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                   Mark as done
                 </button>
 
+                <button type="button" class="hero-view" (click)="snooze(f.activityId)" title="Hide for 24 hours">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                  Later
+                </button>
 
-                <a
-                  [routerLink]="['/assignments', f.activityId]"
-                  class="hero-view"
-                >
-                  View
-                </a>
+                <a [routerLink]="['/assignments', f.activityId]" class="hero-view">View</a>
 
+                @if (stackCount() > 1) {
+                  <span class="hero-stack-nav">
+                    {{ stackIndex() + 1 }} of {{ stackCount() }}
+                    <button type="button" class="hero-next" (click)="nextCard()" aria-label="Show next item">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                    </button>
+                  </span>
+                }
               </div>
 
             } @else {
 
               <div class="hero-empty">
-
-                <span class="hero-eyebrow">
-                  You're clear
-                </span>
-
-                <h1>
-                  Nothing urgent right now.
-                </h1>
-
-                <p>
-                  All caught up for today.
-                </p>
-
-                <a
-                  routerLink="/assignments/new"
-                  class="hero-empty-button"
-                >
-                  Add assignment
-                </a>
-
+                <span class="hero-eyebrow">You're clear</span>
+                <h1>Nothing urgent right now.</h1>
+                <p>All caught up for today.</p>
+                <a routerLink="/assignments/new" class="hero-empty-button">Add assignment</a>
               </div>
 
             }
 
           </section>
-
         </div>
 
-
         <!-- ===================================================
-             THIS WEEK
+             THIS WEEK — workload strip
              =================================================== -->
         <section class="dashboard-card week-card">
-
           <div class="card-heading">
-
-            <h2>
-              This week
-            </h2>
-
-            <a routerLink="/calendar">
-              View calendar
-              <span>→</span>
-            </a>
-
+            <h2>This week</h2>
+            <a routerLink="/calendar">View calendar <span>→</span></a>
           </div>
 
-
-          @if (thisWeek().length === 0) {
-
-            <div class="empty-row">
-              Nothing due in the next 7 days.
-            </div>
-
+          @if (weekIsEmpty()) {
+            <div class="empty-row">Nothing due in the next 7 days.</div>
           } @else {
-
-            <div class="task-list">
-
-              @for (t of thisWeek(); track t.id) {
-
-                <a
-                  [routerLink]="['/assignments', t.id]"
-                  class="task-row"
-                >
-
-                  <span
-                    class="task-dot"
-                    [style.backgroundColor]="t.color"
-                  ></span>
-
-
-                  <span class="task-name">
-                    {{ t.name }}
-
-                    <small>
-                      {{ t.code }}
-                    </small>
-                  </span>
-
-
-                  @if (t.weight) {
-                    <span class="task-weight">
-                      {{ t.weight }}
-                    </span>
-                  }
-
-
-                  <span
-                    class="task-date"
-                    [class.task-date-urgent]="t.label === 'Tomorrow' || t.label === 'Today'"
-                  >
-                    {{ t.label }}
-                  </span>
-
-                </a>
-
-              }
-
-            </div>
-
+            <app-workload-strip [days]="week()" />
           }
-
         </section>
 
-
         <!-- ===================================================
-             ACTIVE CLASSES
+             ACTIVE CLASSES — course health
              =================================================== -->
         <section class="dashboard-card classes-card">
-
           <div class="card-heading classes-heading">
-
-            <h2>
-              Active classes
-
-              <span class="count-pill">
-                {{ courses().length }}
-              </span>
-            </h2>
-
-            <a routerLink="/courses">
-              All courses
-              <span>→</span>
-            </a>
-
+            <h2>Active classes <span class="count-pill">{{ courses().length }}</span></h2>
+            <a routerLink="/courses">All courses <span>→</span></a>
           </div>
 
-
           @if (courses().length === 0) {
-
             <div class="classes-empty">
-
-              <strong>
-                No courses yet
-              </strong>
-
-              <span>
-                Add a course or upload a syllabus to get started.
-              </span>
-
+              <strong>No courses yet</strong>
+              <span>Add a course or upload a syllabus to get started.</span>
             </div>
-
           } @else {
-
             <div class="course-grid">
-
               @for (course of courses(); track course.id) {
-
                 <app-course-card
                   [course]="course"
                   [nextLabel]="nextLabels()[course.id] ?? null"
+                  [health]="health()[course.id] ?? null"
                 />
-
               }
-
             </div>
-
           }
 
-
-          <!-- Always visible -->
-          <a
-            routerLink="/courses"
-            [queryParams]="{ filter: 'archived' }"
-            class="archived-row"
-          >
-
+          <a routerLink="/courses" [queryParams]="{ filter: 'archived' }" class="archived-row">
             <span class="archived-title">
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect
-                  x="3"
-                  y="4"
-                  width="18"
-                  height="5"
-                  rx="1"
-                />
-
-                <path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/>
-
-                <path d="M10 13h4"/>
-              </svg>
-
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg>
               Archived classes
-
             </span>
-
-
             <span class="archived-count">
-              {{ archivedCount() }}
-              {{ archivedCount() === 1 ? 'course' : 'courses' }}
-
-              <span>›</span>
+              {{ archivedCount() }} {{ archivedCount() === 1 ? 'course' : 'courses' }} <span>›</span>
             </span>
-
           </a>
-
         </section>
 
       </div>
-
 
       <!-- =====================================================
            RIGHT RAIL
            ===================================================== -->
       <aside class="dashboard-rail">
 
-
-        <!-- ===================================================
-             SEMESTER
-             =================================================== -->
+        <!-- AT A GLANCE ------------------------------------- -->
         <section class="dashboard-card stats-card">
+          <div class="card-heading"><h2>At a glance</h2></div>
 
           @if (semester(); as s) {
-
             <div class="stats-row">
-
               <span class="stats-label">
-
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="9"/>
-                  <path d="M12 7v5l3 2"/>
-                </svg>
-
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
                 Semester
-
               </span>
-
-              <strong>
-                Wk {{ s.cur }}
-
-                <small>
-                  / {{ s.total }}
-                </small>
-              </strong>
-
+              <strong>Wk {{ s.cur }} <small>/ {{ s.total }}</small></strong>
             </div>
-
           }
 
-
           <div class="stats-row">
-
             <span class="stats-label">
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M3 20h18"/>
-                <path d="M6 16V8"/>
-                <path d="M12 16V4"/>
-                <path d="M18 16v-5"/>
-              </svg>
-
-              Overall grade
-
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M6 16V8"/><path d="M12 16V4"/><path d="M18 16v-5"/></svg>
+              Avg. course grade
             </span>
-
-            <strong [style.color]="bandColor(avgGrade())">
-              {{ avgGrade() != null ? avgGrade() + '%' : '—' }}
-            </strong>
-
+            <strong [style.color]="bandColor(avgGrade())">{{ avgGrade() != null ? avgGrade() + '%' : '—' }}</strong>
           </div>
 
-
           <div class="stats-row">
-
             <span class="stats-label">
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect x="5" y="3" width="14" height="18" rx="2"/>
-                <path d="M9 7h6"/>
-              </svg>
-
-              Active courses
-
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+              Heaviest this week
             </span>
-
-            <strong>
-              {{ courses().length }}
-            </strong>
-
+            @if (heaviestThisWeek(); as h) {
+              <strong>{{ h.code }} <small>· {{ h.weight }}%</small></strong>
+            } @else {
+              <strong>—</strong>
+            }
           </div>
-
-
-          <div class="stats-row">
-
-            <span class="stats-label">
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect x="3" y="5" width="18" height="16" rx="2"/>
-                <path d="M16 3v4M8 3v4M3 10h18"/>
-              </svg>
-
-              Due this week
-
-            </span>
-
-            <strong>
-              {{ dueThisWeekCount() }}
-            </strong>
-
-          </div>
-
-
-          <div class="stats-row">
-
-            <span class="stats-label">
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="12" cy="12" r="9"/>
-                <path d="M12 7v6"/>
-                <path d="M12 17h.01"/>
-              </svg>
-
-              Overdue
-
-            </span>
-
-            <strong
-              [class.stats-danger]="overdueCount() > 0"
-            >
-              {{ overdueCount() }}
-            </strong>
-
-          </div>
-
         </section>
 
-
-        <!-- ===================================================
-             NEXT BIG ASSESSMENT
-             =================================================== -->
+        <!-- NEXT BIG ASSESSMENT ----------------------------- -->
         @if (nextExam(); as e) {
-
           <section class="dashboard-card assessment-card">
+            <div class="card-heading">
+              <h2>Next big assessment</h2>
+              <a routerLink="/assignments">All upcoming <span>→</span></a>
+            </div>
 
-            <div class="assessment-heading">
-
-              <span class="assessment-title">
-
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="13" r="7"/>
-                  <path d="M12 9v4l2 2"/>
-                  <path d="M9 2h6"/>
-                  <path d="M12 2v4"/>
-                </svg>
-
-                Next big assessment
-
+            <a class="assessment-main" [routerLink]="['/assignments', e.activityId]">
+              <span class="assessment-days">
+                <strong>{{ e.days === 0 ? 'Today' : e.days }}</strong>
+                @if (e.days !== 0) { <span>{{ e.days === 1 ? 'day' : 'days' }}</span> }
               </span>
-
-
-              <a routerLink="/assignments">
-                All upcoming
-                <span>→</span>
-              </a>
-
-            </div>
-
-
-            <div class="assessment-main">
-
-              <strong class="assessment-days">
-                {{ nextExamCountdown().days }}
-
-                <span>
-                  days
-                </span>
-              </strong>
-
-
-              <p>
-                {{ e.code }} · {{ e.name }} · {{ e.date }}
-                @if (e.weight) {
-                  · {{ e.weight }}
-                }
-              </p>
-
-            </div>
-
-
-            <div class="countdown-grid">
-
-              <div>
-                <strong>
-                  {{ nextExamCountdown().days }}
-                </strong>
-
-                <span>
-                  days
-                </span>
-              </div>
-
-
-              <div>
-                <strong>
-                  {{ nextExamCountdown().hours }}
-                </strong>
-
-                <span>
-                  hours
-                </span>
-              </div>
-
-
-              <div>
-                <strong>
-                  {{ nextExamCountdown().minutes }}
-                </strong>
-
-                <span>
-                  mins
-                </span>
-              </div>
-
-
-              <div>
-                <strong>
-                  {{ nextExamCountdown().seconds }}
-                </strong>
-
-                <span>
-                  secs
-                </span>
-              </div>
-
-            </div>
-
+              <span class="assessment-copy">
+                <strong>{{ e.code }} · {{ e.name }}</strong>
+                <small>{{ e.date }}{{ e.weight ? ' · ' + e.weight + ' of grade' : '' }}</small>
+              </span>
+            </a>
           </section>
-
         }
 
-
-        <!-- ===================================================
-             PAST DUE ASSIGNMENTS
-             =================================================== -->
+        <!-- PAST DUE ----------------------------------------- -->
         <section class="dashboard-card overdue-card">
-
-          <div class="overdue-heading">
-
-            <h2>
-              Past due assignments
-
-              <span class="count-pill">
-                {{ overdueCount() }}
-              </span>
-            </h2>
-
-            <a routerLink="/assignments">
-              View all
-              <span>→</span>
-            </a>
-
+          <div class="card-heading">
+            <h2>Past due <span class="count-pill">{{ pastDueCount() }}</span></h2>
+            <a routerLink="/assignments">View all <span>→</span></a>
           </div>
 
-
-          @if (overdueTasks().length > 0) {
-
+          @if (pastDue().length > 0) {
             <div class="overdue-list">
-
-              @for (t of overdueTasks(); track t.id) {
-
-                <a
-                  [routerLink]="['/assignments', t.id]"
-                  class="overdue-row"
-                >
-
-                  <span
-                    class="task-dot"
-                    [style.backgroundColor]="t.color"
-                  ></span>
-
+              @for (t of pastDue(); track t.id) {
+                <a [routerLink]="['/assignments', t.id]" class="overdue-row" [class.overdue-stale]="t.stale">
+                  <span class="task-dot" [style.backgroundColor]="t.color"></span>
                   <span class="overdue-name">
-
-                    <strong>
-                      {{ t.name }}
-                    </strong>
-
-                    <small>
-                      {{ t.code }}
-                    </small>
-
+                    <strong>{{ t.name }}</strong>
+                    <small>{{ t.code }}{{ t.weight ? ' · ' + t.weight : '' }}</small>
                   </span>
-
-                  @if (t.weight) {
-                    <span class="task-weight">
-                      {{ t.weight }}
-                    </span>
+                  @if (t.stale) {
+                    <button type="button" class="overdue-dismiss" (click)="dismiss(t.id, $event)">Dismiss</button>
+                  } @else {
+                    <span class="overdue-late">{{ t.label }}</span>
                   }
-
-                  <span class="overdue-late">
-                    {{ t.label }}
-                  </span>
-
                 </a>
-
               }
-
             </div>
-
           } @else {
-
             <div class="overdue-empty">
-
               <span class="overdue-empty-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M20 6L9 17l-5-5"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
               </span>
-
               <div class="overdue-empty-copy">
-
-                <strong>
-                  You're on top of everything
-                </strong>
-
-                <p>
-                  No past due assignments right now.
-                </p>
-
-                <span class="overdue-empty-quote">
-                  “Keep it up — small progress every day adds up.”
-                </span>
-
+                <strong>You're on top of everything</strong>
+                <p>No past due assignments right now.</p>
               </div>
-
             </div>
-
           }
-
         </section>
 
-
       </aside>
-
     </div>
 
   }
