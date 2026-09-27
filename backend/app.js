@@ -5,6 +5,8 @@ import { requireAdmin, verifyToken } from "./src/middleware/auth.js";
 import adminRouter from "./src/routes/adminRoute.js";
 import authRouter from "./src/routes/authRoute.js";
 import userRouter from "./src/routes/userRoute.js";
+import calendarIntegrationRouter from "./src/routes/calendarIntegrationRoute.js";
+import calendarEventRouter from "./src/routes/calendarEventRoute.js";
 
 // The Express app with all middleware and routes, but NO side effects
 // (no DB connect, no cron, no listen). server.js boots it; tests import it.
@@ -23,5 +25,12 @@ app.get("/health", (req, res) => res.json({ ok: true }));
 app.use("/auth", authRouter);
 app.use("/user", verifyToken, userRouter);
 app.use("/admin", verifyToken, requireAdmin, adminRouter);
-
+app.use(
+    "/api/calendar-integrations",
+    calendarIntegrationRouter,
+);
+app.use(
+    "/api/calendar-events",
+    calendarEventRouter,
+);
 export default app;

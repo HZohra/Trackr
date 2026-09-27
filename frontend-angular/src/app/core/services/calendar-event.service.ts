@@ -1,43 +1,85 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface CalendarEvent {
-  id: string;
+  id: number;
   title: string;
-  date: string;      // 'YYYY-MM-DD'
+  date: string; // YYYY-MM-DD
   time: string | null;
 }
 
-const KEY = 'trackr-calendar-events';
+export interface NewCalendarEvent {
+  title: string;
+  date: string;
+  time: string | null;
+}
 
-/**
- * Calendar-only events (the "Other" type) that don't belong to a course.
- * Stored locally on this device, since the backend has no events table yet.
- */
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class CalendarEventService {
-  readonly events = signal<CalendarEvent[]>(this.load());
+  private readonly http = inject(HttpClient);
+  private readonly api = environment.apiBase;
 
-  add(input: { title: string; date: string; time: string | null }): void {
-    this.events.set([...this.events(), { id: this.uid(), ...input }]);
-    this.persist();
+  readonly events = signal<CalendarEvent[]>([]);
+
+  /**
+   * Load all calendar-only events belonging to
+   * the currently logged-in Trackr user.
+   */
+  load(): Observable<CalendarEvent[]> {
+    return this.http
+      .get<CalendarEvent[]>(
+        `${this.api}/api/calendar-events`,
+      )
+      .pipe(
+        tap((events) => {
+          this.events.set(events);
+        }),
+      );
   }
 
-  remove(id: string): void {
-    this.events.set(this.events().filter((e) => e.id !== id));
-    this.persist();
+  /**
+   * Create a new calendar-only event.
+   */
+  add(
+    input: NewCalendarEvent,
+  ): Observable<CalendarEvent> {
+    return this.http
+      .post<CalendarEvent>(
+        `${this.api}/api/calendar-events`,
+        input,
+      )
+      .pipe(
+        tap((event) => {
+          this.events.update((current) => [
+            ...current,
+            event,
+          ]);
+        }),
+      );
   }
 
-  private uid(): string {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-  }
-  private load(): CalendarEvent[] {
-    try {
-      const raw = localStorage.getItem(KEY);
-      const parsed: unknown = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? (parsed as CalendarEvent[]) : [];
-    } catch { return []; }
-  }
-  private persist(): void {
-    try { localStorage.setItem(KEY, JSON.stringify(this.events())); } catch { /* storage blocked */ }
+  /**
+   * Delete a calendar-only event.
+   */
+  remove(
+    eventId: number,
+  ): Observable<void> {
+    return this.http
+      .delete<void>(
+        `${this.api}/api/calendar-events/${eventId}`,
+      )
+      .pipe(
+        tap(() => {
+          this.events.update((current) =>
+            current.filter(
+              (event) => event.id !== eventId,
+            ),
+          );
+        }),
+      );
   }
 }
