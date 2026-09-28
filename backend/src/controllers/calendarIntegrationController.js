@@ -6,16 +6,20 @@ import {
   getCalendarIntegrationsForUser,
   getCalendarIntegrationInternal,
   upsertGoogleIntegration,
+  deleteCalendarIntegration,
 } from "../model/calendarIntegrationModel.js";
 
 import {
   getGoogleAuthorizationUrl,
   exchangeGoogleCode,
   createTrackrGoogleCalendar,
+  deleteTrackrGoogleCalendar,
+  revokeGoogleCalendarAccess,
 } from "../services/calendar/googleCalendarService.js";
 
 import {
   encryptCalendarToken,
+  decryptCalendarToken,
 } from "../services/calendar/calendarTokenCrypto.js";
 
 import {
@@ -132,6 +136,28 @@ function hashOAuthState(state) {
     .createHash("sha256")
     .update(state)
     .digest("hex");
+}
+
+function deleteIntegrationAsync(
+  userId,
+  provider
+) {
+  return new Promise(
+    (resolve, reject) => {
+      deleteCalendarIntegration(
+        userId,
+        provider,
+        (error, result) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          resolve(result);
+        }
+      );
+    }
+  );
 }
 
 
@@ -460,6 +486,154 @@ export async function syncGoogleCalendar(
         message:
           error.message ??
           "Unable to synchronize Google Calendar.",
+      });
+  }
+}
+/**
+ * DELETE /api/calendar-integrations/google
+ *
+ * Disconnect Google Calendar from Trackr.
+ *
+ * Flow:
+ * 1. Load the user's Google integration.
+ * 2. Delete Trackr's dedicated Google calendar.
+ * 3. Revoke Google's refresh token.
+ * 4. Remove the local integration + mappings.
+ */
+export async function disconnectGoogleCalendar(
+  req,
+  res
+) {
+  const userId =
+    req.user.user_id;
+
+  try {
+    const integration =
+      await getInternalIntegrationAsync(
+        userId,
+        "google"
+      );
+
+    // Already disconnected.
+    if (!integration) {
+      return res.json({
+        message:
+          "Google Calendar is already disconnected.",
+      });
+    }
+
+
+    let refreshToken = null;
+
+    if (
+      integration
+        .encrypted_refresh_token
+    ) {
+      refreshToken =
+        decryptCalendarToken(
+          integration
+            .encrypted_refresh_token
+        );
+    }
+
+
+    // --------------------------------------------------
+    // DELETE TRACKR GOOGLE CALENDAR
+    // --------------------------------------------------
+
+    if (
+      refreshToken &&
+      integration.external_calendar_id
+    ) {
+      try {
+        await deleteTrackrGoogleCalendar(
+          refreshToken,
+          integration.external_calendar_id
+        );
+      } catch (error) {
+        const status =
+          error?.response?.status ??
+          error?.code ??
+          null;
+
+        /*
+         * 401 / 403 usually means Google access was
+         * already revoked or is no longer usable.
+         *
+         * In that case we can still safely remove
+         * Trackr's local integration.
+         */
+        if (
+          status !== 401 &&
+          status !== 403
+        ) {
+          console.error(
+            "Failed to delete Trackr Google calendar:",
+            error
+          );
+
+          return res
+            .status(502)
+            .json({
+              message:
+                "Could not remove the Trackr calendar from Google. Please try again.",
+            });
+        }
+      }
+    }
+
+
+    // --------------------------------------------------
+    // REVOKE GOOGLE ACCESS
+    // --------------------------------------------------
+
+    if (refreshToken) {
+      try {
+        await revokeGoogleCalendarAccess(
+          refreshToken
+        );
+      } catch (error) {
+        /*
+         * We still remove the local encrypted token.
+         *
+         * This prevents Trackr from retaining Google
+         * credentials even if Google's revoke endpoint
+         * says the token is already invalid.
+         */
+        console.warn(
+          "Google token revoke did not complete:",
+          error?.message ?? error
+        );
+      }
+    }
+
+
+    // --------------------------------------------------
+    // DELETE LOCAL INTEGRATION
+    // --------------------------------------------------
+
+    await deleteIntegrationAsync(
+      userId,
+      "google"
+    );
+
+
+    return res.json({
+      message:
+        "Google Calendar disconnected successfully.",
+    });
+
+  } catch (error) {
+    console.error(
+      "Failed to disconnect Google Calendar:",
+      error
+    );
+
+    return res
+      .status(500)
+      .json({
+        message:
+          "Unable to disconnect Google Calendar.",
       });
   }
 }

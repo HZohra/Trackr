@@ -20,6 +20,9 @@ import {
     VALID_COURSE_COLORS,
 } from "../services/syllabusNormalizer.js";
 
+import {
+    queueGoogleCalendarSync,
+} from "../services/calendar/calendarAutoSyncService.js";
 
 // ============================================================================
 // CHANGE PASSWORD
@@ -564,6 +567,9 @@ export const updateActivityById = (
                             "Activity not found",
                     });
             }
+            queueGoogleCalendarSync(
+                req.user.user_id,
+            );
 
             return res.json(
                 updated,
@@ -602,6 +608,9 @@ export const deleteActivityById = (
                             "Assignment not found",
                     });
             }
+            queueGoogleCalendarSync(
+                req.user.user_id,
+            );
 
             return res
                 .status(204)
@@ -1143,6 +1152,10 @@ export const addActivity = (
                      * Fill in fields whose
                      * values come from DB defaults.
                      */
+                    queueGoogleCalendarSync(
+                        req.user.user_id,
+                    );
+
                     return res
                         .status(201)
                         .json({
@@ -1727,6 +1740,9 @@ export const setActivityStatus = (
                     });
             }
 
+            queueGoogleCalendarSync(
+                req.user.user_id,
+            );
 
             return res
                 .status(200)

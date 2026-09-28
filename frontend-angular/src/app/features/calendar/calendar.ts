@@ -184,6 +184,17 @@ export class Calendar {
   protected readonly showCalendarSync =
     signal(false);
 
+  protected readonly disconnectingGoogle =
+  signal(false);
+
+  protected readonly googleDisconnectError =
+    signal<string | null>(null);
+
+  protected readonly googleDisconnectMessage =
+    signal<string | null>(null);
+
+  protected readonly showGoogleDisconnectConfirm =
+  signal(false);
 
   // ============================================================
   // CALENDAR VIEW STATE
@@ -442,6 +453,78 @@ export class Calendar {
         },
       });
   }
+
+protected requestGoogleDisconnect(): void {
+  if (
+    this.disconnectingGoogle() ||
+    this.syncingGoogle()
+  ) {
+    return;
+  }
+
+  this.googleDisconnectError.set(null);
+
+  this.showGoogleDisconnectConfirm.set(true);
+}
+
+
+protected cancelGoogleDisconnect(): void {
+  this.showGoogleDisconnectConfirm.set(false);
+}
+
+
+protected disconnectGoogleCalendar(): void {
+
+  if (this.disconnectingGoogle()) {
+    return;
+  }
+
+  this.showGoogleDisconnectConfirm.set(false);
+
+  this.disconnectingGoogle.set(true);
+
+  this.googleDisconnectError.set(null);
+
+  this.googleDisconnectMessage.set(null);
+
+  this.googleSyncMessage.set(null);
+
+  this.googleSyncError.set(null);
+
+
+  this.calendarIntegration
+    .disconnectGoogle()
+    .subscribe({
+
+      next: (result) => {
+
+        this.disconnectingGoogle.set(false);
+
+        this.googleDisconnectMessage.set(
+          result.message,
+        );
+
+        this.loadCalendarConnections();
+      },
+
+
+      error: (err) => {
+
+        console.error(
+          'Could not disconnect Google Calendar:',
+          err,
+        );
+
+        this.disconnectingGoogle.set(false);
+
+        this.googleDisconnectError.set(
+          err?.error?.message ??
+            'Could not disconnect Google Calendar.',
+        );
+      },
+
+    });
+}
 
 
   // ============================================================
@@ -1197,6 +1280,8 @@ export class Calendar {
     );
   }
 
+
+  
 
   // ============================================================
   // DAY PANEL

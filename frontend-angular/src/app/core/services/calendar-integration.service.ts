@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+
 import { environment } from '../../../environments/environment';
 
 
@@ -24,6 +25,7 @@ export interface CalendarConnectionStatus {
 
 export interface GoogleCalendarSyncResult {
   message: string;
+
   created: number;
   updated: number;
   unchanged: number;
@@ -37,10 +39,16 @@ interface GoogleConnectResponse {
 }
 
 
+export interface GoogleDisconnectResponse {
+  message: string;
+}
+
+
 @Injectable({
   providedIn: 'root',
 })
 export class CalendarIntegrationService {
+
   private readonly http =
     inject(HttpClient);
 
@@ -48,24 +56,39 @@ export class CalendarIntegrationService {
     environment.apiBase;
 
 
-  getConnections(): Observable<CalendarConnectionStatus> {
+  getConnections():
+    Observable<CalendarConnectionStatus> {
+
     return this.http.get<CalendarConnectionStatus>(
       `${this.api}/api/calendar-integrations`,
     );
   }
 
 
-  connectGoogle(): Observable<GoogleConnectResponse> {
+  connectGoogle():
+    Observable<GoogleConnectResponse> {
+
     return this.http.get<GoogleConnectResponse>(
       `${this.api}/api/calendar-integrations/google/connect`,
     );
   }
 
 
-  syncGoogle(): Observable<GoogleCalendarSyncResult> {
+  syncGoogle():
+    Observable<GoogleCalendarSyncResult> {
+
     return this.http.post<GoogleCalendarSyncResult>(
       `${this.api}/api/calendar-integrations/google/sync`,
       {},
+    );
+  }
+
+
+  disconnectGoogle():
+    Observable<GoogleDisconnectResponse> {
+
+    return this.http.delete<GoogleDisconnectResponse>(
+      `${this.api}/api/calendar-integrations/google`,
     );
   }
 }

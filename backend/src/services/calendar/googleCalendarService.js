@@ -123,3 +123,73 @@ export function createAuthorizedCalendarClient(refreshToken) {
     auth: oauth2Client,
   });
 }
+
+/**
+ * Delete the dedicated Trackr calendar from
+ * the user's Google Calendar account.
+ */
+export async function deleteTrackrGoogleCalendar(
+  refreshToken,
+  calendarId
+) {
+  if (!calendarId) {
+    return {
+      deleted: false,
+      alreadyMissing: true,
+    };
+  }
+
+  const calendar =
+    createAuthorizedCalendarClient(
+      refreshToken
+    );
+
+  try {
+    await calendar.calendars.delete({
+      calendarId,
+    });
+
+    return {
+      deleted: true,
+      alreadyMissing: false,
+    };
+  } catch (error) {
+    const status =
+      error?.response?.status ??
+      error?.code ??
+      null;
+
+    // If the user already deleted the Trackr
+    // calendar manually, disconnect can still succeed.
+    if (
+      status === 404 ||
+      status === 410
+    ) {
+      return {
+        deleted: false,
+        alreadyMissing: true,
+      };
+    }
+
+    throw error;
+  }
+}
+
+
+/**
+ * Revoke Trackr's stored Google OAuth access.
+ */
+export async function revokeGoogleCalendarAccess(
+  refreshToken
+) {
+  if (!refreshToken) {
+    return;
+  }
+
+  const oauth2Client =
+    createGoogleOAuthClient();
+
+  await oauth2Client.revokeToken(
+    refreshToken
+  );
+}

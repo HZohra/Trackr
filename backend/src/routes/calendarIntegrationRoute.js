@@ -5,6 +5,7 @@ import {
   connectGoogleCalendar,
   googleCalendarCallback,
   syncGoogleCalendar,
+  disconnectGoogleCalendar,
 } from "../controllers/calendarIntegrationController.js";
 
 import { verifyToken } from "../middleware/auth.js";
@@ -62,5 +63,15 @@ router.post(
   syncGoogleCalendar,
 );
 
+/**
+ * DELETE /api/calendar-integrations/google
+ *
+ * Disconnect the logged-in user's Google Calendar.
+ */
+router.delete(
+  "/google",
+  verifyToken,
+  disconnectGoogleCalendar,
+);
 
 export default router;

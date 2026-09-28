@@ -1,13 +1,18 @@
 <div class="mx-auto max-w-6xl">
+
   <!-- =========================================================
        HEADER
   ========================================================== -->
+
   <div class="flex flex-wrap items-center justify-between gap-3">
+
     <h1 class="font-display text-3xl font-bold text-ink">
       Calendar
     </h1>
 
+
     <div class="flex flex-wrap items-center gap-2">
+
       <!-- Calendar Sync -->
       <button
         type="button"
@@ -33,8 +38,10 @@
         Sync
       </button>
 
+
       <!-- Month / Week -->
       <div class="inline-flex rounded-lg border border-line bg-surface2 p-1">
+
         <button
           type="button"
           (click)="setView('month')"
@@ -47,6 +54,7 @@
           Month
         </button>
 
+
         <button
           type="button"
           (click)="setView('week')"
@@ -58,7 +66,9 @@
         >
           Week
         </button>
+
       </div>
+
 
       <!-- Today -->
       <button
@@ -69,8 +79,10 @@
         Today
       </button>
 
+
       <!-- Previous / Next -->
       <div class="flex items-center gap-1">
+
         <button
           type="button"
           (click)="prev()"
@@ -90,11 +102,13 @@
           </svg>
         </button>
 
+
         <span
           class="min-w-[11rem] text-center font-display text-base font-bold text-ink"
         >
           {{ periodLabel() }}
         </span>
+
 
         <button
           type="button"
@@ -114,28 +128,41 @@
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
+
       </div>
+
     </div>
+
   </div>
+
+
 
   <!-- =========================================================
        CALENDAR SYNC PANEL
   ========================================================== -->
+
   @if (showCalendarSync()) {
+
     <section
       class="mt-4 rounded-2xl border border-line bg-surface p-5 shadow-card"
     >
+
       <div class="flex items-start justify-between gap-4">
+
         <div>
+
           <h2 class="font-display text-lg font-bold text-ink">
             Calendar Sync
           </h2>
+
 
           <p class="mt-1 max-w-2xl text-sm text-muted">
             Keep your Trackr assignments, exams, quizzes, deadlines and
             calendar events available outside Trackr.
           </p>
+
         </div>
+
 
         <button
           type="button"
@@ -154,15 +181,21 @@
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>
+
       </div>
 
+
       <div class="mt-5 grid gap-4 md:grid-cols-2">
+
 
         <!-- =====================================================
              GOOGLE CALENDAR
         ====================================================== -->
+
         <div class="rounded-xl border border-line bg-surface2 p-4">
+
           <div class="flex items-start justify-between gap-3">
+
 
             <div class="flex min-w-0 items-start gap-3">
 
@@ -179,45 +212,69 @@
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <rect x="3" y="5" width="18" height="16" rx="2" />
-                  <path d="M16 3v4M8 3v4M3 11h18" />
+                  <rect
+                    x="3"
+                    y="5"
+                    width="18"
+                    height="16"
+                    rx="2"
+                  />
+
+                  <path
+                    d="M16 3v4M8 3v4M3 11h18"
+                  />
                 </svg>
               </div>
 
+
               <div class="min-w-0">
+
                 <h3 class="font-semibold text-ink">
                   Google Calendar
                 </h3>
+
 
                 <p class="mt-1 text-sm text-muted">
                   Automatically sync Trackr deadlines and events to a
                   dedicated Trackr calendar in Google Calendar.
                 </p>
+
               </div>
+
             </div>
 
+
             @if (calendarConnections()?.google?.connected) {
+
               <span
                 class="shrink-0 rounded-full bg-brand px-2.5 py-1 text-xs font-semibold text-white"
               >
                 Connected
               </span>
+
             }
 
           </div>
 
 
+
+          <!-- =====================================================
+               CONNECTED STATE
+          ====================================================== -->
+
           @if (calendarConnections()?.google?.connected) {
 
-            <!-- Connected State -->
             <div class="mt-4 border-t border-line pt-4">
 
+
+              <!-- Connected Status -->
               <div class="flex items-center gap-2">
 
                 <span
                   class="h-2 w-2 rounded-full bg-brand"
                   aria-hidden="true"
                 ></span>
+
 
                 <p class="text-sm font-semibold text-ink">
                   Google Calendar is connected
@@ -226,6 +283,7 @@
               </div>
 
 
+              <!-- Google Account -->
               @if (calendarConnections()?.google?.accountEmail) {
 
                 <p class="mt-2 text-sm text-muted">
@@ -235,7 +293,11 @@
               }
 
 
-              <!-- Automatic Sync -->
+
+              <!-- =================================================
+                   AUTOMATIC SYNC
+              ================================================== -->
+
               <div
                 class="mt-3 flex items-center justify-between rounded-lg border border-line bg-surface px-3 py-2"
               >
@@ -245,6 +307,7 @@
                   <p class="text-xs font-semibold text-ink">
                     Automatic sync
                   </p>
+
 
                   <p class="text-xs text-muted">
                     Trackr → Google Calendar
@@ -262,15 +325,17 @@
               </div>
 
 
+
               <!-- =================================================
                    SYNC NOW
               ================================================== -->
+
               <div class="mt-4">
 
                 <button
                   type="button"
                   (click)="syncGoogleCalendar()"
-                  [disabled]="syncingGoogle()"
+                  [disabled]="syncingGoogle() || disconnectingGoogle()"
                   class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-ink disabled:cursor-not-allowed disabled:opacity-60"
                 >
 
@@ -282,7 +347,6 @@
                       fill="none"
                       aria-hidden="true"
                     >
-
                       <circle
                         class="opacity-25"
                         cx="12"
@@ -297,7 +361,6 @@
                         fill="currentColor"
                         d="M21 12a9 9 0 0 0-9-9v3a6 6 0 0 1 6 6h3z"
                       ></path>
-
                     </svg>
 
                     Syncing...
@@ -327,6 +390,7 @@
                 </button>
 
 
+
                 <!-- Sync Success -->
                 @if (googleSyncMessage()) {
 
@@ -337,6 +401,7 @@
                   </div>
 
                 }
+
 
 
                 <!-- Sync Error -->
@@ -353,7 +418,89 @@
               </div>
 
 
-              <!-- Last Synced -->
+
+              <!-- =================================================
+                   DISCONNECT GOOGLE CALENDAR
+              ================================================== -->
+
+              <div class="mt-3">
+
+                <button
+                  type="button"
+                  (click)="requestGoogleDisconnect()"
+                  [disabled]="disconnectingGoogle() || syncingGoogle()"
+                  class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-danger-soft bg-surface px-4 py-2.5 text-sm font-semibold text-danger-ink transition hover:bg-danger-soft disabled:cursor-not-allowed disabled:opacity-60"
+                >
+
+                  @if (disconnectingGoogle()) {
+
+                    <svg
+                      class="h-4 w-4 animate-spin"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="9"
+                        stroke="currentColor"
+                        stroke-width="3"
+                      ></circle>
+
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M21 12a9 9 0 0 0-9-9v3a6 6 0 0 1 6 6h3z"
+                      ></path>
+                    </svg>
+
+                    Disconnecting...
+
+                  } @else {
+
+                    <svg
+                      class="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="M6 6l12 12" />
+                    </svg>
+
+                    Disconnect Google Calendar
+
+                  }
+
+                </button>
+
+
+
+                <!-- Disconnect Error -->
+                @if (googleDisconnectError()) {
+
+                  <div
+                    class="mt-3 rounded-lg border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger-ink"
+                  >
+                    {{ googleDisconnectError() }}
+                  </div>
+
+                }
+
+              </div>
+
+
+
+              <!-- =================================================
+                   LAST SYNCED
+              ================================================== -->
+
               @if (calendarConnections()?.google?.lastSyncedAt) {
 
                 <p class="mt-3 text-xs text-faint">
@@ -371,11 +518,14 @@
 
             </div>
 
+
+
+          <!-- =====================================================
+               NOT CONNECTED STATE
+          ====================================================== -->
+
           } @else {
 
-            <!-- =================================================
-                 NOT CONNECTED
-            ================================================== -->
             <div class="mt-4 border-t border-line pt-4">
 
               <button
@@ -393,7 +543,6 @@
                     fill="none"
                     aria-hidden="true"
                   >
-
                     <circle
                       class="opacity-25"
                       cx="12"
@@ -408,7 +557,6 @@
                       fill="currentColor"
                       d="M21 12a9 9 0 0 0-9-9v3a6 6 0 0 1 6 6h3z"
                     ></path>
-
                   </svg>
 
                   Connecting...
@@ -422,6 +570,7 @@
               </button>
 
 
+
               @if (googleConnectError()) {
 
                 <div
@@ -433,9 +582,24 @@
               }
 
 
+
+              @if (googleDisconnectMessage()) {
+
+                <div
+                  class="mt-3 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
+                >
+                  {{ googleDisconnectMessage() }}
+                </div>
+
+              }
+
+
+
               <p class="mt-3 text-xs leading-relaxed text-faint">
                 Trackr will create a separate calendar called
-                <strong class="font-semibold text-muted">Trackr</strong>
+                <strong class="font-semibold text-muted">
+                  Trackr
+                </strong>
                 in your Google Calendar account.
               </p>
 
@@ -446,9 +610,11 @@
         </div>
 
 
+
         <!-- =====================================================
              APPLE CALENDAR
         ====================================================== -->
+
         <div class="rounded-xl border border-line bg-surface2 p-4">
 
           <div class="flex items-start gap-3">
@@ -469,6 +635,7 @@
                 <rect x="3" y="5" width="18" height="16" rx="2" />
                 <path d="M16 3v4M8 3v4M3 11h18" />
               </svg>
+
             </div>
 
 
@@ -477,6 +644,7 @@
               <h3 class="font-semibold text-ink">
                 Apple Calendar
               </h3>
+
 
               <p class="mt-1 text-sm text-muted">
                 Subscribe to your Trackr schedule from your iPhone,
@@ -512,12 +680,15 @@
       </div>
 
     </section>
+
   }
+
 
 
   <!-- =========================================================
        LOADING / ERROR
   ========================================================== -->
+
   @if (loading()) {
 
     <p class="mt-6 text-sm text-muted">
@@ -535,9 +706,11 @@
   } @else {
 
 
+
     <!-- =======================================================
          MONTH VIEW
     ======================================================== -->
+
     @if (view() === 'month') {
 
       <div class="mt-6 overflow-x-auto">
@@ -559,6 +732,7 @@
             }
 
           </div>
+
 
 
           @for (week of weeks(); track $index) {
@@ -589,6 +763,7 @@
                     </span>
 
                   </div>
+
 
 
                   <div class="mt-1 space-y-1">
@@ -648,9 +823,11 @@
     }
 
 
+
     <!-- =======================================================
          WEEK VIEW
     ======================================================== -->
+
     @if (view() === 'week') {
 
       <div class="mt-6 overflow-x-auto">
@@ -684,6 +861,7 @@
                 </span>
 
               </div>
+
 
 
               <div class="space-y-1">
@@ -737,10 +915,13 @@
     }
 
 
+
     <!-- =======================================================
          SIDE PANELS
     ======================================================== -->
+
     <div class="mt-4 grid gap-4 lg:grid-cols-3">
+
 
       <!-- Upcoming -->
       <section
@@ -809,6 +990,7 @@
       </section>
 
 
+
       <!-- Filter -->
       <section
         class="rounded-2xl border border-line bg-surface p-5 shadow-card"
@@ -865,6 +1047,7 @@
         </div>
 
       </section>
+
 
 
       <!-- This Week -->
@@ -926,6 +1109,7 @@
     </div>
 
 
+
     <p class="mt-3 text-xs text-muted">
       Click a day to see its schedule and add tasks.
       Filters apply to the grid and panels; opening a day still shows
@@ -935,9 +1119,11 @@
   }
 
 
+
   <!-- =========================================================
        DAY PANEL
   ========================================================== -->
+
   @if (selected(); as day) {
 
     <div
@@ -963,7 +1149,6 @@
             aria-label="Close"
             class="grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-surface2"
           >
-
             <svg
               class="h-5 w-5"
               viewBox="0 0 24 24"
@@ -974,10 +1159,10 @@
             >
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
-
           </button>
 
         </div>
+
 
 
         @if (selectedItems().length === 0) {
@@ -1032,6 +1217,7 @@
                 </div>
 
 
+
                 @if (item.kind === 'activity' && item.courseId) {
 
                   <a
@@ -1050,7 +1236,6 @@
                     aria-label="Remove"
                     class="shrink-0 text-muted hover:text-danger-ink"
                   >
-
                     <svg
                       class="h-4 w-4"
                       viewBox="0 0 24 24"
@@ -1061,7 +1246,6 @@
                     >
                       <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
-
                   </button>
 
                 }
@@ -1075,9 +1259,11 @@
         }
 
 
+
         <!-- =====================================================
              ADD TASK FORM
         ====================================================== -->
+
         <form
           [formGroup]="addForm"
           (ngSubmit)="submitAdd()"
@@ -1089,6 +1275,7 @@
           </h3>
 
 
+
           @if (addError()) {
 
             <div
@@ -1098,6 +1285,7 @@
             </div>
 
           }
+
 
 
           <div class="grid grid-cols-2 gap-3">
@@ -1129,6 +1317,7 @@
             </div>
 
 
+
             <div>
 
               <label
@@ -1152,6 +1341,7 @@
             </div>
 
           </div>
+
 
 
           <div>
@@ -1183,6 +1373,7 @@
             }
 
           </div>
+
 
 
           @if (addForm.controls.type.value !== 'other') {
@@ -1224,6 +1415,7 @@
               </div>
 
 
+
               <div>
 
                 <label
@@ -1259,6 +1451,7 @@
           }
 
 
+
           <button
             type="submit"
             [disabled]="saving()"
@@ -1274,5 +1467,123 @@
     </div>
 
   }
+
+  <!-- =========================================================
+     GOOGLE CALENDAR DISCONNECT CONFIRMATION
+========================================================== -->
+
+@if (showGoogleDisconnectConfirm()) {
+
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    (click)="cancelGoogleDisconnect()"
+  >
+
+    <div
+      class="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-pop"
+      (click)="$event.stopPropagation()"
+    >
+
+      <div class="flex items-start gap-3">
+
+        <div
+          class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-danger-soft text-danger-ink"
+        >
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+            <path d="M10.3 3.7 2.2 18a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0z" />
+          </svg>
+        </div>
+
+
+        <div class="min-w-0">
+
+          <h2 class="font-display text-lg font-bold text-ink">
+            Disconnect Google Calendar?
+          </h2>
+
+          <p class="mt-2 text-sm leading-relaxed text-muted">
+            This will remove the Trackr calendar from Google Calendar
+            and stop automatic syncing.
+          </p>
+
+          <p class="mt-2 text-sm leading-relaxed text-muted">
+            Your assignments and events will stay safely in Trackr.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="mt-6 flex justify-end gap-3">
+
+        <button
+          type="button"
+          (click)="cancelGoogleDisconnect()"
+          class="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink transition hover:bg-surface2"
+        >
+          Cancel
+        </button>
+
+
+        <button
+          type="button"
+          (click)="disconnectGoogleCalendar()"
+          [disabled]="disconnectingGoogle()"
+          class="inline-flex items-center gap-2 rounded-lg bg-danger-soft px-4 py-2 text-sm font-semibold text-danger-ink transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+
+          @if (disconnectingGoogle()) {
+
+            <svg
+              class="h-4 w-4 animate-spin"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="9"
+                stroke="currentColor"
+                stroke-width="3"
+              ></circle>
+
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M21 12a9 9 0 0 0-9-9v3a6 6 0 0 1 6 6h3z"
+              ></path>
+            </svg>
+
+            Disconnecting...
+
+          } @else {
+
+            Disconnect
+
+          }
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}
 
 </div>
