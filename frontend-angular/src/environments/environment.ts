@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBase: 'http://localhost:5000',
+  apiBase: 'https://trackr-ai-api.onrender.com',
 };
