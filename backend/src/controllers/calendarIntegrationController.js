@@ -26,6 +26,15 @@ import {
   syncGoogleCalendarForUser,
 } from "../services/calendar/googleCalendarSyncService.js";
 
+import {
+  getUserTimezone,
+  upsertUserTimezone,
+} from "../model/userPreferenceModel.js";
+
+import {
+  queueGoogleCalendarSync,
+} from "../services/calendar/calendarAutoSyncService.js";
+
 const OAUTH_STATE_LIFETIME_MINUTES = 10;
 
 
@@ -127,6 +136,59 @@ function upsertGoogleIntegrationAsync(data) {
   });
 }
 
+
+function getUserTimezoneAsync(userId) {
+  return new Promise((resolve, reject) => {
+    getUserTimezone(
+      userId,
+      (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      }
+    );
+  });
+}
+
+
+function upsertUserTimezoneAsync(
+  userId,
+  timezone
+) {
+  return new Promise((resolve, reject) => {
+    upsertUserTimezone(
+      userId,
+      timezone,
+      (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      }
+    );
+  });
+}
+
+
+function isValidTimeZone(timezone) {
+  try {
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone: timezone,
+      }
+    ).format();
+
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Hashes the OAuth state before storing/looking it up.
@@ -389,10 +451,21 @@ export async function googleCalendarCallback(
      * create the dedicated Trackr Google calendar.
      */
     if (!externalCalendarId) {
+
+      const timeZone =
+        (
+          await getUserTimezoneAsync(
+            userId
+          )
+        ) ?? "UTC";
+
+
       const googleCalendar =
         await createTrackrGoogleCalendar(
-          oauth2Client
+          oauth2Client,
+          timeZone
         );
+
 
       externalCalendarId =
         googleCalendar.id;
@@ -634,6 +707,101 @@ export async function disconnectGoogleCalendar(
       .json({
         message:
           "Unable to disconnect Google Calendar.",
+      });
+  }
+}
+
+/**
+ * PUT /api/calendar-integrations/timezone
+ *
+ * Save the logged-in user's IANA timezone.
+ *
+ * Examples:
+ * America/Toronto
+ * America/Vancouver
+ * Europe/London
+ * Asia/Kabul
+ */
+export async function updateCalendarTimezone(
+  req,
+  res
+) {
+  try {
+    const userId =
+      req.user.user_id;
+
+    const timezone =
+      typeof req.body?.timezone === "string"
+        ? req.body.timezone.trim()
+        : "";
+
+
+    if (
+      !timezone ||
+      timezone.length > 100 ||
+      !isValidTimeZone(timezone)
+    ) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "A valid timezone is required.",
+        });
+    }
+
+
+    const currentTimezone =
+      await getUserTimezoneAsync(
+        userId
+      );
+
+
+    // Nothing changed.
+    if (
+      currentTimezone === timezone
+    ) {
+      return res.json({
+        timezone,
+        changed: false,
+      });
+    }
+
+
+    await upsertUserTimezoneAsync(
+      userId,
+      timezone
+    );
+
+
+    /*
+     * If Google Calendar is connected,
+     * regenerate/update event payloads using
+     * the new timezone.
+     *
+     * If Google is not connected, our
+     * auto-sync helper safely ignores that case.
+     */
+    queueGoogleCalendarSync(
+      userId
+    );
+
+
+    return res.json({
+      timezone,
+      changed: true,
+    });
+
+  } catch (error) {
+    console.error(
+      "Failed to update calendar timezone:",
+      error
+    );
+
+    return res
+      .status(500)
+      .json({
+        message:
+          "Unable to update calendar timezone.",
       });
   }
 }

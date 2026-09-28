@@ -6,11 +6,16 @@ import {
   googleCalendarCallback,
   syncGoogleCalendar,
   disconnectGoogleCalendar,
+  updateCalendarTimezone,
 } from "../controllers/calendarIntegrationController.js";
 
-import { verifyToken } from "../middleware/auth.js";
+import {
+  verifyToken,
+} from "../middleware/auth.js";
 
-const router = express.Router();
+
+const router =
+  express.Router();
 
 
 /**
@@ -22,6 +27,18 @@ router.get(
   "/",
   verifyToken,
   getCalendarIntegrations,
+);
+
+
+/**
+ * PUT /api/calendar-integrations/timezone
+ *
+ * Saves the logged-in user's IANA timezone.
+ */
+router.put(
+  "/timezone",
+  verifyToken,
+  updateCalendarTimezone,
 );
 
 
@@ -54,8 +71,8 @@ router.get(
 /**
  * POST /api/calendar-integrations/google/sync
  *
- * Synchronizes Trackr calendar data with the dedicated
- * Google "Trackr" calendar.
+ * Manually synchronizes Trackr calendar data with
+ * the dedicated Google "Trackr" calendar.
  */
 router.post(
   "/google/sync",
@@ -63,15 +80,17 @@ router.post(
   syncGoogleCalendar,
 );
 
+
 /**
  * DELETE /api/calendar-integrations/google
  *
- * Disconnect the logged-in user's Google Calendar.
+ * Disconnects Google Calendar.
  */
 router.delete(
   "/google",
   verifyToken,
   disconnectGoogleCalendar,
 );
+
 
 export default router;

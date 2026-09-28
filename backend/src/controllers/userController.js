@@ -728,6 +728,7 @@ export const addCourse = (
             req.body,
         );
 
+
     if (!ok) {
         return res
             .status(400)
@@ -739,15 +740,18 @@ export const addCourse = (
             });
     }
 
+
     const {
         course,
         activities,
     } = normalized;
 
+
     courseModel.createCourseWithActivities(
         req.user.user_id,
         course,
         activities,
+
         (err, result) => {
             if (err) {
                 return res
@@ -757,6 +761,19 @@ export const addCourse = (
                             "Failed to create course",
                     });
             }
+
+
+            /*
+             * The course and all syllabus/manual activities
+             * have now been committed successfully.
+             *
+             * Queue ONE Google Calendar sync after the entire
+             * transaction rather than syncing once per activity.
+             */
+            queueGoogleCalendarSync(
+                req.user.user_id,
+            );
+
 
             return res
                 .status(201)
@@ -1457,9 +1474,7 @@ export const deleteCourseById = (
 
             if (
                 !result ||
-                result
-                    .affectedRows ===
-                    0
+                result.affectedRows === 0
             ) {
                 return res
                     .status(404)
@@ -1468,6 +1483,14 @@ export const deleteCourseById = (
                             "Course not found",
                     });
             }
+
+
+            // Course activities were deleted by ON DELETE CASCADE.
+            // Queue Google sync so their mapped Google events
+            // are removed as stale events.
+            queueGoogleCalendarSync(
+                req.user.user_id,
+            );
 
 
             return res
@@ -1543,9 +1566,7 @@ export const setCourseArchive = (
 
             if (
                 !result ||
-                result
-                    .affectedRows ===
-                    0
+                result.affectedRows === 0
             ) {
                 return res
                     .status(404)
@@ -1554,6 +1575,11 @@ export const setCourseArchive = (
                             "Course not found",
                     });
             }
+
+
+            queueGoogleCalendarSync(
+                req.user.user_id,
+            );
 
 
             return res

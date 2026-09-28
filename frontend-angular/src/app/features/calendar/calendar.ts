@@ -299,7 +299,9 @@ export class Calendar {
       },
     });
 
+    this.saveBrowserTimezone();
     this.loadCalendarConnections();
+
   }
 
 
@@ -1281,7 +1283,7 @@ protected disconnectGoogleCalendar(): void {
   }
 
 
-  
+
 
   // ============================================================
   // DAY PANEL
@@ -1669,6 +1671,49 @@ protected disconnectGoogleCalendar(): void {
         b.getDate()
     );
   }
+
+  private saveBrowserTimezone(): void {
+
+  const timezone =
+    Intl.DateTimeFormat()
+      .resolvedOptions()
+      .timeZone;
+
+
+  if (!timezone) {
+    console.warn(
+      'Browser timezone could not be detected.',
+    );
+
+    return;
+  }
+
+
+  this.calendarIntegration
+    .saveTimezone(timezone)
+    .subscribe({
+
+      next: (result) => {
+
+        console.log(
+          'Trackr timezone:',
+          result.timezone,
+        );
+
+      },
+
+
+      error: (err) => {
+
+        console.error(
+          'Could not save Trackr timezone:',
+          err,
+        );
+
+      },
+
+    });
+}
 
 
   private colorOf(

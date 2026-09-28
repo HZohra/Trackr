@@ -21,8 +21,9 @@ import {
   decryptCalendarToken,
 } from "./calendarTokenCrypto.js";
 
-
-const TIME_ZONE = "America/Toronto";
+import {
+  getUserTimezone,
+} from "../../model/userPreferenceModel.js";
 
 
 const CATEGORY_NAMES = {
@@ -76,7 +77,7 @@ function googleStatus(error) {
 }
 
 
-function buildActivityGoogleEvent(activity) {
+function buildActivityGoogleEvent( activity, timeZone) {
   const category =
     CATEGORY_NAMES[
       activity.activity_category_id
@@ -115,16 +116,14 @@ function buildActivityGoogleEvent(activity) {
       dateTime:
         activity.start_datetime,
 
-      timeZone:
-        TIME_ZONE,
+      timeZone,
     },
 
     end: {
       dateTime:
         activity.end_datetime,
 
-      timeZone:
-        TIME_ZONE,
+      timeZone,
     },
 
     extendedProperties: {
@@ -142,7 +141,7 @@ function buildActivityGoogleEvent(activity) {
 }
 
 
-function buildCalendarEventGoogleEvent(event) {
+function buildCalendarEventGoogleEvent( event, timeZone) {
   const base = {
     summary:
       event.title,
@@ -191,16 +190,14 @@ function buildCalendarEventGoogleEvent(event) {
       dateTime:
         event.start_datetime,
 
-      timeZone:
-        TIME_ZONE,
+      timeZone,
     },
 
     end: {
       dateTime:
         event.end_datetime,
 
-      timeZone:
-        TIME_ZONE,
+      timeZone,
     },
   };
 }
@@ -302,6 +299,10 @@ export async function syncGoogleCalendarForUser(
     );
 
 
+  // =========================================================
+  // VALIDATE GOOGLE CONNECTION
+  // =========================================================
+
   if (
     !integration ||
     integration.status !==
@@ -336,6 +337,10 @@ export async function syncGoogleCalendarForUser(
   }
 
 
+  // =========================================================
+  // GOOGLE AUTHENTICATION
+  // =========================================================
+
   const refreshToken =
     decryptCalendarToken(
       integration
@@ -350,10 +355,22 @@ export async function syncGoogleCalendarForUser(
 
 
   try {
+
+    // =========================================================
+    // LOAD USER TIMEZONE + TRACKR DATA + EXISTING MAPPINGS
+    // =========================================================
+
     const [
+      savedTimeZone,
       sources,
       mappings,
     ] = await Promise.all([
+
+      promisifyModel(
+        getUserTimezone,
+        userId
+      ),
+
       promisifyModel(
         getTrackrCalendarSources,
         userId
@@ -363,8 +380,23 @@ export async function syncGoogleCalendarForUser(
         getSyncMappings,
         integration.id
       ),
+
     ]);
 
+
+    /*
+     * Use the user's saved IANA timezone.
+     *
+     * UTC is only a safe fallback for users whose browser
+     * timezone has not been stored yet.
+     */
+    const timeZone =
+      savedTimeZone ?? "UTC";
+
+
+    // =========================================================
+    // BUILD EXISTING MAPPING LOOKUP
+    // =========================================================
 
     const mappingMap =
       new Map(
@@ -401,10 +433,12 @@ export async function syncGoogleCalendarForUser(
       const sourceType =
         "activity";
 
+
       const sourceId =
         String(
           activity.activity_id
         );
+
 
       const key =
         mappingKey(
@@ -412,23 +446,37 @@ export async function syncGoogleCalendarForUser(
           sourceId
         );
 
-      liveSourceKeys.add(key);
+
+      liveSourceKeys.add(
+        key
+      );
 
 
+      /*
+       * IMPORTANT:
+       * The user's timezone is now included in
+       * the Google event payload.
+       */
       const requestBody =
         buildActivityGoogleEvent(
-          activity
+          activity,
+          timeZone
         );
+
 
       const hash =
         contentHash(
           requestBody
         );
 
+
       const existing =
-        mappingMap.get(key);
+        mappingMap.get(
+          key
+        );
 
 
+      // Nothing changed.
       if (
         existing &&
         existing.content_hash === hash
@@ -441,7 +489,12 @@ export async function syncGoogleCalendarForUser(
       let externalEventId;
 
 
+      // ---------------------------------------------------------
+      // UPDATE EXISTING GOOGLE EVENT
+      // ---------------------------------------------------------
+
       if (existing) {
+
         externalEventId =
           await updateOrRecreateGoogleEvent({
             calendar,
@@ -457,8 +510,15 @@ export async function syncGoogleCalendarForUser(
             requestBody,
           });
 
+
         updated++;
+
       } else {
+
+        // -------------------------------------------------------
+        // CREATE NEW GOOGLE EVENT
+        // -------------------------------------------------------
+
         externalEventId =
           await insertGoogleEvent(
             calendar,
@@ -469,9 +529,14 @@ export async function syncGoogleCalendarForUser(
             requestBody
           );
 
+
         created++;
       }
 
+
+      // ---------------------------------------------------------
+      // SAVE / UPDATE TRACKR ↔ GOOGLE MAPPING
+      // ---------------------------------------------------------
 
       await promisifyModel(
         upsertSyncMapping,
@@ -505,10 +570,12 @@ export async function syncGoogleCalendarForUser(
       const sourceType =
         "calendar_event";
 
+
       const sourceId =
         String(
           event.event_id
         );
+
 
       const key =
         mappingKey(
@@ -516,23 +583,37 @@ export async function syncGoogleCalendarForUser(
           sourceId
         );
 
-      liveSourceKeys.add(key);
+
+      liveSourceKeys.add(
+        key
+      );
 
 
+      /*
+       * All-day events do not require a timezone.
+       *
+       * Timed events will use the user's saved timezone.
+       */
       const requestBody =
         buildCalendarEventGoogleEvent(
-          event
+          event,
+          timeZone
         );
+
 
       const hash =
         contentHash(
           requestBody
         );
 
+
       const existing =
-        mappingMap.get(key);
+        mappingMap.get(
+          key
+        );
 
 
+      // Nothing changed.
       if (
         existing &&
         existing.content_hash === hash
@@ -545,7 +626,12 @@ export async function syncGoogleCalendarForUser(
       let externalEventId;
 
 
+      // ---------------------------------------------------------
+      // UPDATE EXISTING GOOGLE EVENT
+      // ---------------------------------------------------------
+
       if (existing) {
+
         externalEventId =
           await updateOrRecreateGoogleEvent({
             calendar,
@@ -561,8 +647,15 @@ export async function syncGoogleCalendarForUser(
             requestBody,
           });
 
+
         updated++;
+
       } else {
+
+        // -------------------------------------------------------
+        // CREATE NEW GOOGLE EVENT
+        // -------------------------------------------------------
+
         externalEventId =
           await insertGoogleEvent(
             calendar,
@@ -573,9 +666,14 @@ export async function syncGoogleCalendarForUser(
             requestBody
           );
 
+
         created++;
       }
 
+
+      // ---------------------------------------------------------
+      // SAVE / UPDATE TRACKR ↔ GOOGLE MAPPING
+      // ---------------------------------------------------------
 
       await promisifyModel(
         upsertSyncMapping,
@@ -603,8 +701,10 @@ export async function syncGoogleCalendarForUser(
     // =========================================================
 
     for (
-      const mapping of mappings
+      const mapping of
+      mappings
     ) {
+
       if (
         mapping.source_type !==
           "activity" &&
@@ -622,12 +722,22 @@ export async function syncGoogleCalendarForUser(
         );
 
 
+      /*
+       * The Trackr source still exists,
+       * so leave the Google event alone.
+       */
       if (
-        liveSourceKeys.has(key)
+        liveSourceKeys.has(
+          key
+        )
       ) {
         continue;
       }
 
+
+      // ---------------------------------------------------------
+      // TRACKR SOURCE NO LONGER EXISTS
+      // ---------------------------------------------------------
 
       await removeGoogleEvent(
         calendar,
@@ -655,6 +765,10 @@ export async function syncGoogleCalendarForUser(
     }
 
 
+    // =========================================================
+    // MARK SUCCESSFUL SYNC
+    // =========================================================
+
     await promisifyModel(
       markIntegrationSynced,
       integration.id
@@ -666,23 +780,38 @@ export async function syncGoogleCalendarForUser(
       updated,
       unchanged,
       deleted,
+
       total:
         sources.activities.length +
         sources.events.length,
     };
 
+
   } catch (error) {
 
+    // =========================================================
+    // RECORD SYNC FAILURE
+    // =========================================================
+
     try {
+
       await promisifyModel(
         markIntegrationError,
         integration.id,
+
         error.message ??
           "Google Calendar sync failed."
       );
+
     } catch {
-      // Do not hide the original sync failure.
+
+      /*
+       * Never hide the original Google
+       * synchronization error.
+       */
+
     }
+
 
     throw error;
   }

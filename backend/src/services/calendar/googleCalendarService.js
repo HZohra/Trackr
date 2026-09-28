@@ -77,7 +77,7 @@ export async function exchangeGoogleCode(code) {
  * Creates the dedicated "Trackr" calendar inside the
  * user's Google Calendar account.
  */
-export async function createTrackrGoogleCalendar(oauth2Client) {
+export async function createTrackrGoogleCalendar( oauth2Client, timeZone = "UTC" ) {
   const calendar = google.calendar({
     version: "v3",
     auth: oauth2Client,
@@ -88,7 +88,7 @@ export async function createTrackrGoogleCalendar(oauth2Client) {
       summary: "Trackr",
       description:
         "Assignments, exams, quizzes, deadlines and study events synced from Trackr.",
-      timeZone: "America/Toronto",
+      timeZone,
     },
   });
 

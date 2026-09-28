@@ -25,7 +25,6 @@ export interface CalendarConnectionStatus {
 
 export interface GoogleCalendarSyncResult {
   message: string;
-
   created: number;
   updated: number;
   unchanged: number;
@@ -41,6 +40,12 @@ interface GoogleConnectResponse {
 
 export interface GoogleDisconnectResponse {
   message: string;
+}
+
+
+export interface CalendarTimezoneResponse {
+  timezone: string;
+  changed: boolean;
 }
 
 
@@ -89,6 +94,19 @@ export class CalendarIntegrationService {
 
     return this.http.delete<GoogleDisconnectResponse>(
       `${this.api}/api/calendar-integrations/google`,
+    );
+  }
+
+
+  saveTimezone(
+    timezone: string,
+  ): Observable<CalendarTimezoneResponse> {
+
+    return this.http.put<CalendarTimezoneResponse>(
+      `${this.api}/api/calendar-integrations/timezone`,
+      {
+        timezone,
+      },
     );
   }
 }
